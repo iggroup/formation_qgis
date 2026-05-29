@@ -1,0 +1,7 @@
+---
+title: "Automatisation de flux de géotraitement"
+---
+
+## Objectif
+
+Décrire comment enchaîner et automatiser des traitements géographiques dans QGIS.

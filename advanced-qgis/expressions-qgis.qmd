@@ -1,0 +1,7 @@
+---
+title: "Expressions QGIS"
+---
+
+## Objectif
+
+Introduire l’utilisation des expressions pour filtrer, calculer et automatiser des comportements dans QGIS.

@@ -1,0 +1,7 @@
+---
+title: "Introduction à PostgreSQL / PostGIS"
+---
+
+## Objectif
+
+Introduire les bases d’une base de données spatiale serveur pour les usages avancés avec QGIS.

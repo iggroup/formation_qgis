@@ -1,0 +1,7 @@
+---
+title: "Configuration des formulaires d’édition"
+---
+
+## Objectif
+
+Préparer les formulaires de saisie pour faciliter l’édition et fiabiliser la collecte des données.

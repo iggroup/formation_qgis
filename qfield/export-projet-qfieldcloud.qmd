@@ -1,0 +1,7 @@
+---
+title: "Export d’un projet QGIS pour QFieldCloud"
+---
+
+## Objectif
+
+Décrire la préparation et l’export d’un projet QGIS vers une chaîne de travail mobile avec QFieldCloud.

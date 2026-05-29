@@ -1,0 +1,7 @@
+---
+title: "Boîte à outils de géotraitement"
+---
+
+## Objectif
+
+Présenter l’organisation des algorithmes de géotraitement disponibles dans QGIS.

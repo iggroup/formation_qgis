@@ -1,0 +1,7 @@
+---
+title: "Modélisation de base de données"
+---
+
+## Objectif
+
+Présenter les concepts de modélisation nécessaires à la préparation des données avant leur intégration dans QGIS.
