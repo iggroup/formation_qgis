@@ -6,9 +6,6 @@ format:
     toc: true
     number-sections: true
     code-fold: false
-  pdf:
-    toc: true
-    number-sections: true
 ---
 
 ## Introduction
@@ -17,14 +14,13 @@ Avant de créer des couches ou d'importer des données dans QGIS, il est crucial
 
 Dans ce chapitre, nous allons définir les entités de notre système d'information, leurs relations et les règles de gestion associées, en nous appuyant sur un cas concret environnemental.
 
-test
 ---
 
 ## 1. Concepts Théoriques
 
 ### 1.1. Du Réel au Numérique : Entités et Attributs
 
-La modélisation consiste à identifier les **objets géographiques** (entités) pertinents pour votre projet et à décrire leurs **caractéristiques** (attributs).
+La modélisation consiste à identifier les **objets géographiques** (entités) pertinents pour votre projet, les relations entre les entités et à décrire leurs **caractéristiques** (attributs) et contraintes.
 
 *   **Entité (Table) :** Représente une catégorie d'objets réels (ex: des parcelles, des rivières, des stations de mesure).
 *   **Géométrie :** La forme spatiale de l'entité (Point, Ligne, Polygone).
@@ -35,14 +31,14 @@ La modélisation consiste à identifier les **objets géographiques** (entités)
 
 Les données ne vivent pas en isolation. Il existe trois types de relations principales :
 
-1.  **Un-à-Un (1:1) :** Un objet est lié à un seul autre objet (ex: Une parcelle a un unique propriétaire titulaire).
+1.  **Un-à-Un (1:1) :** Un objet est lié à un seul autre objet (ex: Une parcelle a une seule fiche de propriété, une fiche de propriété est liée à une seule parcelle).
 2.  **Un-à-Plusieurs (1:N) :** Un objet est lié à plusieurs objets d'une autre table (ex: Une rivière contient plusieurs stations de mesure de qualité).
 3.  **Plusieurs-à-Plusieurs (N:N) :** Plusieurs objets d'une table sont liés à plusieurs objets d'une autre (ex: Une espèce peut être observée sur plusieurs sites, et un site contient plusieurs espèces). *Nécessite une table de jointure intermédiaire.*
 
 ### 1.3. Pourquoi modéliser avant d'implémenter ?
 
 *   **Éviter la redondance :** Ne pas répéter les mêmes informations (ex: ne pas écrire le nom du propriétaire sur chaque parcelle, mais le lier via un ID).
-*   **Intégrité des données :** Assurer la cohérence (ex: empêcher la suppression d'un propriétaire s'il possède encore des parcelles).
+*   **Intégrité des données :** Assurer la cohérence (ex: empêcher la suppression d'un propriétaire s'il possède encore des parcelles). Assurer que les attributs respectent les types de données et les contraintes (ex: une date doit être au format date, un nombre d'individus doit être positif).
 *   **Faciliter les requêtes :** Une bonne structure permet des analyses spatiales et attributaires complexes et rapides.
 
 ---
@@ -103,4 +99,135 @@ Voici la représentation textuelle de notre modèle :
 - nb_individus
 - observateur
 - id_site (Clé Étrangère vers SITE)
-- id_espece (Clé Étrangère vers ESPECE)
+- id_espece (Clé Étrangère vers ESPECE)¨
+```
+
+Voici la représentation graphique de notre modèle de données Biodiversité. 
+Les relations sont notées `|o--o{` (Un à Plusieurs), etc.
+
+```{mermaid}
+erDiagram
+    SITE {
+        int id_site PK
+        text nom
+        text code_national
+        float surface_ha
+        text statut
+    }
+
+    ESPECE {
+        int id_espece PK
+        text nom_latin
+        text nom_vernaculaire
+        text groupe
+        text statut_uicn
+    }
+
+    OBSERVATION {
+        int id_obs PK
+        date date_obs
+        int nb_individus
+        text observateur
+        int id_site FK
+        int id_espece FK
+    }
+
+    SITE ||--o{ OBSERVATION : "contient"
+    ESPECE ||--o{ OBSERVATION : "est observée dans"
+```
+
+## 3. Exercice Pratique : Gestion de la Qualité de l'Eau
+
+### Objectif
+À partir du scénario ci-dessous, concevez le modèle de données (tables, attributs, relations) avant toute manipulation informatique.
+
+### Scénario : "Surveillance des Cours d'Eau"
+
+Une agence de l'eau souhaite mettre en place un SIG pour gérer la qualité de l'eau dans son département. Voici leurs besoins :
+
+1.  Ils doivent recenser les **Cours d'eau** principaux (tronçons de rivières).
+2.  Ils effectuent des **Prélèvements** d'eau à des endroits précis (points) sur ces cours d'eau.
+3.  Chaque prélèvement donne lieu à plusieurs **Analyses** de paramètres différents (pH, Nitrates, Phosphore, Température) avec une valeur mesurée et un seuil de conformité.
+4.  Ils souhaitent aussi suivre les **Communes** traversées par les cours d'eau.
+
+### Travail demandé
+
+1.  **Lister les tables nécessaires** et leurs géométries.
+2.  **Définir les attributs principaux et contraintes** pour chaque table.
+3.  **Dessiner les relations** (1:1, 1:N, ou N:N).
+4.  **Identifier les clés étrangères** nécessaires.
+
+<br>
+<details>
+<summary>🔍 <strong>Cliquez ici pour dévoiler la solution et le schéma</strong></summary>
+
+#### Correction Détaillée
+
+**1. Tables et Attributs :**
+
+*   **COURS_EAU** (Géométrie : **Ligne**)
+    *   `id_cours_eau` (Clé Primaire)
+    *   `nom_riviere`
+    *   `code_hydro`
+    *   `longueur_km`
+
+*   **COMMUNE** (Géométrie : **Polygone**)
+    *   `insee_code` (Clé Primaire)
+    *   `nom_commune`
+    *   `population`
+
+*   **PRELEVEMENT** (Géométrie : **Point**)
+    *   `id_prelevement` (Clé Primaire)
+    *   `date_prelevement`
+    *   `technicien`
+    *   `id_cours_eau` (Clé Étrangère) → *Lien vers le cours d'eau*
+
+*   **ANALYSE** (Géométrie : **Aucune** - Table de détails)
+    *   `id_analyse` (Clé Primaire)
+    *   `id_prelevement` (Clé Étrangère) → *Lien vers le prélèvement*
+    *   `parametre` (ex: "Nitrates")
+    *   `valeur_mesuree`
+    *   `unite`
+    *   `conforme` (Booléen)
+
+**2. Schéma Entité-Relation (MCD) :**
+
+Notez la relation en cascade : Un cours d'eau a plusieurs prélèvements, et un prélèvement a plusieurs analyses.
+
+```{mermaid}
+erDiagram
+    COURS_EAU {
+        int id_cours_eau PK
+        text nom_riviere
+        text code_hydro
+        float longueur_km
+    }
+
+    COMMUNE {
+        text insee_code PK
+        text nom_commune
+        int population
+    }
+
+    PRELEVEMENT {
+        int id_prelevement PK
+        date date_prelevement
+        text technicien
+        int id_cours_eau FK
+    }
+
+    ANALYSE {
+        int id_analyse PK
+        int id_prelevement FK
+        text parametre
+        float valeur_mesuree
+        text unite
+        boolean conforme
+    }
+
+    COURS_EAU ||--o{ PRELEVEMENT : "possède"
+    PRELEVEMENT ||--o{ ANALYSE : "génère"
+    
+    %% Relation N:N simplifiée ou ignorée pour l'exercice de base
+    COURS_EAU }|--|{ COMMUNE : "traverse"
+```
