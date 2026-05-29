@@ -1,0 +1,7 @@
+---
+title: "Édition topologique"
+---
+
+## Objectif
+
+Présenter les règles et outils permettant de préserver la cohérence topologique lors de l’édition.

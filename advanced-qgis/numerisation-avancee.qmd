@@ -1,0 +1,7 @@
+---
+title: "Numérisation avancée"
+---
+
+## Objectif
+
+Introduire les outils et méthodes de numérisation avancée dans QGIS.

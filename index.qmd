@@ -1,0 +1,35 @@
+---
+title: "Formation QGIS"
+---
+
+Bienvenue dans la structure Quarto de la formation QGIS.
+
+## Parcours proposés
+
+### Base de données
+
+- Modélisation de base de données
+- Implémentation d’une base de données GPKG
+- Configuration du projet QGIS
+- Configuration des formulaires d’édition
+- Introduction à PostgreSQL / PostGIS
+- Introduction à Interlis
+
+### QField
+
+- Export d’un projet QGIS pour QFieldCloud
+- Levé et édition QField
+
+### Advanced QGIS
+
+#### Édition avancée
+
+- Numérisation avancée
+- Édition topologique
+
+#### Géotraitement
+
+- Expressions QGIS
+- Boîte à outils de géotraitement
+- Automatisation de flux de géotraitement
+- Introduction aux plugins QGIS

@@ -1,0 +1,7 @@
+---
+title: "Configuration du projet QGIS"
+---
+
+## Objectif
+
+Décrire les paramètres de projet à préparer pour garantir un environnement de travail cohérent.

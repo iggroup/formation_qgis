@@ -1,0 +1,7 @@
+---
+title: "Introduction à Interlis"
+---
+
+## Objectif
+
+Présenter Interlis comme cadre d’échange et de structuration des données géographiques.

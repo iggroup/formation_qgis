@@ -1,0 +1,7 @@
+---
+title: "Introduction aux plugins QGIS"
+---
+
+## Objectif
+
+Présenter le rôle des plugins et leurs usages pour étendre les fonctionnalités de QGIS.

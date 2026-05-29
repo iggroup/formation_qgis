@@ -1,0 +1,57 @@
+project:
+  type: website
+
+website:
+  title: "Formation QGIS"
+  page-navigation: true
+  sidebar:
+    style: docked
+    search: true
+    contents:
+      - href: index.qmd
+        text: Accueil
+      - section: "Base de données"
+        contents:
+          - href: base-de-donnees/modelisation-base-de-donnees.qmd
+            text: "Modélisation de base de données"
+          - href: base-de-donnees/implementation-base-gpkg.qmd
+            text: "Implémentation d’une base de données GPKG"
+          - href: base-de-donnees/configuration-projet-qgis.qmd
+            text: "Configuration du projet QGIS"
+          - href: base-de-donnees/formulaires-edition.qmd
+            text: "Configuration des formulaires d’édition"
+          - href: base-de-donnees/introduction-postgresql-postgis.qmd
+            text: "Introduction à PostgreSQL / PostGIS"
+          - href: base-de-donnees/introduction-interlis.qmd
+            text: "Introduction à Interlis"
+      - section: "QField"
+        contents:
+          - href: qfield/export-projet-qfieldcloud.qmd
+            text: "Export d’un projet QGIS pour QFieldCloud"
+          - href: qfield/leve-et-edition-qfield.qmd
+            text: "Levé et édition QField"
+      - section: "Advanced QGIS"
+        contents:
+          - section: "Édition avancée"
+            contents:
+              - href: advanced-qgis/numerisation-avancee.qmd
+                text: "Numérisation avancée"
+              - href: advanced-qgis/edition-topologique.qmd
+                text: "Édition topologique"
+          - section: "Géotraitement"
+            contents:
+              - href: advanced-qgis/expressions-qgis.qmd
+                text: "Expressions QGIS"
+              - href: advanced-qgis/boite-outils-geotraitement.qmd
+                text: "Boîte à outils de géotraitement"
+              - href: advanced-qgis/automatisation-flux-geotraitement.qmd
+                text: "Automatisation de flux de géotraitement"
+              - href: advanced-qgis/introduction-plugins-qgis.qmd
+                text: "Introduction aux plugins QGIS"
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+
+lang: fr

@@ -1,0 +1,7 @@
+---
+title: "Implémentation d’une base de données GPKG"
+---
+
+## Objectif
+
+Structurer une base GeoPackage adaptée à un projet QGIS et à ses besoins de saisie.
