@@ -1,7 +1,297 @@
 ---
 title: "Configuration du projet QGIS"
+subtitle: "Module 1 : De la structure à l'usage"
+format:
+  html:
+	 toc: true
+	 number-sections: true
+	 code-fold: true
 ---
 
-## Objectif
+## Introduction
 
-Décrire les paramètres de projet à préparer pour garantir un environnement de travail cohérent.
+Une base de données bien modélisée n'est utile que si son usage dans QGIS est **cohérent, guidé et fiable**. Après la création des tables (`sites`, `observations`, `especes`), l'étape suivante consiste à configurer le projet QGIS pour :
+
+1. **Structurer les liens** entre les couches (relations 1:N).
+2. **Encadrer et faciliter la saisie** via des formulaires d'édition.
+3. **Améliorer la lecture cartographique** via des symbologies adaptées.
+
+Cette phase joue le rôle de « couche métier » : on passe d'une base technique à un outil opérationnel pour les utilisateurs terrain et bureau.
+
+---
+
+## 1. Rappels théoriques
+
+### 1.1. Pourquoi configurer le projet (et pas seulement les tables) ?
+
+Un schéma de données définit ce qui est *possible*. Le projet QGIS définit ce qui est *facile et sûr*.
+
+Sans configuration :
+
+* Risque de saisies incohérentes (`statut_uicn` erroné, doublons, oublis).
+* Navigation difficile entre entités liées.
+* Cartographie hétérogène entre utilisateurs.
+
+Avec une bonne configuration :
+
+* Les relations sont explicites (un site → plusieurs observations).
+* Les formulaires guident l'utilisateur (listes de valeurs, champs obligatoires).
+* Les styles transmettent mieux l'information (priorité visuelle, hiérarchie).
+
+### 1.2. Les trois piliers de configuration
+
+1. **Relations** : organisation logique entre couches.
+2. **Formulaires** : qualité de saisie et ergonomie.
+3. **Symbologies** : lisibilité et communication cartographique.
+
+---
+
+## 2. Préparation du projet QGIS
+
+### 2.1. Ajout d'un fond de plan
+Avant d'ajouter vos couches, il est souvent utile d'avoir un fond de plan pour situer les données. Par exemple, ajoutez une couche map.geo.admin.ch comme *light base map* via le plugin **Swisslocator** et une recherche dans le champs de recherche au fond de la fenêtre QGIS.
+
+
+### 2.2. Charger les couches du GeoPackage
+
+1. Ouvrez votre projet QGIS.
+2. Ajoutez les couches `sites`, `observations`, `especes` depuis le `.gpkg`.
+<!-- 3. Vérifiez les champs clés :
+	* `sites.id` (ou clé primaire créée par QGIS)
+	* `observations.id_site`
+	* `observations.id_espece`
+	* `especes.id_espece` (si utilisé comme identifiant métier) -->
+
+> **Bon réflexe :** renommer les couches dans le panneau pour des noms clairs (`Sites`, `Observations`, `Espèces`) sans modifier les noms de table.
+
+### 2.3. Paramètres de projet recommandés
+
+Dans **Projet > Propriétés** :
+
+* **SCR du projet** : choisissez le SCR de travail officiel du mandat (ex. CH1903+ / LV95, EPSG:2056).
+* **Chemins relatifs** : utilisez des chemins relatifs pour faciliter le partage du projet.
+
+---
+## 3. Création de données de test
+
+Avant de configurer les relations et les formulaires, il est utile d'avoir quelques données de test pour valider les configurations. Voici un exemple de données à insérer dans chaque table :
+* **Table `sites`**, digitalisez quelques polygones représentant des sites protégés avec les champs suivants :
+    | id_site | nom           | code_national | surface_ha | statut       |
+    |---------|---------------|---------------|-------------|--------------|
+    | 1       | Lac Bleu      | LB001         | 150.5       | Réserve      |
+    | 2       | Forêt Verte    | FV002         | 300.0       | Parc         |
+    | 3       | Zone Humide    | ZH003         | 75.0        | Zone humide   |
+
+* **Table `observations`**, ajoutez quelques points représentant des observations avec les champs suivants :   
+    | id_observation | date_obs   | nb_individus | observateur  | id_site | id_espece |
+    |----------------|------------|--------------|--------------|---------|-----------|
+    | 1              | 2024-05-01 | 5            | Alice Dupont | 1       | 1         |
+    | 2              | 2024-05-02 | 2            | Bob Martin   | 1       | 2         |
+    | 3              | 2024-05-03 | 10           | Carol Smith  | 2       | 1         |
+    | 4              | 2024-05-04 | 0            | David Lee    | 3       | NULL      |
+
+
+## 4. Configuration des relations
+
+
+
+### 4.1. Relation `sites` → `observations` (1:N)
+
+::: {.callout-note}
+## Info — Force de la relation
+
+**force du lien** entre objets :
+
+* **Association (lien faible)** : l'enfant peut exister sans le parent. Par exemple, une observation peut rester stockée même si le site n'est pas chargé dans le projet QGIS. Dans ce cas, la relation sert surtout à **faciliter la navigation** et la saisie, sans imposer une dépendance forte sur le cycle de vie des objets.
+* **Composition (lien fort)** : l'enfant n'a de sens qu'avec le parent. Exemple conceptuel : une observation est « partie de » un site précis. En base relationnelle, cela se traduit par des contraintes plus strictes (clé étrangère obligatoire, éventuellement suppression en cascade).
+
+Dans QGIS, les relations définies dans **Projet > Propriétés > Relations** sont principalement des relations d'**association métier** (ergonomie de formulaire, consultation parent/enfant). La « force composition » dépend surtout des règles de la base de données (contraintes `NOT NULL`, `FOREIGN KEY`, politiques de suppression), pas uniquement de l'interface QGIS.
+
+Pour notre formation :
+
+* `sites` → `observations` : généralement **composition métier** (une observation doit être rattachée à un site),
+* `especes` → `observations` : **association forte** ou composition selon vos règles de gestion (catalogue imposé ou non).
+:::
+
+Dans **Projet > Propriétés > Relations** :
+
+1. Cliquez sur **Ajouter une relation**.
+2. Force de la relation : *Association*.
+3. Paramétrez :
+	* **Nom** : `site_observations`
+	* **Couche parente** : `sites`
+	* **Champ parent** : `id_site`
+	* **Couche enfant** : `observations`
+	* **Champ enfant** : `id_site`
+4. Enregistrez.
+
+Effet attendu : depuis un site, QGIS affiche automatiquement les observations associées.
+
+### 4.2. Relation `especes` → `observations` (1:N)
+
+Ajoutez une seconde relation :
+* **Force de la relation** : *Association*.
+* **Nom** : `espece_observations`
+* **Couche parente** : `especes`
+* **Champ parent** : `id_espece`
+* **Couche enfant** : `observations`
+* **Champ enfant** : `id_espece`
+  
+Effet attendu : depuis une espèce, QGIS affiche automatiquement les observations associées.
+
+### 4.3. Test rapide des relations
+
+1. Ouvrez la table attributaire de `sites`.
+2. Sélectionnez un enregistrement.
+3. Vérifiez dans le formulaire qu'un volet « enfants » affiche les lignes liées d'`observations`.
+
+---
+
+## 5. Configuration des formulaires d'édition
+
+### 5.1. Principes
+
+Un bon formulaire doit :
+
+* réduire les erreurs,
+* accélérer la saisie,
+* rendre explicites les règles métier.
+
+Dans **Propriétés de la couche > Formulaire d'attributs**, configurez les widgets champ par champ.
+
+### 5.2. Formulaire de `observations`
+
+Configuration recommandée :
+
+* `date_obs` → **Date/Heure** (valeur par défaut : date du jour si pertinent).
+* `nb_individus` → **Numérique** (minimum = 0).
+* `observateur` → **Texte** (longueur raisonnable).
+* `id_site` → **Référence de relation** vers `sites` (afficher `nom` plutôt que l'ID brut).
+* `id_espece` → **Référence de relation** vers `especes` (afficher `nom_latin` ou `nom_vernaculaire`).
+
+Conseils :
+
+* Marquer les champs indispensables en **obligatoires**.
+* Réorganiser l'ordre des champs pour suivre la logique de saisie terrain.
+* Regrouper visuellement les champs (bloc « Contexte », bloc « Taxonomie », etc.).
+
+### 5.3. Formulaire de `sites`
+
+* `nom` : texte libre (obligatoire recommandé).
+* `code_national` : texte, idéalement unique.
+* `surface_ha` : numérique décimal avec contrainte positive.
+* `statut` : **Liste de valeurs** (ex. `Réserve`, `Parc`, `Zone humide`, `Autre`).
+
+Ajoutez, si utile, une **expression de valeur par défaut** pour certains champs récurrents.
+
+### 5.4. Contrôles qualité via expressions
+
+Exemples d'expressions de contrainte dans QGIS :
+
+```qgis
+"nb_individus" >= 0
+```
+
+```qgis
+length(trim("nom_latin")) > 0
+```
+
+```qgis
+regexp_match("code_national", '^[A-Z0-9_-]+$')
+```
+
+---
+
+### 5.5. Question de compréhension
+
+Quelles tables pourraient être ajoutées au modèle actuel pour améliorer la qualité de saisie ? 
+
+<details>
+<summary><strong>Voir la réponse</strong></summary>
+
+Deux améliorations importantes :
+
+1. **Table `observateurs`** reliée à `observations` (au lieu d'un champ texte libre `observateur`) :
+	* évite les variantes d'écriture (`N. Dupont`, `Norbert Dupont`, etc.),
+	* centralise les informations (organisation, contact),
+	* facilite les analyses par observateur.
+
+2. **Table `statuts_sites`** reliée à `sites.statut` :
+	* impose une liste contrôlée de valeurs,
+	* évite fautes de frappe et doublons sémantiques,
+	* rend les symbologies et statistiques plus robustes.
+
+En résumé, ces tables transforment des champs libres en **référentiels**, donc plus de cohérence et moins d'erreurs.
+
+</details>
+
+
+## 6. Configuration des symbologies
+
+### 6.1. Objectif cartographique
+
+La symbologie doit répondre à une question métier. Ici :
+
+* Où sont les sites ?
+* Où se concentrent les observations ?
+* Quelles espèces ou statuts dominent ?
+
+### 6.2. Style recommandé pour `sites`
+
+* Symbole **polygone** avec remplissage léger (30–40% d'opacité).
+* Contour plus foncé pour la lisibilité.
+* Classification par `statut` (catégorisé) pour distinguer les types de protection.
+
+### 6.3. Style recommandé pour `observations`
+
+Option A (lecture simple) :
+
+* Symbole ponctuel unique (couleur contrastée), taille fixe.
+
+Option B (lecture quantitative) :
+
+* Symbole gradué selon `nb_individus`.
+* Classes logarithmiques ou quantiles si la distribution est hétérogène.
+
+Option C (lecture taxonomique) :
+
+* Catégorisation selon groupe d'espèce (via jointure ou champ dérivé).
+
+### 6.4. Étiquetage et ordre d'affichage
+
+* Étiquettes `sites` sur `nom` avec halo blanc.
+* Affichez `observations` au-dessus de `sites`.
+* Évitez la surcharge : appliquer des échelles de visibilité (ex. points à partir de 1:50'000).
+
+
+
+
+---
+
+## 7. Validation finale (checklist)
+
+Avant diffusion du projet à l'équipe :
+
+* [ ] Les 3 couches s'ouvrent sans erreur depuis le `.gpkg`.
+* [ ] Les relations `site_observations` et `espece_observations` fonctionnent.
+* [ ] Les formulaires limitent les erreurs (listes, contraintes, valeurs par défaut).
+* [ ] Les styles sont lisibles et homogènes.
+* [ ] Le projet `.qgz` est enregistré avec chemins relatifs.
+
+---
+
+## Conclusion
+
+La configuration du projet QGIS transforme votre base GPKG en un outil métier robuste :
+
+* les **relations** structurent les liens,
+* les **formulaires** sécurisent la saisie,
+* les **symbologies** rendent la carte immédiatement exploitable.
+
+Dans le chapitre suivant, nous approfondirons les **formulaires d'édition avancés** (logique conditionnelle, widgets spécialisés, contrôle qualité renforcé).
+
+## Références
+
+* [Documentation QGIS - Relations](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/joins_relations.html)
+* [Documentation QGIS - Formulaires d'attributs](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html#attributes-form)
+* [Documentation QGIS - Symbologie](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html#symbology-properties)

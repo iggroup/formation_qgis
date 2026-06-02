@@ -1,7 +1,422 @@
 ---
 title: "Introduction à PostgreSQL / PostGIS"
+subtitle: "Module 1 : Passage du fichier local à la base serveur"
+format:
+  html:
+	toc: true
+	number-sections: true
+	code-fold: true
 ---
 
-## Objectif
+## Introduction
 
-Introduire les bases d’une base de données spatiale serveur pour les usages avancés avec QGIS.
+Après avoir travaillé avec un GeoPackage (`.gpkg`), l'étape suivante consiste à comprendre quand et pourquoi migrer vers une base de données serveur : **PostgreSQL + PostGIS**.
+
+Cette combinaison est un standard SIG professionnel pour les contextes multi-utilisateurs, les volumes importants et les flux de production robustes.
+
+---
+
+## 1. Partie théorique
+
+## 1.1. PostgreSQL et PostGIS, c'est quoi ?
+
+* **PostgreSQL** : système de gestion de base de données relationnelle (SGBDR) open source, orienté fiabilité, intégrité et performance.
+* **PostGIS** : extension spatiale de PostgreSQL qui ajoute les géométries, index spatiaux et fonctions d'analyse (intersection, buffer, distance, etc.).
+
+En pratique, PostGIS transforme PostgreSQL en base de données spatiale complète, comparable aux solutions SIG serveurs propriétaires.
+
+## 1.2. Comparaison GPKG vs PostgreSQL/PostGIS
+
+### Avantages de PostgreSQL/PostGIS
+
+* **Multi-utilisateurs réel** : plusieurs personnes éditent en parallèle avec gestion de concurrence.
+* **Intégrité forte** : contraintes, clés étrangères, transactions, triggers.
+* **Scalabilité** : mieux adapté aux gros volumes et aux requêtes complexes.
+* **Sécurité** : gestion fine des rôles/permissions (lecture, écriture, schéma, table).
+* **Automatisation** : scripts SQL, vues, procédures, pipelines ETL. De nombreus traitements spatiaux réalisés d'habitude dans QGIS peuvent être automatisés côté base de données.
+* **Interopérabilité avancée** : très bien intégré avec QGIS, Python, FME, BI, APIs.
+
+### Inconvénients de PostgreSQL/PostGIS
+
+* **Complexité initiale et stratégie d'exploitation** plus élevée (installation, administration, sauvegardes, monitoring du serveur). Des fournisseurs de services cloud proposent des instances gérées pour simplifier cette étape.
+* **Courbe d'apprentissage SQL** plus marquée pour les équipes débutantes.
+
+### Avantages du GeoPackage (rappel)
+
+* Simplicité extrême (un seul fichier).
+* Idéal pour prototype, terrain isolé, transfert ponctuel.
+* Pas d'infrastructure serveur à maintenir.
+
+### Limites du GeoPackage (quand il faut évoluer)
+
+* Edition concurrente limitée.
+* Gouvernance et permissions rudimentaires.
+* Montée en charge plus délicate (volume, audit, workflow d'équipe).
+
+::: {.callout-note}
+## Règle pratique
+
+* **1 personne / petit projet / usage local** → GeoPackage convient souvent.
+* **Équipe / production / continuité de service** → PostgreSQL/PostGIS devient la solution recommandée.
+:::
+
+## 1.3. Architecture logique proposée pour la formation
+
+Nous utiliserons :
+
+* un schéma métier `biodiv` pour les tables opérationnelles,
+* un schéma `ref` pour les listes de valeurs (domaines contrôlés).
+
+Cette séparation clarifie le modèle :
+
+* `biodiv` = données vivantes (sites, observations, observateurs, espèces),
+* `ref` = référentiels stables (statuts de site, groupes taxonomiques, statuts UICN).
+
+---
+
+## 2. Partie appliquée : création du modèle complet
+
+## 2.1. Pré-requis
+
+* PostgreSQL installé (version récente recommandée).
+* Extension PostGIS activable.
+* Accès à un utilisateur ayant droits de création de base/schéma.
+* PgAdmin
+
+> Guide d'installation détaillé : [Prérequis logiciels PostgreSQL / PostGIS](prerequis-logiciels-postgresql-postgis.qmd)
+
+## 2.2. Création d'une base de données via l'interface PgAdmin
+1. Ouvrez PgAdmin et connectez-vous à votre serveur PostgreSQL.
+2. Clic droit sur "Databases" > "Create" > "Database".  
+
+## 2.2. Script SQL complet (schémas, tables, contraintes, index)
+
+Le script ci-dessous crée un modèle complet avec :
+
+* `sites` (polygones),
+* `observations` (points),
+* `especes` (table attributaire),
+* `observateurs` (nouvelle table),
+* listes de valeurs dans `ref`.
+
+```sql
+-- =====================================================
+-- 0) Base et extensions (à exécuter avec un rôle admin)
+-- =====================================================
+-- CREATE DATABASE formation_biodiv;
+-- \c formation_biodiv
+
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- =====================
+-- 1) Schémas
+-- =====================
+CREATE SCHEMA IF NOT EXISTS ref;
+CREATE SCHEMA IF NOT EXISTS biodiv;
+
+-- =====================
+-- 2) Listes de valeurs (ref)
+-- =====================
+
+CREATE TABLE IF NOT EXISTS ref.site_statut (
+	code            text PRIMARY KEY,
+	libelle         text NOT NULL UNIQUE,
+	actif           boolean NOT NULL DEFAULT true,
+	ordre_affichage integer NOT NULL DEFAULT 100
+);
+
+CREATE TABLE IF NOT EXISTS ref.espece_groupe (
+	code            text PRIMARY KEY,
+	libelle         text NOT NULL UNIQUE,
+	actif           boolean NOT NULL DEFAULT true,
+	ordre_affichage integer NOT NULL DEFAULT 100
+);
+
+CREATE TABLE IF NOT EXISTS ref.uicn_statut (
+	code            text PRIMARY KEY,
+	libelle         text NOT NULL UNIQUE,
+	actif           boolean NOT NULL DEFAULT true,
+	ordre_affichage integer NOT NULL DEFAULT 100
+);
+
+-- Valeurs initiales
+INSERT INTO ref.site_statut (code, libelle, ordre_affichage) VALUES
+('RES', 'Réserve', 10),
+('PARC', 'Parc', 20),
+('ZH', 'Zone humide', 30),
+('AUTRE', 'Autre', 99)
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO ref.espece_groupe (code, libelle, ordre_affichage) VALUES
+('MAM', 'Mammifère', 10),
+('OIS', 'Oiseau', 20),
+('POI', 'Poisson', 30),
+('PLA', 'Plante', 40),
+('INS', 'Insecte', 50)
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO ref.uicn_statut (code, libelle, ordre_affichage) VALUES
+('LC', 'Préoccupation mineure', 10),
+('NT', 'Quasi menacée', 20),
+('VU', 'Vulnérable', 30),
+('EN', 'En danger', 40),
+('CR', 'En danger critique', 50),
+('EW', 'Éteinte à l’état sauvage', 60),
+('EX', 'Éteinte', 70)
+ON CONFLICT (code) DO NOTHING;
+
+-- =====================
+-- 3) Tables métier (biodiv)
+-- =====================
+
+CREATE TABLE IF NOT EXISTS biodiv.sites (
+	id_site         bigserial PRIMARY KEY,
+	code_national   text NOT NULL UNIQUE,
+	nom             text NOT NULL,
+	statut_code     text NOT NULL,
+	surface_ha      numeric(12,2) NOT NULL,
+	geom            geometry(MultiPolygon, 2056) NOT NULL,
+	created_at      timestamptz NOT NULL DEFAULT now(),
+	updated_at      timestamptz NOT NULL DEFAULT now(),
+
+	CONSTRAINT chk_sites_surface_positive CHECK (surface_ha > 0),
+	CONSTRAINT fk_sites_statut
+		FOREIGN KEY (statut_code)
+		REFERENCES ref.site_statut(code)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS biodiv.observateurs (
+	id_observateur  bigserial PRIMARY KEY,
+	nom_complet     text NOT NULL,
+	organisme       text,
+	email           text,
+	actif           boolean NOT NULL DEFAULT true,
+	created_at      timestamptz NOT NULL DEFAULT now(),
+	updated_at      timestamptz NOT NULL DEFAULT now(),
+
+	CONSTRAINT uq_observateurs_nom_org UNIQUE (nom_complet, organisme)
+);
+
+CREATE TABLE IF NOT EXISTS biodiv.especes (
+	id_espece           bigserial PRIMARY KEY,
+	nom_latin           text NOT NULL UNIQUE,
+	nom_vernaculaire    text,
+	groupe_code         text NOT NULL,
+	statut_uicn_code    text NOT NULL,
+	created_at          timestamptz NOT NULL DEFAULT now(),
+	updated_at          timestamptz NOT NULL DEFAULT now(),
+
+	CONSTRAINT fk_especes_groupe
+		FOREIGN KEY (groupe_code)
+		REFERENCES ref.espece_groupe(code)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	CONSTRAINT fk_especes_uicn
+		FOREIGN KEY (statut_uicn_code)
+		REFERENCES ref.uicn_statut(code)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS biodiv.observations (
+	id_observation   bigserial PRIMARY KEY,
+	id_site          bigint NOT NULL,
+	id_espece        bigint NOT NULL,
+	id_observateur   bigint NOT NULL,
+	date_obs         date NOT NULL,
+	nb_individus     integer NOT NULL,
+	commentaire      text,
+	geom             geometry(Point, 2056) NOT NULL,
+	created_at       timestamptz NOT NULL DEFAULT now(),
+	updated_at       timestamptz NOT NULL DEFAULT now(),
+
+	CONSTRAINT chk_observations_nb_non_negatif CHECK (nb_individus >= 0),
+	CONSTRAINT fk_observations_site
+		FOREIGN KEY (id_site)
+		REFERENCES biodiv.sites(id_site)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	CONSTRAINT fk_observations_espece
+		FOREIGN KEY (id_espece)
+		REFERENCES biodiv.especes(id_espece)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	CONSTRAINT fk_observations_observateur
+		FOREIGN KEY (id_observateur)
+		REFERENCES biodiv.observateurs(id_observateur)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT
+);
+
+-- =====================
+-- 4) Index pour performance
+-- =====================
+
+CREATE INDEX IF NOT EXISTS sidx_sites_geom
+	ON biodiv.sites USING gist (geom);
+
+CREATE INDEX IF NOT EXISTS sidx_observations_geom
+	ON biodiv.observations USING gist (geom);
+
+CREATE INDEX IF NOT EXISTS idx_observations_site
+	ON biodiv.observations (id_site);
+
+CREATE INDEX IF NOT EXISTS idx_observations_espece
+	ON biodiv.observations (id_espece);
+
+CREATE INDEX IF NOT EXISTS idx_observations_observateur
+	ON biodiv.observations (id_observateur);
+```
+
+## 2.3. Jeux de données d'exemple
+
+```sql
+-- Référentiels
+INSERT INTO ref.site_statut (code, libelle, ordre_affichage) VALUES
+('RES', 'Réserve', 10),
+('PARC', 'Parc', 20),
+('ZH', 'Zone humide', 30),
+('AUTRE', 'Autre', 99)
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO ref.espece_groupe (code, libelle, ordre_affichage) VALUES
+('MAM', 'Mammifère', 10),
+('OIS', 'Oiseau', 20),
+('POI', 'Poisson', 30),
+('PLA', 'Plante', 40),
+('INS', 'Insecte', 50)
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO ref.uicn_statut (code, libelle, ordre_affichage) VALUES
+('LC', 'Préoccupation mineure', 10),
+('NT', 'Quasi menacée', 20),
+('VU', 'Vulnérable', 30),
+('EN', 'En danger', 40),
+('CR', 'En danger critique', 50),
+('EW', 'Éteinte à l’état sauvage', 60),
+('EX', 'Éteinte', 70)
+ON CONFLICT (code) DO NOTHING;
+
+-- Observateurs
+INSERT INTO biodiv.observateurs (nom_complet, organisme, email) VALUES
+('Norbert Exemple', 'Conservatoire alpin', 'norbert.exemple@demo.ch'),
+('Camille Martin', 'Conservatoire alpin', 'camille.martin@demo.ch'),
+('Lucie Perrin', 'Bureau biodiversité', 'lucie.perrin@demo.ch')
+ON CONFLICT DO NOTHING;
+
+-- Espèces
+INSERT INTO biodiv.especes (nom_latin, nom_vernaculaire, groupe_code, statut_uicn_code) VALUES
+('Ursus arctos', 'Ours brun', 'MAM', 'LC'),
+('Aquila chrysaetos', 'Aigle royal', 'OIS', 'LC'),
+('Lynx lynx', 'Lynx boréal', 'MAM', 'VU'),
+('Salmo salar', 'Saumon atlantique', 'POI', 'EN'),
+('Pinus cembra', 'Arve', 'PLA', 'LC')
+ON CONFLICT (nom_latin) DO NOTHING;
+
+-- Sites (géométries en Valais, EPSG:2056)
+INSERT INTO biodiv.sites (code_national, nom, statut_code, surface_ha, geom) VALUES
+(
+	'VS-001',
+	'Site alpin de Martigny',
+	'PARC',
+	215.40,
+	ST_GeomFromText('MULTIPOLYGON(((2577800 1116000, 2578200 1116000, 2578200 1116400, 2577800 1116400, 2577800 1116000)))', 2056)
+),
+(
+	'VS-002',
+	'Zone humide de Sierre',
+	'ZH',
+	48.75,
+	ST_GeomFromText('MULTIPOLYGON(((2593300 1121500, 2593600 1121500, 2593600 1121800, 2593300 1121800, 2593300 1121500)))', 2056)
+),
+(
+	'VS-003',
+	'Réserve de la vallée de Conches',
+	'RES',
+	612.20,
+	ST_GeomFromText('MULTIPOLYGON(((2700200 1151500, 2700800 1151500, 2700800 1152100, 2700200 1152100, 2700200 1151500)))', 2056)
+)
+ON CONFLICT (code_national) DO NOTHING;
+
+-- Observations (points en Valais, EPSG:2056)
+INSERT INTO biodiv.observations (id_site, id_espece, id_observateur, date_obs, nb_individus, commentaire, geom) VALUES
+(
+	1,
+	1,
+	1,
+	DATE '2026-05-12',
+	2,
+	'Observation au bord du site',
+	ST_GeomFromText('POINT(2577950 1116110)', 2056)
+),
+(
+	2,
+	2,
+	2,
+	DATE '2026-05-14',
+	1,
+	'Vol observé au-dessus de la zone humide',
+	ST_GeomFromText('POINT(2593430 1121660)', 2056)
+),
+(
+	2,
+	5,
+	3,
+	DATE '2026-05-18',
+	18,
+	'Station floristique en bordure de zone',
+	ST_GeomFromText('POINT(2593480 1121710)', 2056)
+),
+(
+	3,
+	3,
+	1,
+	DATE '2026-05-20',
+	1,
+	'Indice de présence en forêt',
+	ST_GeomFromText('POINT(2700500 1151800)', 2056)
+)
+ON CONFLICT DO NOTHING;
+```
+
+## 2.4. Exploitation dans QGIS
+
+Dans QGIS :
+
+1. Créez une connexion PostgreSQL.
+2. Chargez les couches `biodiv.sites` et `biodiv.observations` (géométriques), puis les tables attributaires `biodiv.especes`, `biodiv.observateurs`, `ref.*`.
+3. Configurez les relations dans le projet :
+   * `sites.id_site` → `observations.id_site`
+   * `especes.id_espece` → `observations.id_espece`
+   * `observateurs.id_observateur` → `observations.id_observateur`
+4. Dans les formulaires de `observations`, utilisez des widgets de **référence de relation** pour éviter la saisie libre.
+
+---
+
+## 3. Bonnes pratiques à retenir
+
+* Séparer les référentiels (`ref`) des données métier (`biodiv`).
+* Préférer des clés techniques (`bigserial`) + codes métiers explicites.
+* Nommer clairement les contraintes (`fk_...`, `chk_...`, `uq_...`).
+* Indexer les géométries et les clés étrangères.
+* Versionner le SQL dans Git pour assurer la reproductibilité.
+
+---
+
+## Conclusion
+
+Le passage à PostgreSQL/PostGIS apporte une base plus robuste que le GeoPackage pour les usages d'équipe :
+
+* meilleure intégrité,
+* meilleure performance,
+* meilleure gouvernance.
+
+Avec le modèle proposé, vous disposez d'une structure prête pour la production QGIS, incluant `observateurs` et des listes de valeurs maintenues dans un schéma dédié.
+
+## Références
+
+* [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+* [PostGIS Documentation](https://postgis.net/documentation/)
+* [Documentation QGIS - Gestion des connexions PostgreSQL](https://docs.qgis.org/latest/fr/docs/user_manual/managing_data_source/opening_data.html#postgresql-layers)

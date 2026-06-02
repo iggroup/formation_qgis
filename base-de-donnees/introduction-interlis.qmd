@@ -1,7 +1,287 @@
 ---
 title: "Introduction à Interlis"
+subtitle: "Module 1 : Standard de modélisation suisse et déploiement local"
+format:
+    html:
+		toc: true
+		number-sections: true
+		code-fold: true
 ---
 
-## Objectif
+## Introduction
 
-Présenter Interlis comme cadre d’échange et de structuration des données géographiques.
+Jusqu'ici, nous avons construit et exploité des bases de données en **GPKG** puis en **PostgreSQL/PostGIS**. Interlis ajoute une couche essentielle : la **normalisation du modèle de données**.
+
+Autrement dit :
+
+* GPKG / PostGIS répondent à la question « **où stocker** les données ? »
+* Interlis répond à la question « **comment structurer** les données de façon cohérente, échangeable et validable ? »
+
+---
+
+## 1. Interlis dans le contexte des bases de données
+
+### 1.1. À quoi sert Interlis ?
+
+Interlis est un standard suisse de modélisation et d'échange de données géographiques **indépendant du système de stockage**. Il permet aux organisations la liberté de choisir leur technologie d'implémentation (GPKG, PostGIS, etc.) tout en contraignant le format d'échange.
+
+Dans un projet SIG, Interlis sert à :
+
+* définir un **modèle de données explicite** (classes, attributs, relations, domaines),
+* imposer des **règles de qualité** (cardinalités, types, contraintes),
+* faciliter l'**échange entre systèmes** (administrations, bureaux, prestataires),
+* garder la même logique métier, quel que soit le stockage final (GPKG, PostGIS, etc.).
+
+### 1.2. Lien avec ce qui a été vu avant
+
+* Avec le GPKG, nous avons vu une structure simple et locale.
+* Avec PostGIS, nous avons ajouté robustesse, multi-utilisateur et gouvernance.
+* Avec Interlis, nous ajoutons la **standardisation du modèle** et la **portabilité métier**.
+
+Interlis ne remplace pas PostGIS ou GPKG : il les complète en définissant une structure métier normative.
+
+### 1.3. Concepts clés à retenir
+
+* **Modèle (`.ili`)** : description formelle des objets métier.
+* **Domaines** : listes de valeurs / types contrôlés.
+* **Transfert** : import/export de données conformes au modèle.
+* **Validation** : contrôle de conformité des données à la structure attendue.
+
+---
+
+## 2. Analyse d'un modèle environnemental (registre fédéral)
+
+Pour cet exercice, nous prenons un exemple environnemental accessible dans le registre :
+
+* **Cadastre des sites pollués : KbS_V1_5** (Kataster der belasteten Standorte)
+
+> Modèle officiel BAFU disponible à : [https://models.geo.admin.ch/BAFU/](https://models.geo.admin.ch/BAFU/)
+>
+> Documentation : [https://www.bafu.admin.ch/geodatenmodelle](https://www.bafu.admin.ch/geodatenmodelle)
+>
+> Version analysée : **KbS_V1_5** (2021-10-15)
+
+### 2.1. Pourquoi ce modèle est intéressant pour la formation
+
+* Sujet environnemental concret (gestion de sites potentiellement pollués).
+* Structure lisible : objets principaux, statuts, informations d'instruction.
+* Bon compromis entre réalisme métier et complexité raisonnable.
+
+### 2.2. Ce qu'il faut observer dans le modèle
+
+Lors de l'analyse du modèle Interlis, identifiez :
+
+1. les **classes principales** (objets métier),
+   1. KbS_V1_5.Belasteter_Standort (classe principale : site pollué)
+   2. KbS_V1_5.ZustaendigkeitKataster (classe : autorité responsable)
+
+2. les **domaines** (valeurs codifiées),
+3. les **relations** entre objets,
+4. les **contraintes** qui évitent les incohérences.
+
+#### 2.2.1. Les imports : réutilisation de modèles standards
+
+En haut du fichier `.ili` du modèle KbS_V1_5, vous verrez :
+
+```ili
+INTERLIS 2.3;
+
+MODEL KbS_V1_5 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2021-10-15"  =
+  IMPORTS LocalisationCH_V1,GeometryCHLV95_V1,InternationalCodes_V1;
+```
+
+Ces lignes **importent d'autres modèles standardisés** pour réutiliser des structures communes :
+
+* **LocalisationCH_V1** : adresses, communes, cantons suisses, textes multilingues.
+* **GeometryCHLV95_V1** : types géométriques en coordonnées suisses (EPSG:2056, `Coord2`).
+* **InternationalCodes_V1** : codes ISO internationaux (langues, etc.).
+
+Cela illustre un principe clé d'Interlis : **réutiliser plutôt que redéfinir**. C'est gagner en cohérence, en maintenance et en facilité d'échange entre projets.
+
+### 2.3. Qu'est-ce qu'une structure Interlis ?
+
+Une structure Interlis décrit la donnée métier avec des briques formelles :
+
+* des **domaines** (valeurs autorisées),
+* des **classes** (objets métier),
+* des **relations** (liens entre objets),
+* des **contraintes** (règles de validité).
+
+Autrement dit, le modèle `.ili` dit explicitement ce qui est autorisé et ce qui est interdit.
+
+### 2.4. Exemples extraits du modèle KbS_V1_5
+
+#### 2.4.1. Exemple de domaine
+
+Un domaine fixe une liste de valeurs contrôlées.
+
+```ili
+DOMAIN StatusAltlV = (
+  StatusAltlV1,
+  StatusAltlV2,
+  StatusAltlV3,
+  StatusAltlV4,
+  StatusAltlV5,
+  StatusAltlV6
+);
+```
+
+Effet : l'attribut `StatusAltlV` ne peut prendre qu'une de ces 6 valeurs.
+
+#### 2.4.2. Exemple de relation
+
+Le modèle relie les sites (`Belasteter_Standort`) à l'autorité responsable (`ZustaendigkeitKataster`) avec une logique 1:N.
+
+```ili
+CLASS Belasteter_Standort =
+  Katasternummer : TEXT*20;
+  StatusAltlV : StatusAltlV;
+  ZustKat : MANDATORY REFERENCE TO ZustaendigkeitKataster;
+END Belasteter_Standort;
+```
+
+Lecture : chaque site doit référencer une autorité, et une autorité peut être liée à plusieurs sites.
+
+#### 2.4.3. Exemple de contrainte
+
+Les contraintes empêchent les incohérences.
+
+```ili
+CLASS Belasteter_Standort =
+  Katasternummer : TEXT*20;
+  Ersteintrag : INTERLIS.XMLDate;
+  LetzteAnpassung : INTERLIS.XMLDate;
+
+  MANDATORY CONSTRAINT LetzteAnpassung >= Ersteintrag;
+END Belasteter_Standort;
+```
+
+Lecture : la date de dernière mise à jour ne peut pas être antérieure à la date de première inscription.
+
+---
+
+### 2.5. Structure conceptuelle du modèle KbS_V1_5 (schéma simplifié)
+
+```{mermaid}
+erDiagram
+    "KbS_V1_5.ZustaendigkeitKataster" {
+        text Zustaendige_Behoerde
+        string URL_Behoerde
+        string UID
+        text Katastername
+        string URL_Kataster
+    }
+
+    "KbS_V1_5.Belasteter_Standort" {
+        text Katasternummer PK
+        string URL_Standort
+        geometry Geo_Lage_Polygon
+        geometry Geo_Lage_Punkt
+        text Standorttyp
+        text StatusAltlV
+        date Ersteintrag
+        date LetzteAnpassung
+    }
+
+    "KbS_V1_5.ZustaendigkeitKataster" ||--o{ "KbS_V1_5.Belasteter_Standort" : "gère"
+```
+
+---
+
+### 2.6. Lecture métier (transposable à d'autres modèles)
+
+Même si les noms exacts peuvent varier selon la version :
+
+* un objet principal représente un **site**,
+* des attributs décrivent le **statut**, la **catégorie** et l'**historique**,
+* des valeurs codifiées encadrent la saisie,
+* la géométrie rend possible l'analyse spatiale et la cartographie.
+
+---
+
+## 3. Mise en place locale avec le plugin Model Baker (sortie GPKG)
+
+Objectif : générer localement une structure de base de données à partir du modèle Interlis, sans serveur, dans un fichier GeoPackage.
+
+### 3.1. Pré-requis
+
+* QGIS installé.
+* Plugin **Model Baker** installé dans QGIS.
+* Java disponible (requis par `ili2db`, utilisé en arrière-plan par Model Baker).
+
+### 3.2. Installer Model Baker dans QGIS
+
+1. Ouvrez **Extensions > Installer/Gérer les extensions**.
+2. Recherchez **Model Baker**.
+3. Installez le plugin puis redémarrez QGIS si nécessaire.
+
+### 3.3. Préparer l'import du modèle Interlis en GPKG
+
+1. Ouvrez l'interface Model Baker.
+2. Choisissez un nouveau projet basé sur un modèle (`.ili`).
+3. Type de base : **GeoPackage**.
+4. Créez un fichier cible, par exemple `biodiv_interlis.gpkg`.
+5. Dans les dépôts de modèles, ajoutez (si absent) :
+	 * `https://models.interlis.ch/`
+6. Sélectionnez le modèle environnemental choisi (ex. KbS).
+
+### 3.4. Générer le schéma
+
+1. Lancez la génération via l'outil d'import du plugin.
+2. Attendez la création des tables, relations et domaines.
+3. Chargez les couches générées dans QGIS.
+
+Résultat attendu :
+
+* tables principales déjà structurées,
+* domaines/lists de valeurs disponibles,
+* relations prêtes à l'emploi pour les formulaires.
+
+### 3.5. Vérifications après import
+
+Contrôlez :
+
+* présence des tables métier,
+* présence des tables de domaines,
+* cohérence des clés et relations,
+* possibilité d'éditer sans casser les contraintes métier.
+
+---
+
+## 4. Exercice guidé
+
+1. Ouvrir le registre des modèles de données de la Confédération.
+2. Identifier un modèle environnemental simple (ex. KbS).
+3. Lister 3 domaines de valeurs utiles à la saisie.
+4. Générer le modèle avec Model Baker dans un GPKG local.
+5. Vérifier dans QGIS qu'un formulaire d'édition propose bien des valeurs contrôlées.
+
+::: {.callout-note}
+## Point d'attention
+
+Model Baker automatise la création de structure, mais la réussite dépend de trois éléments :
+
+* bon dépôt de modèles,
+* version correcte du modèle,
+* environnement Java fonctionnel.
+:::
+
+---
+
+## Conclusion
+
+Interlis complète parfaitement GPKG et PostGIS :
+
+* il formalise le modèle,
+* il sécurise l'échange,
+* il améliore la qualité des données.
+
+Avec Model Baker, vous pouvez déployer rapidement ce modèle en local (GPKG), puis évoluer ensuite vers PostGIS en conservant la même logique métier.
+
+## Références
+
+* Registre des modèles de données : [https://www.geo.admin.ch/fr/registre-des-modeles-de-donnees](https://www.geo.admin.ch/fr/registre-des-modeles-de-donnees)
+* Documentation Model Baker : [https://opengisch.github.io/project/modelbaker/](https://opengisch.github.io/project/modelbaker/)
+* Dépôt de modèles Interlis : [https://models.interlis.ch/](https://models.interlis.ch/)

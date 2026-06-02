@@ -1,0 +1,113 @@
+---
+title: "Prérequis logiciels module Base de données"
+subtitle: "Module 1 : Installation et préparation de l'environnement"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Objectif
+
+Préparer un environnement de travail fonctionnel pour suivre la partie PostgreSQL/PostGIS de la formation.
+
+---
+
+## 1. Logiciels requis
+
+Pour ce module, il est recommandé d'installer :
+
+1. **QGIS** (édition/visualisation SIG, connexion à PostgreSQL)
+2. **DB Browser for SQLite** (pour éditer les GeoPackage)
+3. **PostgreSQL** (moteur de base de données)
+4. **PostGIS** (extension spatiale de PostgreSQL)
+5. **pgAdmin** (administration graphique de PostgreSQL)
+
+
+---
+
+## 2. Téléchargements officiels
+
+* QGIS (site officiel) : [https://qgis.org/download/](https://qgis.org/download/)
+* PostgreSQL (site officiel) : [https://www.postgresql.org/download/](https://www.postgresql.org/download/)
+* PostGIS (Windows via StackBuilder / autres OS via paquets) : [https://postgis.net/install/](https://postgis.net/install/)
+* pgAdmin : [https://www.pgadmin.org/download/](https://www.pgadmin.org/download/)
+* DB Browser for SQLite: [https://sqlitebrowser.org/dl/](https://sqlitebrowser.org/dl/)
+
+---
+
+## 3. Instructions d'installation (recommandé pour Windows)
+
+### 3.1. Installer PostgreSQL + pgAdmin
+
+1. Télécharger l'installeur depuis la page PostgreSQL.
+2. Lancer l'installation.
+3. Conserver les composants par défaut, notamment :
+   * PostgreSQL Server
+   * pgAdmin 4
+   * StackBuilder
+4. Choisir un mot de passe pour l'utilisateur `postgres` (souvent `postgres` pour les environnements de test).
+5. Noter le port (par défaut `5432`).
+
+### 3.2. Installer PostGIS
+
+Méthode la plus simple sur Windows :
+
+1. Ouvrir **StackBuilder** après installation de PostgreSQL.
+2. Sélectionner l'instance PostgreSQL installée.
+3. Installer le paquet **PostGIS** correspondant à votre version PostgreSQL.
+
+### 3.3. Installer QGIS
+
+1. Télécharger l'installeur long terme (LTR) si disponible.
+2. Installer avec les options standard.
+3. Vérifier l'ouverture de QGIS.
+
+---
+
+## 4. Vérifications minimales avant la formation
+
+## 4.1. Vérifier PostgreSQL
+
+Dans pgAdmin :
+
+1. Se connecter au serveur local.
+2. Créer une base de test avec un clic droit sur "Databases" > "Create" > "Database", par exemple `formation_qgis`.
+
+## 4.2. Vérifier PostGIS
+
+Dans l'outil de requête SQL de pgAdmin, exécuter :
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+SELECT PostGIS_Version();
+```
+
+Résultat attendu : un numéro de version PostGIS.
+
+## 4.3. Vérifier QGIS ↔ PostgreSQL
+
+Dans QGIS :
+
+1. Ouvrir le gestionnaire de sources de données PostgreSQL.
+2. Créer une connexion locale (`localhost`, port `5432`).
+3. Tester la connexion.
+
+---
+
+## 5. Dépannage rapide
+
+* **Connexion refusée** : vérifier que le service PostgreSQL est démarré.
+* **Mot de passe refusé** : vérifier l'utilisateur (`postgres`) et le mot de passe défini à l'installation.
+* **PostGIS introuvable** : installer l'extension via StackBuilder puis relancer pgAdmin.
+* **QGIS ne voit pas la base** : vérifier hôte, port, nom de base et pare-feu local.
+
+---
+
+## 6. Recommandation pour la formation
+
+Préparer l'environnement avant le cours pour éviter les pertes de temps :
+
+* installation complète effectuée,
+* test `PostGIS_Version()` validé,
+* connexion QGIS à PostgreSQL validée.

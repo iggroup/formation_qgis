@@ -1,7 +1,203 @@
 ---
-title: "Implémentation d’une base de données GPKG"
+title: "2. Implémentation d'une Base de Données GPKG"
+subtitle: "Module 1 : Fondamentaux des Données"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true # Permet de replier les longs blocs de code SQL
+    theme: cosmo
 ---
 
-## Objectif
+## 1. Qu'est-ce qu'un GeoPackage (GPKG) ?
 
-Structurer une base GeoPackage adaptée à un projet QGIS et à ses besoins de saisie.
+### 1.1. Définition et Standard
+Le **GeoPackage** (extension `.gpkg`) est un format de stockage de données géospatiales ouvert, développé par l'**Open Geospatial Consortium (OGC)** et adopté comme standard international (ISO/IEC 12018-1).
+
+Contrairement au vieux format Shapefile (qui nécessite au moins 3 fichiers .shp, .shx, .dbf), le GeoPackage est un **fichier unique**, c'est l'équivalent de la .gdb ESRI mais en open source.
+
+### 1.2. Architecture Technique : SQLite
+Sous le capot, un fichier `.gpkg` est une base de données **SQLite** valide.
+*   **SQLite :** Moteur de base de données relationnelle léger, sans serveur, intégré dans la plupart des systèmes d'exploitation.
+*   **Extensions Spatiales :** Le GPKG ajoute des tables système spécifiques (`gpkg_contents`, `gpkg_geometry_columns`) pour gérer les géométries (Points, Lignes, Polygones) et les systèmes de coordonnées (SCR).
+
+### 1.3. Avantages Majeurs
+*   **Un fichier unique :** Facile à copier, déplacer, archiver ou envoyer par email.
+*   **Multi-couches :** Un seul fichier peut contenir des dizaines de couches vectorielles, des tables attributaires sans géométrie, des tuiles raster et des métadonnées.
+*   **Performance :** Bien plus rapide que le Shapefile pour la lecture/écriture, surtout sur des jeux de données volumineux.
+*   **Intégrité :** Respect des types de données (contraintes SQL), support des transactions (sécurité en cas de coupure).
+*   **Interopérabilité :** Lisible par QGIS, ArcGIS, FME, Python (geopandas), R (sf), et n'importe quel éditeur SQLite.
+
+> **Note :** Bien que le fichier soit unique, il est recommandé d'éviter les accès concurrents en écriture (plusieurs utilisateurs modifiant le même fichier GPKG en même temps sur un réseau partagé). Pour le multi-utilisateur simultané, on préférera PostgreSQL/PostGIS (voir chapitre 5).
+
+---
+
+## 2. Pratique : Création via l'Interface QGIS
+
+Cette méthode est idéale pour une création rapide, visuelle et interactive. Nous allons implémenter le modèle "Biodiversité" conçu au chapitre 1.
+
+### 2.1. Créer le fichier conteneur
+1. Si nécessaire afficher l'explorateur de fichiers dans QGIS (Menu *Affichage* > *Panneaux* > *Explorateur*).
+2. Dans l'explorateur, faites un clic droit sur le dossier de travail **Nouveau** > **GeoPackage...**
+3. QGIS créera la base de données vide sur le disque.
+
+### 2.2. Ajouter la première table (Couche spatiale)
+Depuis l'explorateur, faites un clic droit sur le fichier `.gpkg` > **Nouvelle table** :
+*   **Nom de la table :** `sites`
+*   **Type de géométrie :** `Polygone`
+*   **SCR (Système de Coordonnées) :** Choisissez un SCR projet adapté (ex: `[EPSG:2056]`).
+*   **Nouveau champ :** Ajoutez les attributs définis dans le MCD :
+    *   `nom` (Texte, Longueur 255)
+    *   `code_national` (Texte, Longueur 50)
+    *   `surface_ha` (Nombre décimal, Précision 10, Échelle 2)
+        *   `Longueur :` nombre total de chiffres que le nombre peut contenir, en comptant ceux avant ET après la virgule.
+        *   `Précision :` nombre de chiffres après la virgule.
+    *   `statut` (Texte, Longueur 100)
+*   **Clé primaire :** Laissez `id` (créé automatiquement par QGIS) ou cochez "Créer un champ ID automatique".
+*   Cliquez sur **Ajouter à la liste des couches**.
+
+### 2.3. Ajouter les autres tables
+Répétez l'opération pour les autres entités :
+*   **Table `observations` :** Géométrie `Point`, mêmes attributs que le MCD + `id_site` (Entier) et `id_espece` (Entier) pour les futures clés étrangères.
+*   **Table `especes` :**
+    *   *Astuce :* Pour une table sans géométrie, dans la fenêtre de création, sélectionnez **Pas de géométrie** (ou "None") dans le type.
+    *   Ajoutez les champs : `nom_latin`, `nom_vernaculaire`, `groupe`, `statut_uicn`.
+
+### 2.4. Vérification
+Une fois validé, le fichier `.gpkg` apparaît dans le panneau des couches de QGIS. Vous pouvez ouvrir la **Table d'attributs** pour constater que la structure est créée. Cependant, les liens (clés étrangères) ne sont pas encore activés au niveau de la base de données (ce sont pour l'instant de simples champs entiers).
+
+---
+
+## 3. Pratique Avancée : Création via SQL (Reproductible)
+
+Pour un travail professionnel, la méthode graphique a une limite : elle n'est pas **reproductible** automatiquement. Si vous devez recréer la base demain ou la partager à un collègue, vous ne pouvez pas lui envoyer une "capture d'écran" de vos clics.
+
+La solution est d'utiliser le **SQL (Structured Query Language)**. Puisque le GPKG est une base SQLite, nous pouvons exécuter des commandes SQL directement pour créer la structure.
+
+### 3.1. Pourquoi passer par SQL ?
+*   **Scriptable :** Un fichier texte `.sql` contient toute la logique de création.
+*   **Versionnable :** Vous pouvez suivre l'évolution de votre modèle dans Git ou un autre système de contrôle de version.
+*   **Propre :** Vous définissez explicitement les contraintes (NOT NULL, UNIQUE), les types exacts et les relations (FOREIGN KEY).
+*   **Rapide :** Exécution instantanée, même pour 50 tables.
+
+### 3.2. Outils pour éditer le SQL
+Vous avez deux options principales :
+1.  **Dans QGIS :** Ouvrez la **Boîte à outils de traitement** > Cherchez "Exécuter un script SQL sur une base de données". Ou utilisez l'extension "DB Manager" (Base de données > DB Manager > Base de données GeoPackage > Fenêtre SQL). **Toutefois, chaque requête doit être exécutées individuellement, ce qui peut être fastidieux pour un script complet.**
+   
+2.  **Externe (Recommandé) :** Utilisez un éditeur comme VS Code ou Notepad++ pour écrire le script, puis un éditeur léger comme **DB Browser for SQLite** (gratuit) pour l'exécuter.
+
+### 3.3 Création manuelle des tables spatiales
+Il est important de noter que la création de tables dans un GPKG nécessite de suivre la spécification OGC, qui impose des métadonnées spécifiques pour les géométries. Par conséquent, **il est nécessaire de créer les tables via l'interface graphique** (comme vu en section 2.2) pour que QGIS gère correctement les métadonnées, puis d'ajouter les champs et contraintes supplémentaires via SQL.
+
+### 3.3. Script de création (Exemple Biodiversité)
+
+La limite du format .gpkg est qu'il ne permet pas de créer des tables spatiales avec des commandes spécifiques comme `CREATE TABLE sites (geometry POLYGON)`. Il faut utiliser les conventions de SQLite et les métadonnées GPKG pour définir les géométries.
+
+En pratique, il faut créer les tables avec les champs de géométrie, puis enregistrer la géométrie dans les métadonnées du GPKG. 
+
+D'une fois que ces tables sont créées, il est possible d'ajouter toutes les autres informations en SQL.
+
+Voici le script SQL complet correspondant à notre modèle en partant du principe que les tables spatiales `observations`, `especes` et `sites` existent déjà. Copiez ce code dans un fichier `create_schema.sql` ou directement dans la fenêtre SQL de QGIS/DB Browser.
+
+```sql
+
+-- Supprimer toutes les données existantes (la structure reste)
+DELETE FROM observations;
+DELETE FROM sites;
+DELETE FROM especes;
+
+-- Si vous voulez aussi réinitialiser les compteurs ID à 0 (spécifique SQLite)
+DELETE FROM sqlite_sequence WHERE name IN ('sites', 'observations', 'especes');
+
+-- 1. Table SITES (Polygones)
+-- Ajout des champs descriptifs
+-- Note : la clé primaire existe déjà (créée par QGIS). Ne pas ajouter de colonne PRIMARY KEY.
+ALTER TABLE observations ADD COLUMN id_site_ INTEGER;
+ALTER TABLE sites ADD COLUMN nom TEXT(255);
+ALTER TABLE sites ADD COLUMN code_national TEXT(50);
+ALTER TABLE sites ADD COLUMN surface_ha REAL CHECK (surface_ha > 0);
+ALTER TABLE sites ADD COLUMN statut TEXT(100);
+
+-- UNIQUE via index (SQLite ne supporte pas ALTER TABLE ... ADD CONSTRAINT)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sites_code_unique ON sites(code_national);
+
+-- 2. Table OBSERVATIONS (Points)
+-- Ajout des champs descriptifs
+-- Note : la clé primaire existe déjà (créée par QGIS). Ne pas ajouter de colonne PRIMARY KEY.
+ALTER TABLE observations ADD COLUMN id_observation INTEGER;
+ALTER TABLE observations ADD COLUMN date_obs DATE;
+ALTER TABLE observations ADD COLUMN nb_individus INTEGER CHECK (nb_individus >= 0);
+ALTER TABLE observations ADD COLUMN observateur TEXT(100);
+
+-- Ajout des champs de liaison (Clés Étrangères)
+-- Ce sont de simples entiers pour l'instant, la contrainte de lien sera gérée par QGIS
+ALTER TABLE observations ADD COLUMN id_site INTEGER;
+ALTER TABLE observations ADD COLUMN id_espece INTEGER;
+
+-- 3. Table ESPECES (sans géométrie)
+-- On ajoute un identifiant métier (pas PRIMARY KEY), puis on impose l'unicité via index.
+ALTER TABLE especes ADD COLUMN id_espece INTEGER;
+ALTER TABLE especes ADD COLUMN nom_latin TEXT(255) NOT NULL;
+ALTER TABLE especes ADD COLUMN nom_vernaculaire TEXT(255);
+ALTER TABLE especes ADD COLUMN groupe TEXT(100);
+ALTER TABLE especes ADD COLUMN statut_uicn TEXT(20) CHECK (statut_uicn IN ('LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'EX'));
+
+-- Contraintes d'unicité via index
+CREATE UNIQUE INDEX IF NOT EXISTS idx_especes_id_unique ON especes(id_espece);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_especes_nom_latin_unique ON especes(nom_latin);
+
+-- Insertion de données de test pour l'exercice suivant
+INSERT INTO especes (id_espece, nom_latin, nom_vernaculaire, groupe, statut_uicn) VALUES 
+(1, 'Ursus arctos', 'Ours brun', 'Mammifère', 'LC'),
+(2, 'Aquila chrysaetos', 'Aigle royal', 'Oiseau', 'LC'),
+(3, 'Lynx lynx', 'Lynx boréal', 'Mammifère', 'VU'),
+(4, 'Salmo salar', 'Saumon atlantique', 'Poisson', 'EN');
+
+
+-- Activation des clés étrangères pour cette session
+PRAGMA foreign_keys = ON;
+
+-- Création des index
+CREATE INDEX IF NOT EXISTS idx_observations_site ON observations(id_site);
+CREATE INDEX IF NOT EXISTS idx_observations_espece ON observations(id_espece);
+CREATE INDEX IF NOT EXISTS idx_sites_code ON sites(code_national);
+```
+
+
+### 3.4. Comment exécuter ce script dans QGIS ?
+
+Suivez ces étapes pour lancer votre script SQL et générer la structure de la base de données :
+
+1.  **Créez un fichier GPKG vide** (comme vu en section 2.1).
+2.  Ajouter les tables `sites`, `especes` et `observations` via l'interface graphique (section 2.2) pour que les métadonnées soient correctement configurées.
+3.  Lancer *DB Browser for SQLite* et ouvrez votre fichier `.gpkg`.
+4.  Cliquez sur l'onglet **Exécuter le SQL**.
+5.  **Collez le script** SQL précédent dans l'éditeur.
+6.  Cliquez sur le bouton **Exécuter**.
+7.  Enregistrez les modifications et fermez DB Browser.
+8.  **Rafraîchissez** votre navigateur de panneaux dans QGIS : les tables `sites`, `especes` et `observations` apparaîtront automatiquement avec leurs attributs.
+
+### 3.5. Avantages de cette méthode pour la suite
+
+Une fois la structure créée en SQL, vous gagnez en flexibilité et en robustesse :
+
+*   **Réinitialisation rapide :** Vous pouvez vider les tables (`DELETE FROM observations;`) pour réimporter de nouvelles données sans avoir à recréer toute la structure. Vous pouvez aussi réinitialiser une base de données en quelques secondes après l'étape manuelle de création des tables dans QGIS.
+*   **Documentation claire :** Le script SQL sert de documentation technique précise de la structure de la base de données, avec les types, contraintes et index clairement définis.
+*   **Préparation à PostGIS :** Vous préparez déjà votre esprit au fonctionnement de **PostgreSQL/PostGIS** (voir chapitre 5), qui fonctionne *exclusivement* en SQL pour la définition de structure. Les compétences acquises ici sont directement transférables.
+
+---
+
+## Conclusion
+
+Vous avez maintenant une base de données GeoPackage fonctionnelle, créée soit par l'interface graphique (rapide pour le prototype), soit par script SQL (robuste pour la production et la documentation).
+
+Dans le prochain chapitre, nous allons configurer ce GPKG dans QGIS pour le rendre ergonomique :
+*   Configuration du projet.
+*   Styles de couches.
+*   Surtout : **Formulaires d'édition intelligents** pour exploiter les relations que nous venons de créer.
+
+## Références
+
+*   **Spécification OGC GeoPackage :** [OGC GeoPackage Encoding Standard](https://www.ogc.org/standard/geopackage/)
+*   **Documentation SQLite :** [SQLite File Format](https://www.sqlite.org/fileformat.html)
+*   **Outil recommandé :** [DB Browser for SQLite](https://sqlitebrowser.org/)

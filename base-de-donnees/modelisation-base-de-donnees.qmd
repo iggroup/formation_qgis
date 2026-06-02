@@ -194,6 +194,10 @@ Une agence de l'eau souhaite mettre en place un SIG pour gérer la qualité de l
 
 Notez la relation en cascade : Un cours d'eau a plusieurs prélèvements, et un prélèvement a plusieurs analyses.
 
+La table ANALYSE n'a pas de géométrie. C'est une table purement attributaire liée spatialement de manière indirecte via le PRELEVEMENT.
+
+La relation entre COURS_EAU et COMMUNE est une relation Plusieurs-à-Plusieurs (N:N). Dans une base de données relationnelle stricte, cela nécessiterait une table de jointure intermédiaire (ex: TRAVERSE) si l'on voulait requêter précisément "Quelles rivières passent dans cette commune ?". Dans une base de données spatiale, on peut aussi gérer cette relation via des requêtes spatiales (ex: `ST_Intersects`).
+
 ```{mermaid}
 erDiagram
     COURS_EAU {

@@ -11,21 +11,21 @@ website:
     contents:
       - href: index.qmd
         text: Accueil
-      - section: "Base de données"
+      - section: "Base de données et formulaires avancés"
         contents:
+          - href: base-de-donnees/prerequis-logiciels-bd.qmd
+            text: "Prérequis logiciels PostgreSQL / PostGIS"
           - href: base-de-donnees/modelisation-base-de-donnees.qmd
             text: "Modélisation de base de données"
-          # - href: base-de-donnees/implementation-base-gpkg.qmd
-          #   text: "Implémentation d’une base de données GPKG"
-          # - href: base-de-donnees/configuration-projet-qgis.qmd
-          #   text: "Configuration du projet QGIS"
-          # - href: base-de-donnees/formulaires-edition.qmd
-          #   text: "Configuration des formulaires d’édition"
-          # - href: base-de-donnees/introduction-postgresql-postgis.qmd
-          #   text: "Introduction à PostgreSQL / PostGIS"
-          # - href: base-de-donnees/introduction-interlis.qmd
-          #   text: "Introduction à Interlis"
-      - section: "QField"
+          - href: base-de-donnees/implementation-base-gpkg.qmd
+            text: "Implémentation d’une base de données GPKG"
+          - href: base-de-donnees/configuration-projet-qgis.qmd
+            text: "Configuration du projet QGIS"
+          - href: base-de-donnees/introduction-postgresql-postgis.qmd
+            text: "Introduction à PostgreSQL / PostGIS"
+          - href: base-de-donnees/introduction-interlis.qmd
+            text: "Introduction à Interlis"
+      # - section: "QField"
         # contents:
         #   - href: qfield/export-projet-qfieldcloud.qmd
         #     text: "Export d’un projet QGIS pour QFieldCloud"
