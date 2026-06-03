@@ -71,24 +71,30 @@ Dans **Projet > Propriétés** :
 * **SCR du projet** : choisissez le SCR de travail officiel du mandat (ex. CH1903+ / LV95, EPSG:2056).
 * **Chemins relatifs** : utilisez des chemins relatifs pour faciliter le partage du projet.
 
----
 ## 3. Création de données de test
 
-Avant de configurer les relations et les formulaires, il est utile d'avoir quelques données de test pour valider les configurations. Voici un exemple de données à insérer dans chaque table :
-* **Table `sites`**, digitalisez quelques polygones représentant des sites protégés avec les champs suivants :
-    | id_site | nom           | code_national | surface_ha | statut       |
-    |---------|---------------|---------------|-------------|--------------|
-    | 1       | Lac Bleu      | LB001         | 150.5       | Réserve      |
-    | 2       | Forêt Verte    | FV002         | 300.0       | Parc         |
-    | 3       | Zone Humide    | ZH003         | 75.0        | Zone humide   |
+Avant de configurer les relations et les formulaires, il est utile d'avoir quelques données de test pour valider les configurations.
 
-* **Table `observations`**, ajoutez quelques points représentant des observations avec les champs suivants :   
-    | id_observation | date_obs   | nb_individus | observateur  | id_site | id_espece |
-    |----------------|------------|--------------|--------------|---------|-----------|
-    | 1              | 2024-05-01 | 5            | Alice Dupont | 1       | 1         |
-    | 2              | 2024-05-02 | 2            | Bob Martin   | 1       | 2         |
-    | 3              | 2024-05-03 | 10           | Carol Smith  | 2       | 1         |
-    | 4              | 2024-05-04 | 0            | David Lee    | 3       | NULL      |
+#### Table `sites`
+
+Digitalisez quelques polygones représentant des sites protégés avec les champs suivants :
+
+| id_site | nom         | code_national | surface_ha | statut      |
+|---|---|---|---:|---|
+| 1 | Lac Bleu | LB001 | 150.5 | Réserve |
+| 2 | Forêt Verte | FV002 | 300.0 | Parc |
+| 3 | Zone Humide | ZH003 | 75.0 | Zone humide |
+
+#### Table `observations`
+
+Ajoutez quelques points représentant des observations avec les champs suivants :
+
+| id_observation | date_obs | nb_individus | observateur | id_site | id_espece |
+|---:|---|---:|---|---:|---:|
+| 1 | 2024-05-01 | 5 | Alice Dupont | 1 | 1 |
+| 2 | 2024-05-02 | 2 | Bob Martin | 1 | 2 |
+| 3 | 2024-05-03 | 10 | Carol Smith | 2 | 1 |
+| 4 | 2024-05-04 | 0 | David Lee | 3 | |
 
 
 ## 4. Configuration des relations
