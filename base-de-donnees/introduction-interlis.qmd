@@ -1,10 +1,11 @@
+---
 title: "Introduction à Interlis"
 subtitle: "Module 1 : Standard de modélisation suisse et déploiement local"
 format:
-    html:
-  toc: true
-  number-sections: true
-  code-fold: true
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true
 ---
 
 ## Introduction
@@ -14,9 +15,9 @@ Jusqu'ici, nous avons construit et exploité des bases de données en **GPKG** p
 Autrement dit :
 
 * GPKG / PostGIS répondent à la question « **où stocker** les données ? »
-* Interlis répond aux questions:
-  *  **comment structurer** les données de façon cohérente, 
-  *  **comment échanger** les données entre systèmes en garantissant leur compatibilité avec le modèle
+* Interlis répond aux questions :
+  * **comment structurer** les données de façon cohérente,
+  * **comment échanger** les données entre systèmes en garantissant leur compatibilité avec le modèle.
 
 Le but de ce chapitre est d'être capable de déchiffrer et comprendre un modèle Interlis, et de le déployer localement dans un GPKG avec le plugin Model Baker.
 

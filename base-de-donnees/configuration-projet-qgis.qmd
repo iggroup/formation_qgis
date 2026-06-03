@@ -3,9 +3,9 @@ title: "Configuration du projet QGIS"
 subtitle: "Module 1 : De la structure à l'usage"
 format:
   html:
-		toc: true
-		number-sections: true
-		code-fold: true
+    toc: true
+    number-sections: true
+    code-fold: true
 ---
 
 ## Introduction
