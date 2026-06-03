@@ -3,9 +3,9 @@ title: "Introduction à PostgreSQL / PostGIS"
 subtitle: "Module 1 : Passage du fichier local à la base serveur"
 format:
   html:
-	toc: true
-	number-sections: true
-	code-fold: true
+		toc: true
+		number-sections: true
+		code-fold: true
 ---
 
 ## Introduction

@@ -1,0 +1,28 @@
+---
+title: "Téléchargements"
+---
+
+Déposez ici les fichiers nécessaires au cours pour permettre le téléchargement direct depuis le site.
+
+## Emplacements conseillés
+
+- `ressources/fichiers/base-de-donnees/`
+- `ressources/fichiers/qfield/`
+
+## Exemple de liens de téléchargement
+
+- [Télécharger un GeoPackage](fichiers/base-de-donnees/exemple.gpkg){download="exemple.gpkg"}
+- [Télécharger un projet QGIS](fichiers/base-de-donnees/projet.qgz){download="projet.qgz"}
+- [Télécharger un package QField](fichiers/qfield/projet_qfield.zip){download="projet_qfield.zip"}
+
+## Comment lier depuis un autre chapitre
+
+Depuis un fichier dans `base-de-donnees/` :
+
+- `[Jeu de données (GPKG)](../ressources/fichiers/base-de-donnees/exemple.gpkg){download="exemple.gpkg"}`
+
+Depuis un fichier dans `advanced-qgis/` :
+
+- `[Projet d'exercice](../ressources/fichiers/base-de-donnees/projet.qgz){download="projet.qgz"}`
+
+> Astuce : gardez des noms de fichiers stables (sans espaces) pour éviter de casser les liens.

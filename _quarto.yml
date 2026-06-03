@@ -11,6 +11,8 @@ website:
     contents:
       - href: index.qmd
         text: Accueil
+      - href: ressources/telechargements.qmd
+        text: Téléchargements
       - section: "Base de données et formulaires avancés"
         contents:
           - href: base-de-donnees/prerequis-logiciels-bd.qmd
