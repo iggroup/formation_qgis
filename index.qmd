@@ -2,16 +2,21 @@
 title: "Formation QGIS"
 ---
 
-Bienvenue dans la structure Quarto de la formation QGIS.
 
 ## Parcours proposés
 
+### Introduction à QGIS
+
+- ...
+  
 ### Base de données
 
 - Modélisation de base de données
 - Implémentation d’une base de données GPKG
-- Configuration du projet QGIS
-- Configuration des formulaires d’édition
+- Configuration d'un projet QGIS:
+  - Création de la connexion à la base de données
+  - Relations entre couches
+  - Formulaire de saisie
 - Introduction à PostgreSQL / PostGIS
 - Introduction à Interlis
 
@@ -20,7 +25,7 @@ Bienvenue dans la structure Quarto de la formation QGIS.
 - Export d’un projet QGIS pour QFieldCloud
 - Levé et édition QField
 
-### Advanced QGIS
+### QGIS Avancé
 
 #### Édition avancée
 

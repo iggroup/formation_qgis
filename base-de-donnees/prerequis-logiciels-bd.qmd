@@ -1,4 +1,4 @@
----
+﻿---
 title: "Prérequis logiciels module Base de données"
 subtitle: "Module 1 : Installation et préparation de l'environnement"
 format:
@@ -13,7 +13,7 @@ Préparer un environnement de travail fonctionnel pour suivre la partie PostgreS
 
 ---
 
-## 1. Logiciels requis
+## Logiciels requis
 
 Pour ce module, il est recommandé d'installer :
 
@@ -26,7 +26,7 @@ Pour ce module, il est recommandé d'installer :
 
 ---
 
-## 2. Téléchargements officiels
+## Téléchargements officiels
 
 * QGIS (site officiel) : [https://qgis.org/download/](https://qgis.org/download/)
 * PostgreSQL (site officiel) : [https://www.postgresql.org/download/](https://www.postgresql.org/download/)
@@ -34,11 +34,17 @@ Pour ce module, il est recommandé d'installer :
 * pgAdmin : [https://www.pgadmin.org/download/](https://www.pgadmin.org/download/)
 * DB Browser for SQLite: [https://sqlitebrowser.org/dl/](https://sqlitebrowser.org/dl/)
 
+Pour Interlis (optionnel) :
+* Model Baker : disponible dans les plugins QGIS
+* Java Runtime Environment (JRE) : [https://www.java.com/fr/download/](https://www.java.com/fr/download/)
+* UML editor interlis : [https://www.interlis.ch/umleditor/](https://www.interlis.ch/umleditor/)
+* Visual Studio Code (pour éditer les fichiers .ili) : [https://code.visualstudio.com/](https://code.visualstudio.com/) avec les extensions de syntaxe Interlis.
+
 ---
 
-## 3. Instructions d'installation (recommandé pour Windows)
+## Instructions d'installation (recommandé pour Windows)
 
-### 3.1. Installer PostgreSQL + pgAdmin
+### Installer PostgreSQL + pgAdmin
 
 1. Télécharger l'installeur depuis la page PostgreSQL.
 2. Lancer l'installation.
@@ -49,7 +55,7 @@ Pour ce module, il est recommandé d'installer :
 4. Choisir un mot de passe pour l'utilisateur `postgres` (souvent `postgres` pour les environnements de test).
 5. Noter le port (par défaut `5432`).
 
-### 3.2. Installer PostGIS
+### Installer PostGIS
 
 Méthode la plus simple sur Windows :
 
@@ -57,7 +63,7 @@ Méthode la plus simple sur Windows :
 2. Sélectionner l'instance PostgreSQL installée.
 3. Installer le paquet **PostGIS** correspondant à votre version PostgreSQL.
 
-### 3.3. Installer QGIS
+### Installer QGIS
 
 1. Télécharger l'installeur long terme (LTR) si disponible.
 2. Installer avec les options standard.
@@ -65,16 +71,16 @@ Méthode la plus simple sur Windows :
 
 ---
 
-## 4. Vérifications minimales avant la formation
+## Vérifications minimales avant la formation
 
-## 4.1. Vérifier PostgreSQL
+## Vérifier PostgreSQL
 
 Dans pgAdmin :
 
 1. Se connecter au serveur local.
 2. Créer une base de test avec un clic droit sur "Databases" > "Create" > "Database", par exemple `formation_qgis`.
 
-## 4.2. Vérifier PostGIS
+## Vérifier PostGIS
 
 Dans l'outil de requête SQL de pgAdmin, exécuter :
 
@@ -85,7 +91,7 @@ SELECT PostGIS_Version();
 
 Résultat attendu : un numéro de version PostGIS.
 
-## 4.3. Vérifier QGIS ↔ PostgreSQL
+## Vérifier QGIS ↔ PostgreSQL
 
 Dans QGIS :
 
@@ -95,7 +101,7 @@ Dans QGIS :
 
 ---
 
-## 5. Dépannage rapide
+<!-- ## Dépannage rapide
 
 * **Connexion refusée** : vérifier que le service PostgreSQL est démarré.
 * **Mot de passe refusé** : vérifier l'utilisateur (`postgres`) et le mot de passe défini à l'installation.
@@ -104,10 +110,10 @@ Dans QGIS :
 
 ---
 
-## 6. Recommandation pour la formation
+## Recommandation pour la formation
 
 Préparer l'environnement avant le cours pour éviter les pertes de temps :
 
 * installation complète effectuée,
 * test `PostGIS_Version()` validé,
-* connexion QGIS à PostgreSQL validée.
+* connexion QGIS à PostgreSQL validée. -->

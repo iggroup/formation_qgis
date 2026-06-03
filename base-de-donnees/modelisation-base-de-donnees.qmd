@@ -1,5 +1,5 @@
----
-title: "1. Modélisation de Base de Données SIG"
+﻿---
+title: "Modélisation de Base de Données SIG"
 subtitle: "Module 1 : Fondamentaux des Données"
 format:
   html:
@@ -16,9 +16,9 @@ Dans ce chapitre, nous allons définir les entités de notre système d'informat
 
 ---
 
-## 1. Concepts Théoriques
+## Concepts Théoriques
 
-### 1.1. Du Réel au Numérique : Entités et Attributs
+### Du Réel au Numérique : Entités et Attributs
 
 La modélisation consiste à identifier les **objets géographiques** (entités) pertinents pour votre projet, les relations entre les entités et à décrire leurs **caractéristiques** (attributs) et contraintes.
 
@@ -27,7 +27,7 @@ La modélisation consiste à identifier les **objets géographiques** (entités)
 *   **Attributs (Champs) :** Les informations descriptives non spatiales (ex: nom, date, superficie, propriétaire).
 *   **Clé Primaire (ID) :** Un identifiant unique pour chaque objet, indispensable pour lier les tables entre elles.
 
-### 1.2. Les Relations entre les données
+### Les Relations entre les données
 
 Les données ne vivent pas en isolation. Il existe trois types de relations principales :
 
@@ -35,7 +35,7 @@ Les données ne vivent pas en isolation. Il existe trois types de relations prin
 2.  **Un-à-Plusieurs (1:N) :** Un objet est lié à plusieurs objets d'une autre table (ex: Une rivière contient plusieurs stations de mesure de qualité).
 3.  **Plusieurs-à-Plusieurs (N:N) :** Plusieurs objets d'une table sont liés à plusieurs objets d'une autre (ex: Une espèce peut être observée sur plusieurs sites, et un site contient plusieurs espèces). *Nécessite une table de jointure intermédiaire.*
 
-### 1.3. Pourquoi modéliser avant d'implémenter ?
+### Pourquoi modéliser avant d'implémenter ?
 
 *   **Éviter la redondance :** Ne pas répéter les mêmes informations (ex: ne pas écrire le nom du propriétaire sur chaque parcelle, mais le lier via un ID).
 *   **Intégrité des données :** Assurer la cohérence (ex: empêcher la suppression d'un propriétaire s'il possède encore des parcelles). Assurer que les attributs respectent les types de données et les contraintes (ex: une date doit être au format date, un nombre d'individus doit être positif).
@@ -43,11 +43,11 @@ Les données ne vivent pas en isolation. Il existe trois types de relations prin
 
 ---
 
-## 2. Étude de Cas : Suivi de la Biodiversité et des Milieux
+## Étude de Cas : Suivi de la Biodiversité et des Milieux
 
 Pour illustrer ces concepts, nous allons concevoir la base de données d'un conservatoire naturel souhaitant suivre ses **sites protégés**, la **faune/flore** qui y est présente, et les **actions de gestion** réalisées.
 
-### 2.1. Identification des Entités
+### Identification des Entités
 
 Après analyse du besoin, nous identifions trois entités principales :
 
@@ -58,7 +58,7 @@ Après analyse du besoin, nous identifions trois entités principales :
 3.  **Observations :** Les relevés terrain ponctuels (Points).
     *   *Attributs :* Date d'observation, Nombre d'individus, Observateur, Commentaires.
 
-### 2.2. Définition des Relations
+### Définition des Relations
 
 Analysons les liens logiques entre ces entités :
 
@@ -74,7 +74,7 @@ Analysons les liens logiques entre ces entités :
     *   👉 Relation **N:N** (Indirecte).
     *   *Résolution :* Cette relation est résolue par la table intermédiaire `Observations`. C'est cette table qui fait le lien concret entre un site précis et une espèce précise à un instant T.
 
-### 2.3. Schéma Conceptuel (MCD)
+### Schéma Conceptuel (MCD)
 
 Voici la représentation textuelle de notre modèle :
 
@@ -136,7 +136,7 @@ erDiagram
     ESPECE ||--o{ OBSERVATION : "est observée dans"
 ```
 
-## 3. Exercice Pratique : Gestion de la Qualité de l'Eau
+## Exercice Pratique : Gestion de la Qualité de l'Eau
 
 ### Objectif
 À partir du scénario ci-dessous, concevez le modèle de données (tables, attributs, relations) avant toute manipulation informatique.

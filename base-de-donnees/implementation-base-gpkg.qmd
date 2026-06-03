@@ -1,5 +1,5 @@
----
-title: "2. Implémentation d'une Base de Données GPKG"
+﻿---
+title: "Implémentation d'une Base de Données GPKG"
 subtitle: "Module 1 : Fondamentaux des Données"
 format:
   html:
@@ -9,19 +9,21 @@ format:
     theme: cosmo
 ---
 
-## 1. Qu'est-ce qu'un GeoPackage (GPKG) ?
+## Qu'est-ce qu'un GeoPackage (GPKG) ?
 
-### 1.1. Définition et Standard
+### Définition et Standard
 Le **GeoPackage** (extension `.gpkg`) est un format de stockage de données géospatiales ouvert, développé par l'**Open Geospatial Consortium (OGC)** et adopté comme standard international (ISO/IEC 12018-1).
 
 Contrairement au vieux format Shapefile (qui nécessite au moins 3 fichiers .shp, .shx, .dbf), le GeoPackage est un **fichier unique**, c'est l'équivalent de la .gdb ESRI mais en open source.
 
-### 1.2. Architecture Technique : SQLite
+### Architecture Technique : SQLite
 Sous le capot, un fichier `.gpkg` est une base de données **SQLite** valide.
+
 *   **SQLite :** Moteur de base de données relationnelle léger, sans serveur, intégré dans la plupart des systèmes d'exploitation.
 *   **Extensions Spatiales :** Le GPKG ajoute des tables système spécifiques (`gpkg_contents`, `gpkg_geometry_columns`) pour gérer les géométries (Points, Lignes, Polygones) et les systèmes de coordonnées (SCR).
 
-### 1.3. Avantages Majeurs
+### Avantages Majeurs
+
 *   **Un fichier unique :** Facile à copier, déplacer, archiver ou envoyer par email.
 *   **Multi-couches :** Un seul fichier peut contenir des dizaines de couches vectorielles, des tables attributaires sans géométrie, des tuiles raster et des métadonnées.
 *   **Performance :** Bien plus rapide que le Shapefile pour la lecture/écriture, surtout sur des jeux de données volumineux.
@@ -32,17 +34,18 @@ Sous le capot, un fichier `.gpkg` est une base de données **SQLite** valide.
 
 ---
 
-## 2. Pratique : Création via l'Interface QGIS
+## Pratique : Création via l'Interface QGIS
 
 Cette méthode est idéale pour une création rapide, visuelle et interactive. Nous allons implémenter le modèle "Biodiversité" conçu au chapitre 1.
 
-### 2.1. Créer le fichier conteneur
+### Créer le fichier conteneur
 1. Si nécessaire afficher l'explorateur de fichiers dans QGIS (Menu *Affichage* > *Panneaux* > *Explorateur*).
 2. Dans l'explorateur, faites un clic droit sur le dossier de travail **Nouveau** > **GeoPackage...**
 3. QGIS créera la base de données vide sur le disque.
 
-### 2.2. Ajouter la première table (Couche spatiale)
+### Ajouter la première table (Couche spatiale)
 Depuis l'explorateur, faites un clic droit sur le fichier `.gpkg` > **Nouvelle table** :
+
 *   **Nom de la table :** `sites`
 *   **Type de géométrie :** `Polygone`
 *   **SCR (Système de Coordonnées) :** Choisissez un SCR projet adapté (ex: `[EPSG:2056]`).
@@ -56,40 +59,42 @@ Depuis l'explorateur, faites un clic droit sur le fichier `.gpkg` > **Nouvelle t
 *   **Clé primaire :** Laissez `id` (créé automatiquement par QGIS) ou cochez "Créer un champ ID automatique".
 *   Cliquez sur **Ajouter à la liste des couches**.
 
-### 2.3. Ajouter les autres tables
+### Ajouter les autres tables
 Répétez l'opération pour les autres entités :
+
 *   **Table `observations` :** Géométrie `Point`, mêmes attributs que le MCD + `id_site` (Entier) et `id_espece` (Entier) pour les futures clés étrangères.
 *   **Table `especes` :**
     *   *Astuce :* Pour une table sans géométrie, dans la fenêtre de création, sélectionnez **Pas de géométrie** (ou "None") dans le type.
     *   Ajoutez les champs : `nom_latin`, `nom_vernaculaire`, `groupe`, `statut_uicn`.
 
-### 2.4. Vérification
+### Vérification
 Une fois validé, le fichier `.gpkg` apparaît dans le panneau des couches de QGIS. Vous pouvez ouvrir la **Table d'attributs** pour constater que la structure est créée. Cependant, les liens (clés étrangères) ne sont pas encore activés au niveau de la base de données (ce sont pour l'instant de simples champs entiers).
 
 ---
 
-## 3. Pratique Avancée : Création via SQL (Reproductible)
+## Pratique Avancée : Création via SQL (Reproductible)
 
 Pour un travail professionnel, la méthode graphique a une limite : elle n'est pas **reproductible** automatiquement. Si vous devez recréer la base demain ou la partager à un collègue, vous ne pouvez pas lui envoyer une "capture d'écran" de vos clics.
 
 La solution est d'utiliser le **SQL (Structured Query Language)**. Puisque le GPKG est une base SQLite, nous pouvons exécuter des commandes SQL directement pour créer la structure.
 
-### 3.1. Pourquoi passer par SQL ?
+### Pourquoi passer par SQL ?
+
 *   **Scriptable :** Un fichier texte `.sql` contient toute la logique de création.
 *   **Versionnable :** Vous pouvez suivre l'évolution de votre modèle dans Git ou un autre système de contrôle de version.
 *   **Propre :** Vous définissez explicitement les contraintes (NOT NULL, UNIQUE), les types exacts et les relations (FOREIGN KEY).
 *   **Rapide :** Exécution instantanée, même pour 50 tables.
 
-### 3.2. Outils pour éditer le SQL
+### Outils pour éditer le SQL
 Vous avez deux options principales :
 1.  **Dans QGIS :** Ouvrez la **Boîte à outils de traitement** > Cherchez "Exécuter un script SQL sur une base de données". Ou utilisez l'extension "DB Manager" (Base de données > DB Manager > Base de données GeoPackage > Fenêtre SQL). **Toutefois, chaque requête doit être exécutées individuellement, ce qui peut être fastidieux pour un script complet.**
    
 2.  **Externe (Recommandé) :** Utilisez un éditeur comme VS Code ou Notepad++ pour écrire le script, puis un éditeur léger comme **DB Browser for SQLite** (gratuit) pour l'exécuter.
 
-### 3.3 Création manuelle des tables spatiales
+### Création manuelle des tables spatiales
 Il est important de noter que la création de tables dans un GPKG nécessite de suivre la spécification OGC, qui impose des métadonnées spécifiques pour les géométries. Par conséquent, **il est nécessaire de créer les tables via l'interface graphique** (comme vu en section 2.2) pour que QGIS gère correctement les métadonnées, puis d'ajouter les champs et contraintes supplémentaires via SQL.
 
-### 3.3. Script de création (Exemple Biodiversité)
+### Script de création (Exemple Biodiversité)
 
 La limite du format .gpkg est qu'il ne permet pas de créer des tables spatiales avec des commandes spécifiques comme `CREATE TABLE sites (geometry POLYGON)`. Il faut utiliser les conventions de SQLite et les métadonnées GPKG pour définir les géométries.
 
@@ -112,7 +117,7 @@ DELETE FROM sqlite_sequence WHERE name IN ('sites', 'observations', 'especes');
 -- 1. Table SITES (Polygones)
 -- Ajout des champs descriptifs
 -- Note : la clé primaire existe déjà (créée par QGIS). Ne pas ajouter de colonne PRIMARY KEY.
-ALTER TABLE observations ADD COLUMN id_site_ INTEGER;
+ALTER TABLE sites ADD COLUMN id_site INTEGER;
 ALTER TABLE sites ADD COLUMN nom TEXT(255);
 ALTER TABLE sites ADD COLUMN code_national TEXT(50);
 ALTER TABLE sites ADD COLUMN surface_ha REAL CHECK (surface_ha > 0);
@@ -164,12 +169,12 @@ CREATE INDEX IF NOT EXISTS idx_sites_code ON sites(code_national);
 ```
 
 
-### 3.4. Comment exécuter ce script dans QGIS ?
+### Comment exécuter ce script dans QGIS ?
 
 Suivez ces étapes pour lancer votre script SQL et générer la structure de la base de données :
 
 1.  **Créez un fichier GPKG vide** (comme vu en section 2.1).
-2.  Ajouter les tables `sites`, `especes` et `observations` via l'interface graphique (section 2.2) pour que les métadonnées soient correctement configurées.
+2.  Ajouter les tables `sites`, `especes` et `observations` via l'interface graphique (section 2.2) pour que les métadonnées soient correctement configurées dans le GPKG
 3.  Lancer *DB Browser for SQLite* et ouvrez votre fichier `.gpkg`.
 4.  Cliquez sur l'onglet **Exécuter le SQL**.
 5.  **Collez le script** SQL précédent dans l'éditeur.
@@ -177,13 +182,13 @@ Suivez ces étapes pour lancer votre script SQL et générer la structure de la 
 7.  Enregistrez les modifications et fermez DB Browser.
 8.  **Rafraîchissez** votre navigateur de panneaux dans QGIS : les tables `sites`, `especes` et `observations` apparaîtront automatiquement avec leurs attributs.
 
-### 3.5. Avantages de cette méthode pour la suite
+### Avantages de cette méthode pour la suite
 
 Une fois la structure créée en SQL, vous gagnez en flexibilité et en robustesse :
 
 *   **Réinitialisation rapide :** Vous pouvez vider les tables (`DELETE FROM observations;`) pour réimporter de nouvelles données sans avoir à recréer toute la structure. Vous pouvez aussi réinitialiser une base de données en quelques secondes après l'étape manuelle de création des tables dans QGIS.
 *   **Documentation claire :** Le script SQL sert de documentation technique précise de la structure de la base de données, avec les types, contraintes et index clairement définis.
-*   **Préparation à PostGIS :** Vous préparez déjà votre esprit au fonctionnement de **PostgreSQL/PostGIS** (voir chapitre 5), qui fonctionne *exclusivement* en SQL pour la définition de structure. Les compétences acquises ici sont directement transférables.
+*   **Préparation à PostGIS :** Vous préparez déjà votre esprit au fonctionnement de **PostgreSQL/PostGIS**, qui fonctionne *exclusivement* en SQL pour la définition de structure. Les compétences acquises ici sont directement transférables.
 
 ---
 

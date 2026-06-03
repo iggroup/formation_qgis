@@ -13,7 +13,7 @@ website:
         text: Accueil
       - href: ressources/telechargements.qmd
         text: Téléchargements
-      - section: "Base de données et formulaires avancés"
+      - section: "Base de données et projet QGIS"
         contents:
           - href: base-de-donnees/prerequis-logiciels-bd.qmd
             text: "Prérequis logiciels PostgreSQL / PostGIS"
@@ -33,24 +33,24 @@ website:
         #     text: "Export d’un projet QGIS pour QFieldCloud"
         #   - href: qfield/leve-et-edition-qfield.qmd
         #     text: "Levé et édition QField"
-      - section: "Advanced QGIS"
-        contents:
-          - section: "Édition avancée"
-            contents:
-              - href: advanced-qgis/numerisation-avancee.qmd
-                text: "Numérisation avancée"
-              - href: advanced-qgis/edition-topologique.qmd
-                text: "Édition topologique"
-          - section: "Géotraitement"
-            contents:
-              - href: advanced-qgis/expressions-qgis.qmd
-                text: "Expressions QGIS"
-              - href: advanced-qgis/boite-outils-geotraitement.qmd
-                text: "Boîte à outils de géotraitement"
-              - href: advanced-qgis/automatisation-flux-geotraitement.qmd
-                text: "Automatisation de flux de géotraitement"
-              - href: advanced-qgis/introduction-plugins-qgis.qmd
-                text: "Introduction aux plugins QGIS"
+      # - section: "Advanced QGIS"
+      #   contents:
+      #     - section: "Édition avancée"
+      #       contents:
+      #         - href: advanced-qgis/numerisation-avancee.qmd
+      #           text: "Numérisation avancée"
+      #         - href: advanced-qgis/edition-topologique.qmd
+      #           text: "Édition topologique"
+      #     - section: "Géotraitement"
+      #       contents:
+      #         - href: advanced-qgis/expressions-qgis.qmd
+      #           text: "Expressions QGIS"
+      #         - href: advanced-qgis/boite-outils-geotraitement.qmd
+      #           text: "Boîte à outils de géotraitement"
+      #         - href: advanced-qgis/automatisation-flux-geotraitement.qmd
+      #           text: "Automatisation de flux de géotraitement"
+      #         - href: advanced-qgis/introduction-plugins-qgis.qmd
+      #           text: "Introduction aux plugins QGIS"
 
 format:
   html:
