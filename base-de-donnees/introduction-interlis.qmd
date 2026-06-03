@@ -15,8 +15,8 @@ Jusqu'ici, nous avons construit et exploité des bases de données en **GPKG** p
 Autrement dit :
 
 * GPKG / PostGIS répondent à la question « **où stocker** les données ? »
-* Interlis répond aux questions :
-  * **comment structurer** les données de façon cohérente,
+* Interlis définit:
+  * **comment structurer** les données de façon cohérente et dans le respect d'un modèle défini
   * **comment échanger** les données entre systèmes en garantissant leur compatibilité avec le modèle.
 
 Le but de ce chapitre est d'être capable de déchiffrer et comprendre un modèle Interlis, et de le déployer localement dans un GPKG avec le plugin Model Baker.
@@ -33,7 +33,7 @@ Dans un projet SIG, Interlis sert à :
 
 * définir un **modèle de données explicite** (classes, attributs, relations, domaines),
 * imposer des **règles de qualité** (cardinalités, types, contraintes),
-* faciliter l'**échange entre systèmes** (administrations, bureaux, prestataires),
+* "faciliter" (ou plutôt normaliser) l'**échange entre systèmes** (administrations, bureaux, prestataires),
 * garder la même logique métier, quel que soit le stockage final (GPKG, PostGIS, etc.).
 
 ### Lien avec ce qui a été vu avant
@@ -47,9 +47,8 @@ Interlis ne remplace pas PostGIS ou GPKG : il les complète en définissant une 
 ### Concepts clés à retenir
 
 * **Modèle (`.ili`)** : description formelle des objets métier.
-* **Domaines** : listes de valeurs / types contrôlés.
 * **Transfert** : import/export de données conformes au modèle via des fichiers `.xtf` (format XML).
-* **Validation** : contrôle de conformité des données à la structure attendue.
+* **Validation** : contrôle de conformité des données par rapport au modèle et ses contraintes.
 
 ---
 
@@ -84,6 +83,7 @@ Lors de l'analyse du modèle Interlis, identifiez :
 Une classe représente un objet métier avec des attributs et une géométrie. Certains attributs ont des types personnalisés (ex: `StatusAltlV`), d'autres sont des types de base (ex: `TEXT`, `INTERLIS.XMLDate`).
 
 Il convient de trouver dans le modèle interlis les classes principales (souvent au fond du fichier après toutes les définitions des dépendances) ici: 
+
 * `Belasteter_Standort` (site pollué)
 * `ZustaendigkeitKataster` (autorité responsable du site) 
   
@@ -294,7 +294,4 @@ Model Baker permet de répondre aux besoins courants Interlis dans un environnem
 
 
 ## Logiciels
-* Installation de java : [https://www.java.com/fr/download/](https://www.java.com/fr/download/)
-* Logiciels interlis officiels : [https://www.interlis.ch/downloads](https://www.interlis.ch/downloads)
-Nécessitent l'installation de Java pour fonctionner.
-  * Umleditor permet de visualiser et éditer les modèles Interlis. Menu Outils > Interlis > Importer. Puis insérer les éléments dans le diagramme.
+* Voir page de pré-requis logiciels : [https://formation-qgis.fr/base-de-donnees/prerequis-logiciels-bd/](https://formation-qgis.fr/base-de-donnees/prerequis-logiciels-bd/)

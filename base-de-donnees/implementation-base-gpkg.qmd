@@ -169,12 +169,12 @@ CREATE INDEX IF NOT EXISTS idx_sites_code ON sites(code_national);
 ```
 
 
-### Comment exécuter ce script dans QGIS ?
+### Comment exécuter ce script?
 
 Suivez ces étapes pour lancer votre script SQL et générer la structure de la base de données :
 
 1.  **Créez un fichier GPKG vide** (comme vu en section 2.1).
-2.  Ajouter les tables `sites`, `especes` et `observations` via l'interface graphique (section 2.2) pour que les métadonnées soient correctement configurées dans le GPKG
+2.  Ajouter les tables `sites`, `especes` et `observations` via l'interface graphique (section 2.2) pour que les métadonnées soient correctement configurées dans le GPKG. Il faut créer un champs (qui ne sera pas utilisé) pour pouvoir valider (par exemple `foo`)
 3.  Lancer *DB Browser for SQLite* et ouvrez votre fichier `.gpkg`.
 4.  Cliquez sur l'onglet **Exécuter le SQL**.
 5.  **Collez le script** SQL précédent dans l'éditeur.
@@ -197,6 +197,7 @@ Une fois la structure créée en SQL, vous gagnez en flexibilité et en robustes
 Vous avez maintenant une base de données GeoPackage fonctionnelle, créée soit par l'interface graphique (rapide pour le prototype), soit par script SQL (robuste pour la production et la documentation).
 
 Dans le prochain chapitre, nous allons configurer ce GPKG dans QGIS pour le rendre ergonomique :
+
 *   Configuration du projet.
 *   Styles de couches.
 *   Surtout : **Formulaires d'édition intelligents** pour exploiter les relations que nous venons de créer.

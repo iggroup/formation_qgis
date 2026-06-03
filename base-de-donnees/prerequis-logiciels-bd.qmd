@@ -35,6 +35,7 @@ Pour ce module, il est recommandé d'installer :
 * DB Browser for SQLite: [https://sqlitebrowser.org/dl/](https://sqlitebrowser.org/dl/)
 
 Pour Interlis (optionnel) :
+
 * Model Baker : disponible dans les plugins QGIS
 * Java Runtime Environment (JRE) : [https://www.java.com/fr/download/](https://www.java.com/fr/download/)
 * UML editor interlis : [https://www.interlis.ch/umleditor/](https://www.interlis.ch/umleditor/)
