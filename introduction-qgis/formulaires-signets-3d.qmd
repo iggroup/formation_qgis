@@ -1,0 +1,49 @@
+---
+title: "Formulaires, signets et introduction 3D"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Objectif
+
+Découvrir des fonctions de productivité et de qualité de saisie.
+
+## Formulaires d'attributs
+
+- Configuration par glisser-déposer
+- Listes de valeurs et champs obligatoires
+- Organisation logique des champs
+
+Cas d'usage : couche de suivi des dégâts sur domaine public.
+
+## Signets
+
+- Créer des emprises favorites (ex. Valais, Ardon)
+- Revenir rapidement à un contexte cartographique
+
+## Introduction 3D
+
+- Charger un nuage de points et un MNT
+- Utiliser le profil d'élévation
+- Ouvrir/configurer une vue 3D
+- Synchroniser vue 2D et 3D
+
+## Exercice
+
+- Configurer un formulaire simple pour la couche `degats`.
+- Créer deux signets de navigation.
+- Produire une vue 3D de démonstration avec réglages de base.
+
+## Résultat attendu
+
+Le participant maîtrise les outils avancés essentiels pour passer à un usage opérationnel.
+
+## Documentation spécifique
+
+- [Formulaires d'attributs](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html#attributes-form-properties)
+- [Signets spatiaux](https://docs.qgis.org/latest/fr/docs/user_manual/introduction/general_tools.html)
+- [Profil d'élévation](https://docs.qgis.org/latest/fr/docs/user_manual/map_views/elevation_profile.html)
+- [Vue 3D](https://docs.qgis.org/latest/fr/docs/user_manual/map_views/3d_map_view.html)
+- [Traitement des nuages de points](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_point_clouds/index.html)

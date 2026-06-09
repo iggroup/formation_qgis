@@ -3,6 +3,18 @@ title: "Téléchargements"
 ---
 
 
+## Introduction à QGIS
+
+- [Diaporama de la formation](fichiers/introduction-qgis/formation_qgis.pptx){download="formation_qgis.pptx"}
+- [Pack d'exercices](fichiers/introduction-qgis/Exercices_formation.zip){download="Exercices_formation.zip"}
+- [Template QGIS géoservices](fichiers/introduction-qgis/templates_qgis/template_geoservices.qgz){download="template_geoservices.qgz"}
+- [Template QGIS mise en page](fichiers/introduction-qgis/templates_qgis/template_mise_en_page.qgz){download="template_mise_en_page.qgz"}
+- [Mise en page A4 paysage](fichiers/introduction-qgis/mises_en_page/a4_paysage.qpt){download="a4_paysage.qpt"}
+- [Mise en page A4 portrait](fichiers/introduction-qgis/mises_en_page/a4_portrait.qpt){download="a4_portrait.qpt"}
+- [Mise en page A3 paysage](fichiers/introduction-qgis/mises_en_page/a3_paysage.qpt){download="a3_paysage.qpt"}
+- [Mise en page A3 portrait](fichiers/introduction-qgis/mises_en_page/a3_portrait.qpt){download="a3_portrait.qpt"}
+
+
 ## Base de données
 
 <!-- - [Télécharger un GeoPackage](fichiers/base-de-donnees/exemple.gpkg){download="exemple.gpkg"}

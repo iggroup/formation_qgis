@@ -1,0 +1,54 @@
+---
+title: "Données et gestion des couches"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Objectif
+
+Charger et organiser des données SIG locales et distantes dans QGIS.
+
+## Types de données
+
+- Raster : MNT, orthophoto, fonds cartographiques
+- Vecteur : points, lignes, polygones
+- Formats courants : TIF, SHP, GPKG, CSV, GDB, DWG/DXF
+- Services web : WMS/WMTS, ArcGIS REST
+
+## Bonnes pratiques de gestion
+
+- Grouper les couches par thème.
+- Utiliser des noms explicites.
+- Définir les échelles de visibilité.
+- Utiliser des groupes mutuellement exclusifs pour les fonds de plan.
+
+## Import spécifique DWG/DXF
+
+QGIS convertit les DWG/DXF vers un format exploitable (souvent GeoPackage).
+
+Étapes recommandées :
+
+1. Projet > Importer / Exporter > Importer des couches depuis DXF/DWG.
+2. Choisir un GeoPackage cible.
+3. Forcer le SCR en EPSG:2056 si nécessaire.
+4. Charger les couches converties dans un groupe dédié.
+
+## Exercice
+
+- Ajouter toutes les données de base dans un groupe "Ardon".
+- Ajouter le DWG des données métier.
+- Configurer la connexion au service cantonal et ajouter des couches de dangers naturels.
+
+## Résultat attendu
+
+Un projet avec des couches correctement organisées, combinant données locales et services distants.
+
+## Documentation spécifique
+
+- [Ouverture des sources de données](https://docs.qgis.org/latest/fr/docs/user_manual/managing_data_source/opening_data.html)
+- [Couches raster](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_raster/raster_properties.html)
+- [Couches vecteur](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html)
+- [Services OGC (WMS/WMTS/WFS)](https://docs.qgis.org/latest/fr/docs/user_manual/managing_data_source/opening_data.html#ogc-data)
+- [Import DXF/DWG](https://docs.qgis.org/latest/fr/docs/user_manual/managing_data_source/supported_data.html)
