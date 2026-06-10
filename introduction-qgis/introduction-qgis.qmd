@@ -19,7 +19,7 @@ Ce module d'introduction à QGIS vise à fournir une base solide pour les utilis
 
 ## Supports de cours
 
-- [Diaporama de la formation](../ressources/fichiers/introduction-qgis/formation_qgis.pptx){download="formation_qgis.pptx"}
+<!-- - [Diaporama de la formation](../ressources/fichiers/introduction-qgis/formation_qgis.pptx){download="formation_qgis.pptx"} -->
 - [Pack d'exercices](../ressources/fichiers/introduction-qgis/Exercices_formation.zip){download="Exercices_formation.zip"}
 - [Template QGIS géoservices](../ressources/fichiers/introduction-qgis/templates_qgis/template_geoservices.qgz){download="template_geoservices.qgz"}
 - [Template QGIS mise en page](../ressources/fichiers/introduction-qgis/templates_qgis/template_mise_en_page.qgz){download="template_mise_en_page.qgz"}
