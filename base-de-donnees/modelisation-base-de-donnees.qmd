@@ -147,7 +147,7 @@ Une agence de l'eau souhaite mettre en place un SIG pour gérer la qualité de l
 
 1.  Ils doivent recenser les **Cours d'eau** principaux (tronçons de rivières).
 2.  Ils effectuent des **Prélèvements** d'eau à des endroits précis (points) sur ces cours d'eau.
-3.  Chaque prélèvement donne lieu à plusieurs **Analyses** de paramètres différents (pH, Nitrates, Phosphore, Température) avec une valeur mesurée et un seuil de conformité.
+3.  Chaque prélèvement donne lieu à plusieurs **Analyses** de paramètres différents. Les informations utiles pour décrire ces paramètres (valeurs de référence, seuils, unités, etc.) sont à organiser de manière cohérente.
 4.  Ils souhaitent aussi suivre les **Communes** traversées par les cours d'eau.
 
 ### Travail demandé
@@ -182,17 +182,22 @@ Une agence de l'eau souhaite mettre en place un SIG pour gérer la qualité de l
     *   `technicien`
     *   `id_cours_eau` (Clé Étrangère) → *Lien vers le cours d'eau*
 
+*   **PARAMETRE_ANALYSE** (Géométrie : **Aucune** - Table de référence)
+    *   `id_parametre` (Clé Primaire)
+    *   `nom_parametre` (ex: "Nitrates")
+    *   `seuil_conformite`
+    *   `unite`
+
 *   **ANALYSE** (Géométrie : **Aucune** - Table de détails)
     *   `id_analyse` (Clé Primaire)
     *   `id_prelevement` (Clé Étrangère) → *Lien vers le prélèvement*
-    *   `parametre` (ex: "Nitrates")
+    *   `id_parametre` (Clé Étrangère) → *Lien vers le paramètre analysé*
     *   `valeur_mesuree`
-    *   `unite`
-    *   `conforme` (Booléen)
+    *   `conforme` (Booléen, calculable à partir du seuil)
 
 **2. Schéma Entité-Relation (MCD) :**
 
-Notez la relation en cascade : Un cours d'eau a plusieurs prélèvements, et un prélèvement a plusieurs analyses.
+Notez la relation en cascade : un cours d'eau a plusieurs prélèvements, un prélèvement a plusieurs analyses, et un paramètre peut être utilisé par plusieurs analyses.
 
 La table ANALYSE n'a pas de géométrie. C'est une table purement attributaire liée spatialement de manière indirecte via le PRELEVEMENT.
 
@@ -220,17 +225,24 @@ erDiagram
         int id_cours_eau FK
     }
 
+    PARAMETRE_ANALYSE {
+        int id_parametre PK
+        text nom_parametre
+        float seuil_conformite
+        text unite
+    }
+
     ANALYSE {
         int id_analyse PK
         int id_prelevement FK
-        text parametre
+        int id_parametre FK
         float valeur_mesuree
-        text unite
         boolean conforme
     }
 
     COURS_EAU ||--o{ PRELEVEMENT : "possède"
     PRELEVEMENT ||--o{ ANALYSE : "génère"
+    PARAMETRE_ANALYSE ||--o{ ANALYSE : "définit"
     
     %% Relation N:N simplifiée ou ignorée pour l'exercice de base
     COURS_EAU }|--|{ COMMUNE : "traverse"

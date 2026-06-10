@@ -52,9 +52,7 @@ Depuis l'explorateur, faites un clic droit sur le fichier `.gpkg` > **Nouvelle t
 *   **Nouveau champ :** Ajoutez les attributs définis dans le MCD :
     *   `nom` (Texte, Longueur 255)
     *   `code_national` (Texte, Longueur 50)
-    *   `surface_ha` (Nombre décimal, Précision 10, Échelle 2)
-        *   `Longueur :` nombre total de chiffres que le nombre peut contenir, en comptant ceux avant ET après la virgule.
-        *   `Précision :` nombre de chiffres après la virgule.
+    *   `surface_ha` (Nombre décimal, Longueur et précision ne sont pas gérés par GPKG)
     *   `statut` (Texte, Longueur 100)
 *   **Clé primaire :** Laissez `id` (créé automatiquement par QGIS) ou cochez "Créer un champ ID automatique".
 *   Cliquez sur **Ajouter à la liste des couches**.
@@ -92,80 +90,70 @@ Vous avez deux options principales :
 2.  **Externe (Recommandé) :** Utilisez un éditeur comme VS Code ou Notepad++ pour écrire le script, puis un éditeur léger comme **DB Browser for SQLite** (gratuit) pour l'exécuter.
 
 ### Création manuelle des tables spatiales
-Il est important de noter que la création de tables dans un GPKG nécessite de suivre la spécification OGC, qui impose des métadonnées spécifiques pour les géométries. Par conséquent, **il est nécessaire de créer les tables via l'interface graphique** (comme vu en section 2.2) pour que QGIS gère correctement les métadonnées, puis d'ajouter les champs et contraintes supplémentaires via SQL.
+
+Il est recommandé de créer d'abord les couches spatiales via QGIS (comme vu en partie pratique) pour garantir la bonne initialisation des métadonnées GeoPackage (`gpkg_contents`, `gpkg_geometry_columns`, etc.).
+
+Ensuite, on complète la structure en SQL : attributs, index, relations logiques et contraintes.
+
+Principe :
+
+1. Créer les couches `sites` (Polygone), `observations` (Point) et la table `especes` (sans géométrie) dans QGIS.
+2. Créer les identifiants principaux en format texte et si nécessaire les renommer ex: `id_site`, `id_observation`, `id_espece`.
+3. Ajouter les attributs et contraintes via SQL.
+4. Ajouter les index pour accélérer les jointures et les recherches.
 
 ### Script de création (Exemple Biodiversité)
 
-La limite du format .gpkg est qu'il ne permet pas de créer des tables spatiales avec des commandes spécifiques comme `CREATE TABLE sites (geometry POLYGON)`. Il faut utiliser les conventions de SQLite et les métadonnées GPKG pour définir les géométries.
+Script SQL à exécuter **après** la création des couches via QGIS :
 
-En pratique, il faut créer les tables avec les champs de géométrie, puis enregistrer la géométrie dans les métadonnées du GPKG. 
-
-D'une fois que ces tables sont créées, il est possible d'ajouter toutes les autres informations en SQL.
-
-Voici le script SQL complet correspondant à notre modèle en partant du principe que les tables spatiales `observations`, `especes` et `sites` existent déjà. Copiez ce code dans un fichier `create_schema.sql` ou directement dans la fenêtre SQL de QGIS/DB Browser.
 
 ```sql
+PRAGMA foreign_keys = ON;
 
--- Supprimer toutes les données existantes (la structure reste)
+-- Nettoyage des données existantes (la structure spatiale reste)
 DELETE FROM observations;
 DELETE FROM sites;
 DELETE FROM especes;
 
--- Si vous voulez aussi réinitialiser les compteurs ID à 0 (spécifique SQLite)
+-- Réinitialisation des compteurs auto-incrémentés SQLite
 DELETE FROM sqlite_sequence WHERE name IN ('sites', 'observations', 'especes');
 
--- 1. Table SITES (Polygones)
--- Ajout des champs descriptifs
--- Note : la clé primaire existe déjà (créée par QGIS). Ne pas ajouter de colonne PRIMARY KEY.
-ALTER TABLE sites ADD COLUMN id_site INTEGER;
+-- 1) Table SITES (spatiale créée au préalable par QGIS)
+-- id_site est créé automatiquement par QGIS (auto-incrément)
 ALTER TABLE sites ADD COLUMN nom TEXT(255);
 ALTER TABLE sites ADD COLUMN code_national TEXT(50);
 ALTER TABLE sites ADD COLUMN surface_ha REAL CHECK (surface_ha > 0);
 ALTER TABLE sites ADD COLUMN statut TEXT(100);
 
--- UNIQUE via index (SQLite ne supporte pas ALTER TABLE ... ADD CONSTRAINT)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sites_code_unique ON sites(code_national);
 
--- 2. Table OBSERVATIONS (Points)
--- Ajout des champs descriptifs
--- Note : la clé primaire existe déjà (créée par QGIS). Ne pas ajouter de colonne PRIMARY KEY.
-ALTER TABLE observations ADD COLUMN id_observation INTEGER;
+-- 2) Table OBSERVATIONS (spatiale créée au préalable par QGIS)
+-- id_observation est créé automatiquement par QGIS (auto-incrément)
 ALTER TABLE observations ADD COLUMN date_obs DATE;
 ALTER TABLE observations ADD COLUMN nb_individus INTEGER CHECK (nb_individus >= 0);
 ALTER TABLE observations ADD COLUMN observateur TEXT(100);
-
--- Ajout des champs de liaison (Clés Étrangères)
--- Ce sont de simples entiers pour l'instant, la contrainte de lien sera gérée par QGIS
 ALTER TABLE observations ADD COLUMN id_site INTEGER;
 ALTER TABLE observations ADD COLUMN id_espece INTEGER;
 
--- 3. Table ESPECES (sans géométrie)
--- On ajoute un identifiant métier (pas PRIMARY KEY), puis on impose l'unicité via index.
-ALTER TABLE especes ADD COLUMN id_espece INTEGER;
+-- 3) Table ESPECES (sans géométrie, créée au préalable par QGIS)
+-- id_espece est créé automatiquement par QGIS (auto-incrément)
 ALTER TABLE especes ADD COLUMN nom_latin TEXT(255) NOT NULL;
 ALTER TABLE especes ADD COLUMN nom_vernaculaire TEXT(255);
 ALTER TABLE especes ADD COLUMN groupe TEXT(100);
 ALTER TABLE especes ADD COLUMN statut_uicn TEXT(20) CHECK (statut_uicn IN ('LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'EX'));
 
--- Contraintes d'unicité via index
-CREATE UNIQUE INDEX IF NOT EXISTS idx_especes_id_unique ON especes(id_espece);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_especes_nom_latin_unique ON especes(nom_latin);
 
 -- Insertion de données de test pour l'exercice suivant
 INSERT INTO especes (id_espece, nom_latin, nom_vernaculaire, groupe, statut_uicn) VALUES 
-(1, 'Ursus arctos', 'Ours brun', 'Mammifère', 'LC'),
-(2, 'Aquila chrysaetos', 'Aigle royal', 'Oiseau', 'LC'),
-(3, 'Lynx lynx', 'Lynx boréal', 'Mammifère', 'VU'),
-(4, 'Salmo salar', 'Saumon atlantique', 'Poisson', 'EN');
-
-
--- Activation des clés étrangères pour cette session
-PRAGMA foreign_keys = ON;
+('37c268d6-3ca5-4f3d-8e4d-7985f64c4e66', 'Ursus arctos', 'Ours brun', 'Mammifère', 'LC'),
+('49ebd4fd-1a4b-4af7-af4f-dbe53f4bf766', 'Aquila chrysaetos', 'Aigle royal', 'Oiseau', 'LC'),
+('bf72f4f5-2ff3-4818-b862-a752a22eb143', 'Lynx lynx', 'Lynx boréal', 'Mammifère', 'VU'),
+('9a4b41d5-b2f4-407a-ac6d-a9968c279d6e', 'Salmo salar', 'Saumon atlantique', 'Poisson', 'EN');
 
 -- Création des index
 CREATE INDEX IF NOT EXISTS idx_observations_site ON observations(id_site);
 CREATE INDEX IF NOT EXISTS idx_observations_espece ON observations(id_espece);
-CREATE INDEX IF NOT EXISTS idx_sites_code ON sites(code_national);
 ```
 
 
@@ -173,24 +161,49 @@ CREATE INDEX IF NOT EXISTS idx_sites_code ON sites(code_national);
 
 Suivez ces étapes pour lancer votre script SQL et générer la structure de la base de données :
 
-1.  **Créez un fichier GPKG vide** (comme vu en section 2.1).
-2.  Ajouter les tables `sites`, `especes` et `observations` via l'interface graphique (section 2.2) pour que les métadonnées soient correctement configurées dans le GPKG. Il faut créer un champs (qui ne sera pas utilisé) pour pouvoir valider (par exemple `foo`)
-3.  Lancer *DB Browser for SQLite* et ouvrez votre fichier `.gpkg`.
-4.  Cliquez sur l'onglet **Exécuter le SQL**.
-5.  **Collez le script** SQL précédent dans l'éditeur.
-6.  Cliquez sur le bouton **Exécuter**.
-7.  Enregistrez les modifications et fermez DB Browser.
-8.  **Rafraîchissez** votre navigateur de panneaux dans QGIS : les tables `sites`, `especes` et `observations` apparaîtront automatiquement avec leurs attributs.
+
+1. Ouvrez le GPKG créé dans QGIS avec les couches de base dans **DB Browser for SQLite** (recommandé).
+2. Collez le script SQL complet ci-dessus.
+3. Exécutez le script en une fois.
+4. Rafraîchissez les couches dans QGIS et vérifiez les attributs, index et relations logiques.
 
 ### Avantages de cette méthode pour la suite
 
 Une fois la structure créée en SQL, vous gagnez en flexibilité et en robustesse :
 
-*   **Réinitialisation rapide :** Vous pouvez vider les tables (`DELETE FROM observations;`) pour réimporter de nouvelles données sans avoir à recréer toute la structure. Vous pouvez aussi réinitialiser une base de données en quelques secondes après l'étape manuelle de création des tables dans QGIS.
+*   **Réinitialisation rapide :** Vous pouvez recréer entièrement la structure en relançant le script SQL.
 *   **Documentation claire :** Le script SQL sert de documentation technique précise de la structure de la base de données, avec les types, contraintes et index clairement définis.
 *   **Préparation à PostGIS :** Vous préparez déjà votre esprit au fonctionnement de **PostgreSQL/PostGIS**, qui fonctionne *exclusivement* en SQL pour la définition de structure. Les compétences acquises ici sont directement transférables.
 
 ---
+
+### Note : Méthode alternative entièrement en SQL depuis QGIS
+
+Il existe une approche alternative où l'on crée entièrement les tables spatiales **directement via SQL**. Cette méthode utilise la fonction `gpkgAddGeometryColumn()` de GeoPackage :
+
+```sql
+-- Création de la table SITES directement en SQL
+CREATE TABLE sites (
+    id_site INTEGER PRIMARY KEY AUTOINCREMENT,
+    nom TEXT(255),
+    code_national TEXT(50),
+    surface_ha REAL CHECK (surface_ha > 0),
+    statut TEXT(100)
+);
+
+-- Ajout de la colonne géométrique via la fonction GeoPackage
+SELECT gpkgAddGeometryColumn('sites', 'geom', 'POLYGON', 1, 0, 2056);
+```
+
+**Défauts de cette méthode :**
+
+*   **Métadonnées incomplètes :** Il n'y a aucune garantie à 100 % que toutes les métadonnées GPKG sont bien initialisées (comme `gpkg_contents` et `gpkg_geometry_columns`). La fonction `gpkgAddGeometryColumn()` peut ne pas remplir tous les champs requis correctement.
+*   **Limitation de DB Manager :** Le gestionnaire de base de données de QGIS (DB Manager) ne permet d'exécuter qu'**une seule requête à la fois**. Si vous devez créer plusieurs tables avec géométries, vous devrez exécuter chaque `SELECT gpkgAddGeometryColumn(...)` individuellement, ce qui est fastidieux et source d'erreurs.
+
+**Recommandation :** Privilégiez la méthode graphique (créer les couches via QGIS), puis affinez avec SQL via **DB Browser for SQLite**, qui permet d'exécuter des scripts complets en une seule opération.
+
+---
+
 
 ## Conclusion
 
