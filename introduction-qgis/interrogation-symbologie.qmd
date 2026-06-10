@@ -1,0 +1,54 @@
+---
+title: "Interrogation, sélection et symbologie"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Objectif
+
+Lire, filtrer et représenter les données de manière claire.
+
+## Interroger les données
+
+- Outil d'identification
+- Table attributaire (mode table / mode formulaire)
+- Sélection attributaire
+- Sélection graphique
+- Sélection par localisation
+
+## Symbologie
+
+### Raster
+
+- Transparence
+- Ombrage
+- Pseudo-couleur
+- Courbes/contours selon le besoin
+
+### Vecteur
+
+- Catégorisation (ex. type de route)
+- Stylage lisible (couleurs, épaisseurs)
+- Étiquetage avec tampon
+- Visibilité selon l'échelle
+
+## Exercice
+
+- Trouver la parcelle qui contient un objet de référence (ex. église).
+- Sélectionner les parcelles selon des relations spatiales.
+- Mettre les rivières en bleu.
+- Afficher les numéros de parcelles avec échelle de visibilité.
+
+## Résultat attendu
+
+L'utilisateur sait interroger rapidement les données et produire une carte lisible sans surcharge.
+
+## Documentation spécifique
+
+- [Interroger et sélectionner des entités](https://docs.qgis.org/latest/fr/docs/user_manual/introduction/general_tools.html)
+- [Table attributaire](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/attribute_table.html)
+- [Sélection par expression](https://docs.qgis.org/latest/fr/docs/user_manual/expressions/expression.html)
+- [Symbologie vecteur](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html#symbology-properties)
+- [Symbologie raster](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_raster/raster_properties.html#symbology-properties)

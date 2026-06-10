@@ -1,0 +1,45 @@
+---
+title: "Interface et projet QGIS"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Objectif
+
+Prendre en main l'interface et configurer un projet QGIS propre dès le départ.
+
+## Points clés
+
+- Structure d'un projet `.qgz` / `.qgs`
+- Menus, barres d'outils, panneaux
+- Barre de recherche
+  - Fonction `-f `
+- SCR du projet (CH1903+ / LV95, EPSG:2056)
+- Installation et usage du plugin SwissLocator
+
+## Procédure guidée
+
+1. Ouvrir QGIS et créer un nouveau projet.
+2. Activer les panneaux utiles : couches, navigateur, résultats d'identification.
+3. Vérifier le SCR du projet et le définir en `EPSG:2056`.
+4. Installer le plugin SwissLocator et tester une recherche de couche.
+5. Enregistrer le projet dans un dossier de travail dédié.
+
+## Exercice
+
+- Créer un groupe de couches nommé "Aptitude solaire".
+- Ajouter les couches toitures et façades via SwissLocator.
+- Vérifier l'ordre d'affichage et définir une plage de visibilité pertinente.
+
+## Résultat attendu
+
+Le projet est structuré, avec une interface adaptée et un premier groupe thématique prêt à être enrichi.
+
+## Documentation spécifique
+
+- [Interface utilisateur QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/introduction/qgis_gui.html)
+- [Gestion des projets QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/introduction/project_files.html)
+- [Extensions QGIS (plugins)](https://docs.qgis.org/latest/fr/docs/user_manual/plugins/plugins.html)
+- [Barres d'outils et panneaux](https://docs.qgis.org/latest/fr/docs/user_manual/introduction/qgis_interface.html)

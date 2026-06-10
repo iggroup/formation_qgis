@@ -1,0 +1,57 @@
+---
+title: "Édition, export et mise en page"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Objectif
+
+Modifier des données, les exporter et produire une carte de restitution.
+
+## Édition attributaire et géométrique
+
+- Passage en mode édition
+- Mise à jour de champs
+- Calculs de champs (surface, longueur, etc.)
+- Ajout/suppression d'entités
+- Accrochage et édition topologique
+- Éditeur de sommets
+
+## Export de données
+
+Formats usuels :
+
+- GeoPackage
+- Shapefile
+- DXF
+- CSV / XLSX
+
+Exporter la sélection uniquement quand nécessaire.
+
+## Mise en page
+
+- Ouvrir le gestionnaire de mises en page
+- Charger un modèle `.qpt`
+- Composer la carte (titre, légende, échelle, auteur, date)
+- Exporter en PDF
+
+## Exercice
+
+1. Renommer plusieurs entités en édition multiple.
+2. Calculer un champ longueur.
+3. Exporter un sous-ensemble en Shapefile.
+4. Réaliser une carte A3 avec les éléments cartographiques obligatoires.
+
+## Résultat attendu
+
+Le participant passe du projet technique à un livrable cartographique prêt à diffuser.
+
+## Documentation spécifique
+
+- [Numérisation et édition de couches](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html)
+- [Calculatrice de champs](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/attribute_table.html#using-the-field-calculator)
+- [Exporter / sauvegarder des entités](https://docs.qgis.org/latest/fr/docs/user_manual/managing_data_source/create_layers.html)
+- [Mise en page cartographique](https://docs.qgis.org/latest/fr/docs/user_manual/print_composer/index.html)
+- [Objets de mise en page (légende, échelle, etc.)](https://docs.qgis.org/latest/fr/docs/user_manual/print_composer/composer_items/index.html)

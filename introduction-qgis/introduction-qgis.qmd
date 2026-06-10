@@ -1,0 +1,60 @@
+---
+title: "Introduction à QGIS"
+subtitle: "Prise en main et exercices guidés"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
+---
+
+## Objectifs
+Ce module d'introduction à QGIS vise à fournir une base solide pour les utilisateurs débutants. À travers une série de chapitres thématiques et d'exercices pratiques, les participants apprendront à :
+
+- configurer l'interface QGIS,
+- charger des données locales et distantes,
+- interroger, styler et éditer des couches,
+- exporter des données et produire une mise en page,
+- utiliser des formulaires, signets et fonctions 3D.
+
+## Supports de cours
+
+<!-- - [Diaporama de la formation](../ressources/fichiers/introduction-qgis/formation_qgis.pptx){download="formation_qgis.pptx"} -->
+- [Pack d'exercices](../ressources/fichiers/introduction-qgis/Exercices_formation.zip){download="Exercices_formation.zip"}
+- [Template QGIS géoservices](../ressources/fichiers/introduction-qgis/templates_qgis/template_geoservices.qgz){download="template_geoservices.qgz"}
+- [Template QGIS mise en page](../ressources/fichiers/introduction-qgis/templates_qgis/template_mise_en_page.qgz){download="template_mise_en_page.qgz"}
+- [Mise en page A4 paysage](../ressources/fichiers/introduction-qgis/mises_en_page/a4_paysage.qpt){download="a4_paysage.qpt"}
+- [Mise en page A4 portrait](../ressources/fichiers/introduction-qgis/mises_en_page/a4_portrait.qpt){download="a4_portrait.qpt"}
+- [Mise en page A3 paysage](../ressources/fichiers/introduction-qgis/mises_en_page/a3_paysage.qpt){download="a3_paysage.qpt"}
+- [Mise en page A3 portrait](../ressources/fichiers/introduction-qgis/mises_en_page/a3_portrait.qpt){download="a3_portrait.qpt"}
+
+## Documentation QGIS actuelle
+
+- [Documentation officielle QGIS (latest, FR)](https://docs.qgis.org/latest/fr/docs/)
+- [Guide utilisateur QGIS (latest, FR)](https://docs.qgis.org/latest/fr/docs/user_manual/)
+- [Manuel de formation QGIS (latest, FR)](https://docs.qgis.org/latest/fr/docs/training_manual/)
+- [Documentation officielle QGIS (latest, EN)](https://docs.qgis.org/latest/en/docs/)
+- [Notes de version QGIS](https://qgis.org/resources/roadmap/)
+
+## Parcours pédagogique
+
+Le module est découpé en 5 chapitres :
+
+1. [Interface et projet QGIS](interface-et-projet.qmd)
+2. [Données et gestion des couches](donnees-et-couches.qmd)
+3. [Interrogation, sélection et symbologie](interrogation-symbologie.qmd)
+4. [Édition, export et mise en page](edition-export-mise-en-page.qmd)
+5. [Formulaires, signets et introduction 3D](formulaires-signets-3d.qmd)
+
+## Série d'exercices (synthèse)
+
+1. Créer une arborescence de groupes propre pour le projet.
+2. Ajouter des couches locales + services web.
+3. Réaliser des sélections attributaires et spatiales.
+4. Appliquer une symbologie lisible et des étiquettes.
+5. Éditer des attributs et géométries avec topologie.
+6. Exporter un sous-ensemble de données.
+7. Produire une carte A3 avec légende et échelle.
+8. Configurer un formulaire d'édition simple.
+9. Créer des signets et une vue 3D de base.
+

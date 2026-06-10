@@ -13,6 +13,20 @@ website:
         text: Accueil
       - href: ressources/telechargements.qmd
         text: Téléchargements
+      - section: "Introduction à QGIS"
+        contents:
+          - href: introduction-qgis/introduction-qgis.qmd
+            text: "Vue d'ensemble"
+          - href: introduction-qgis/interface-et-projet.qmd
+            text: "Interface et projet QGIS"
+          - href: introduction-qgis/donnees-et-couches.qmd
+            text: "Données et gestion des couches"
+          - href: introduction-qgis/interrogation-symbologie.qmd
+            text: "Interrogation, sélection et symbologie"
+          - href: introduction-qgis/edition-export-mise-en-page.qmd
+            text: "Édition, export et mise en page"
+          - href: introduction-qgis/formulaires-signets-3d.qmd
+            text: "Formulaires, signets et introduction 3D"
       - section: "Base de données et projet QGIS"
         contents:
           - href: base-de-donnees/prerequis-logiciels-bd.qmd
