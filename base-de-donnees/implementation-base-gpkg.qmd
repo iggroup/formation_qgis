@@ -204,6 +204,62 @@ SELECT gpkgAddGeometryColumn('sites', 'geom', 'POLYGON', 1, 0, 2056);
 
 ---
 
+## Bonnes pratiques avancées : enregistrer le projet QGIS dans la base de données
+
+Depuis QGIS 3.10 (environ), il est possible d'enregistrer le projet QGIS (`.qgz`) **directement dans une base GeoPackage ou PostgreSQL/PostGIS**.
+
+### Pourquoi utiliser cette fonctionnalité ?
+
+### 1) Portabilité maximale (mode « tout-en-un » avec GPKG)
+
+En stockant projet + données dans le même fichier `.gpkg`, on évite les projets cassés (couches en rouge, sources invalides).
+
+Cas typique : livraison client ou archivage final d'une mission.
+
+### 2) Gestion centralisée (mode entreprise avec PostgreSQL)
+
+Dans PostGIS, les projets deviennent des objets de la base :
+
+* gestion des droits d'accès,
+* partage immédiat entre collègues,
+* exploitation directe par QGIS Server (sans copier des `.qgz` sur le serveur web).
+
+### 3) Cohérence documentaire
+
+Le projet est stocké au même endroit que les données, ce qui facilite la traçabilité et la documentation (auteur, date, description, version).
+
+### Scénarios d'usage en formation
+
+* **GPKG – "Capsule temporelle" :** un seul fichier de livraison contenant couches + styles + mises en page.
+* **PostgreSQL – "Zéro fichier local" :** les projets sont centralisés en base, partagés et publiables plus facilement.
+
+### Procédure dans QGIS
+
+1. Ouvrir le projet dans QGIS.
+2. Aller dans **Projet > Enregistrer sous...**
+3. Choisir :
+    * **GeoPackage files (`*.gpkg`)** ou
+    * **PostgreSQL database**.
+4. Sélectionner la base cible.
+5. Donner un nom interne au projet (ex. `projet_biodiversite_2026`).
+6. Valider.
+
+### Notes techniques
+
+* **GeoPackage :** projet stocké dans une table dédiée (souvent `qgis_project`/table similaire).
+* **PostgreSQL :** projet stocké dans une table dédiée (souvent `qgis_projects`, selon le schéma retenu).
+
+### Limites et précautions
+
+* **Compatibilité :** versions QGIS anciennes (pré-3.10) peuvent ne pas détecter automatiquement le projet embarqué.
+* **Performance réseau (PostgreSQL) :** un projet très lourd peut s'ouvrir plus lentement sur réseau distant.
+* **Versionning Git :** un projet stocké en base est moins simple à comparer qu'un `.qgz` versionné.
+* **Sauvegarde :** en PostgreSQL, vérifier que la table des projets est incluse dans les sauvegardes (`pg_dump`).
+
+> **Message clé :** Enregistrer le projet dans la base (GPKG ou PostGIS) garantit que la carte et les données restent liées. C'est excellent pour l'archivage, la livraison client et les flux de travail professionnels centralisés.
+
+---
+
 
 ## Conclusion
 
