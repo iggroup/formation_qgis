@@ -32,7 +32,7 @@ Les expressions QGIS permettent de :
 
 ---
 
-## 1. Symbologie conditionnelle
+## Symbologie conditionnelle
 
 La symbologie conditionnelle permet de **visualiser les données selon des règles**.
 
@@ -82,7 +82,7 @@ Cela montre que les propriétés visuelles ne sont pas figées : elles **réagis
 
 ---
 
-## 2. Filtres dans les formulaires (visibilité conditionnelle)
+## Filtres dans les formulaires (visibilité conditionnelle)
 
 Les filtres permettent d'afficher/masquer des champs du formulaire selon des conditions.
 
@@ -109,7 +109,7 @@ Les utilisateurs ne voient que les champs pertinents : le formulaire s'adapte au
 
 ---
 
-## 3. Contraintes (validation de saisie)
+## Contraintes (validation de saisie)
 
 Les contraintes permettent de **valider** les données saisies et d'afficher un message d'erreur si la condition n'est pas respectée.
 
@@ -261,7 +261,7 @@ Cela montre que les champs ne sont pas toujours des données brutes : ils peuven
 
 ---
 
-## 6. Valeurs par défaut
+## Valeurs par défaut
 
 Les valeurs par défaut permettent de **pré-remplir** les formulaires avec des valeurs intelligentes.
 
@@ -311,7 +311,7 @@ Les valeurs par défaut **accélèrent la saisie** et réduisent les erreurs en 
 
 ---
 
-## 7. Étiquettes dynamiques
+## Étiquettes dynamiques
 
 Les étiquettes permettent d'afficher du texte dynamique sur la carte selon les données.
 
@@ -357,7 +357,7 @@ Les étiquettes dynamiques permettent de **raconter une histoire** avec les donn
 
 ---
 
-## 8. Variables du projet et de la couche
+## Variables du projet et de la couche
 
 QGIS propose des variables prédéfinies (contexte) accessibles dans les expressions.
 
@@ -409,7 +409,7 @@ Les variables montrent que les expressions ont accès au **contexte global du pr
 
 ---
 
-## 9. Filtres de couche (Layer Filter Expression)
+## Filtres de couche (Layer Filter Expression)
 
 Le filtre de couche permet d'afficher/masquer des entités selon une expression sans modifier les données.
 

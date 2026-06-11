@@ -186,11 +186,11 @@ QGIS permet aussi de réemployer une géométrie existante comme base de travail
 
 ## Bonnes pratiques à transmettre
 
-### 1) Travailler avec l'accrochage activé
+### Travailler avec l'accrochage activé
 
 Même si le sujet est traité plus en détail dans le chapitre topologique, il est utile de rappeler que la précision de numérisation dépend fortement de l'accrochage.
 
-### 2) Éviter les corrections « à la main levée »
+### Éviter les corrections « à la main levée »
 
 Lorsqu'une position doit être exacte, il vaut mieux utiliser :
 
@@ -199,7 +199,7 @@ Lorsqu'une position doit être exacte, il vaut mieux utiliser :
 * les outils de sommets,
 * les outils de remodelage.
 
-### 3) Limiter la complexité géométrique inutile
+### Limiter la complexité géométrique inutile
 
 Trop de sommets compliquent :
 
@@ -208,7 +208,7 @@ Trop de sommets compliquent :
 * la lisibilité,
 * parfois les performances.
 
-### 4) Vérifier le sens métier avant de créer une multi-géométrie
+### Vérifier le sens métier avant de créer une multi-géométrie
 
 Une multi-géométrie est pertinente si plusieurs parties représentent **un seul objet métier**. Sinon, il faut créer plusieurs entités distinctes.
 

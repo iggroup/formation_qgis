@@ -16,7 +16,7 @@ website:
       - section: "Introduction à QGIS"
         contents:
           - href: introduction-qgis/introduction-qgis.qmd
-            text: "Vue d'ensemble"
+            text: "Présentation du module"
           - href: introduction-qgis/interface-et-projet.qmd
             text: "Interface et projet QGIS"
           - href: introduction-qgis/donnees-et-couches.qmd
@@ -41,30 +41,40 @@ website:
             text: "Introduction à PostgreSQL / PostGIS"
           - href: base-de-donnees/introduction-interlis.qmd
             text: "Introduction à Interlis"
-      # - section: "QField"
-        # contents:
-        #   - href: qfield/export-projet-qfieldcloud.qmd
-        #     text: "Export d’un projet QGIS pour QFieldCloud"
-        #   - href: qfield/leve-et-edition-qfield.qmd
-        #     text: "Levé et édition QField"
-      # - section: "Advanced QGIS"
-      #   contents:
-      #     - section: "Édition avancée"
-      #       contents:
-      #         - href: advanced-qgis/numerisation-avancee.qmd
-      #           text: "Numérisation avancée"
-      #         - href: advanced-qgis/edition-topologique.qmd
-      #           text: "Édition topologique"
-      #     - section: "Géotraitement"
-      #       contents:
-      #         - href: advanced-qgis/expressions-qgis.qmd
-      #           text: "Expressions QGIS"
-      #         - href: advanced-qgis/boite-outils-geotraitement.qmd
-      #           text: "Boîte à outils de géotraitement"
-      #         - href: advanced-qgis/automatisation-flux-geotraitement.qmd
-      #           text: "Automatisation de flux de géotraitement"
-      #         - href: advanced-qgis/introduction-plugins-qgis.qmd
-      #           text: "Introduction aux plugins QGIS"
+      - section: "QField"
+        contents:
+          - href: qfield/export-projet-qfieldcloud.qmd
+            text: "Export d’un projet QGIS pour QFieldSync"
+          - href: qfield/leve-et-edition-qfield.qmd
+            text: "Levé et édition QField"
+      - section: "Advanced QGIS"
+        contents:
+          - section: "Édition avancée"
+            contents:
+              - href: advanced-qgis/numerisation-avancee.qmd
+                text: "Numérisation avancée"
+              - href: advanced-qgis/edition-topologique.qmd
+                text: "Édition topologique"
+          - section: "Géotraitement"
+            contents:
+              - href: advanced-qgis/expressions-qgis.qmd
+                text: "Expressions QGIS"
+              - href: advanced-qgis/boite-outils-geotraitement.qmd
+                text: "Boîte à outils de géotraitement"
+              - href: advanced-qgis/automatisation-flux-geotraitement.qmd
+                text: "Automatisation de flux de géotraitement"
+              - href: advanced-qgis/modeleur-flux-kde.qmd
+                text: "Modéleur graphique : flux KDE"
+              - href: advanced-qgis/introduction-plugins-qgis.qmd
+                text: "Introduction aux plugins QGIS"
+      - section: "Développement avancé QGIS"
+        contents:
+          - href: developpement-avance/introduction-developpement.qmd
+            text: "Introduction au développement"
+          - href: developpement-avance/traitement-kde.qmd
+            text: "Traitement personnalisé KDE"
+          - href: developpement-avance/plugin-kde.qmd
+            text: "Plugin QGIS KDE"
 
 format:
   html:

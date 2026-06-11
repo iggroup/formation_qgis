@@ -35,8 +35,6 @@ Les données ne vivent pas en isolation. Il existe trois types de relations prin
 2.  **Un-à-Plusieurs (1:N) :** Un objet est lié à plusieurs objets d'une autre table (ex: Une rivière contient plusieurs stations de mesure de qualité).
 3.  **Plusieurs-à-Plusieurs (N:N) :** Plusieurs objets d'une table sont liés à plusieurs objets d'une autre (ex: Une espèce peut être observée sur plusieurs sites, et un site contient plusieurs espèces). *Nécessite une table de jointure intermédiaire.*
 
-Pour les projets de terrain, on ajoute aussi fréquemment une table de **photos / images** afin de stocker les pièces jointes associées aux observations.
-
 ### Pourquoi modéliser avant d'implémenter ?
 
 *   **Éviter la redondance :** Ne pas répéter les mêmes informations (ex: ne pas écrire le nom du propriétaire sur chaque parcelle, mais le lier via un ID).
@@ -189,7 +187,7 @@ Une agence de l'eau souhaite mettre en place un SIG pour gérer la qualité de l
 
 1.  Ils doivent recenser les **Cours d'eau** principaux (tronçons de rivières).
 2.  Ils effectuent des **Prélèvements** d'eau à des endroits précis (points) sur ces cours d'eau.
-3.  Chaque prélèvement donne lieu à plusieurs **Analyses** de paramètres différents. Les informations utiles pour décrire ces paramètres (valeurs de référence, seuils, unités, etc.) sont à organiser de manière cohérente.
+3.  Chaque prélèvement donne lieu à plusieurs **Analyses** de paramètres différents (pH, Nitrates, Phosphore, Température) avec une valeur mesurée et un seuil de conformité.
 4.  Ils souhaitent aussi suivre les **Communes** traversées par les cours d'eau.
 
 ### Travail demandé
@@ -239,7 +237,7 @@ Une agence de l'eau souhaite mettre en place un SIG pour gérer la qualité de l
 
 **2. Schéma Entité-Relation (MCD) :**
 
-Notez la relation en cascade : un cours d'eau a plusieurs prélèvements, un prélèvement a plusieurs analyses, et un paramètre peut être utilisé par plusieurs analyses.
+Notez la relation en cascade : Un cours d'eau a plusieurs prélèvements, et un prélèvement a plusieurs analyses.
 
 La table ANALYSE n'a pas de géométrie. C'est une table purement attributaire liée spatialement de manière indirecte via le PRELEVEMENT.
 
