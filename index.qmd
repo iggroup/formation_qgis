@@ -7,39 +7,51 @@ title: "Formation QGIS"
 
 ### Introduction à QGIS
 
-- [Vue d'ensemble](introduction-qgis/introduction-qgis.qmd)
+- [Présentation du module](introduction-qgis/introduction-qgis.qmd)
 - [Interface et projet QGIS](introduction-qgis/interface-et-projet.qmd)
 - [Données et gestion des couches](introduction-qgis/donnees-et-couches.qmd)
 - [Interrogation, sélection et symbologie](introduction-qgis/interrogation-symbologie.qmd)
 - [Édition, export et mise en page](introduction-qgis/edition-export-mise-en-page.qmd)
 - [Formulaires, signets et introduction 3D](introduction-qgis/formulaires-signets-3d.qmd)
   
-### Base de données
+### Base de données et projet QGIS
 
-- Modélisation de base de données
-- Implémentation d’une base de données GPKG
-- Configuration d'un projet QGIS:
+- [Prérequis logiciels PostgreSQL / PostGIS](base-de-donnees/prerequis-logiciels-bd.qmd)
+- [Modélisation de base de données](base-de-donnees/modelisation-base-de-donnees.qmd)
+- [Implémentation d’une base de données GPKG](base-de-donnees/implementation-base-gpkg.qmd)
+- [Configuration d'un projet QGIS](base-de-donnees/configuration-projet-qgis.qmd) :
   - Création de la connexion à la base de données
   - Relations entre couches
   - Formulaire de saisie
-- Introduction à PostgreSQL / PostGIS
-- Introduction à Interlis
+- [Introduction à PostgreSQL / PostGIS](base-de-donnees/introduction-postgresql-postgis.qmd)
+- [Introduction à Interlis](base-de-donnees/introduction-interlis.qmd)
 
 ### QField
 
-- Export d’un projet QGIS pour QFieldCloud
-- Levé et édition QField
+- [Export d’un projet QGIS pour QFieldSync](qfield/export-projet-qfieldcloud.qmd)
+- [Levé et édition QField](qfield/leve-et-edition-qfield.qmd)
 
 ### QGIS Avancé
 
 #### Édition avancée
 
-- Numérisation avancée
-- Édition topologique
+- [Numérisation avancée](advanced-qgis/numerisation-avancee.qmd)
+- [Édition topologique](advanced-qgis/edition-topologique.qmd)
 
 #### Géotraitement
 
-- Expressions QGIS
-- Boîte à outils de géotraitement
-- Automatisation de flux de géotraitement
-- Introduction aux plugins QGIS
+- [Expressions QGIS](advanced-qgis/expressions-qgis.qmd)
+- [Boîte à outils de géotraitement](advanced-qgis/boite-outils-geotraitement.qmd)
+- [Automatisation de flux de géotraitement](advanced-qgis/automatisation-flux-geotraitement.qmd)
+- [Modéleur graphique : flux KDE](advanced-qgis/modeleur-flux-kde.qmd)
+- [Introduction aux plugins QGIS](advanced-qgis/introduction-plugins-qgis.qmd)
+
+### Développement avancé QGIS
+
+- [Introduction au développement](developpement-avance/introduction-developpement.qmd)
+- [Traitement personnalisé KDE](developpement-avance/traitement-kde.qmd)
+- [Plugin QGIS KDE](developpement-avance/plugin-kde.qmd)
+
+### Ressources
+
+- [Téléchargements](ressources/telechargements.qmd)

@@ -79,7 +79,7 @@ Cette séparation clarifie le modèle :
 * Accès à un utilisateur ayant droits de création de base/schéma.
 * PgAdmin
 
-> Guide d'installation détaillé : [Prérequis logiciels PostgreSQL / PostGIS](prerequis-logiciels-postgresql-postgis.qmd)
+> Guide d'installation détaillé : [Prérequis logiciels PostgreSQL / PostGIS](prerequis-logiciels-bd.qmd)
 
 ### Création d'une base de données via l'interface PgAdmin
 1. Ouvrez PgAdmin et connectez-vous à votre serveur PostgreSQL.
@@ -377,19 +377,6 @@ INSERT INTO biodiv.observations (id_site, id_espece, id_observateur, date_obs, n
 ON CONFLICT DO NOTHING;
 ```
 
-### Fonctionnalités de base de PgAdmin
-
-Présentation rapide des fonctionnalités clés de PgAdmin pour la gestion de votre base de données :
-
-* Editeur de requêtes SQL avec coloration syntaxique.
-* Visualisation des résultats sous forme de tableau.
-* Gestion des objets (tables, schémas, extensions) via l'interface graphique.
-* Export des résultats de requêtes au format CSV, Excel, etc.
-* Edition des données via l'interface (pas recommandé pour les gros volumes ou les données géométriques).
-* Backups/restaurations de bases de données.
-* Outils de monitoring et de gestion des connexions.
-  
-
 ### Exploitation dans QGIS
 
 Dans QGIS :
@@ -401,18 +388,6 @@ Dans QGIS :
    * `especes.id_espece` → `observations.id_espece`
    * `observateurs.id_observateur` → `observations.id_observateur`
 4. Dans les formulaires de `observations`, utilisez des widgets de **référence de relation** pour éviter la saisie libre.
-
-#### Connexion via fichier de service PostgreSQL (recommandé)
-
-Pour éviter de saisir les paramètres de connexion dans chaque projet QGIS, vous pouvez utiliser un fichier `pg_service.conf`.
-
-Principe :
-
-* définir un alias de connexion (ex. `formation_biodiv`),
-* centraliser `host`, `port`, `dbname`, `user`, etc.,
-* réutiliser cet alias dans QGIS au lieu d'une connexion manuelle complète.
-
-Le plugin **pg service parser** peut aider à lire/importer ces services dans QGIS et accélérer le paramétrage des connexions.
 
 ---
 
@@ -441,5 +416,3 @@ Cependant, cela nécessite une montée en compétence sur les concepts de base d
 * [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 * [PostGIS Documentation](https://postgis.net/documentation/)
 * [Documentation QGIS - Gestion des connexions PostgreSQL](https://docs.qgis.org/latest/fr/docs/user_manual/managing_data_source/opening_data.html#postgresql-layers)
-* [PostgreSQL - The Connection Service File (`pg_service.conf`)](https://www.opengis.ch/2024/05/28/the-postgresql-connection-service-file-and-why-we-love-it/)
-* [QGIS Plugins - pg service parser](https://github.com/opengisch/qgis-pg-service-parser-plugin)
