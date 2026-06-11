@@ -1,0 +1,468 @@
+---
+title: "Plugin QGIS KDE"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
+---
+
+## Objectif
+
+Packager le traitement KDE en **plugin QGIS complet** avec interface graphique, distribution et installation.
+
+## Structure d'un plugin QGIS
+
+Un plugin complet ressemble à :
+
+```
+kde_distribution_plugin/
+├── __init__.py                    # Point d'entrée du plugin
+├── metadata.txt                   # Métadonnées et infos de distribution
+├── kde_plugin.py                  # Classe principale du plugin
+├── kde_algorithm.py               # Classe de l'algorithme
+├── resources.qrc                  # Ressources (icônes, etc.)
+├── resources.py                   # Ressources compilées (auto-généré)
+├── icon.png                       # Icône du plugin
+├── ui/
+│   ├── kde_dialog.ui              # Formulaire Qt Designer
+│   └── kde_dialog.py              # Code de la fenêtre
+└── i18n/
+    ├── kde_fr.ts                  # Traductions françaises
+    └── kde_en.ts                  # Traductions anglaises
+```
+
+---
+
+## Étape 1 : Fichier metadata.txt
+
+Ce fichier définit les informations du plugin pour QGIS :
+
+```ini
+[general]
+name=KDE Distribution Analysis
+qgisMinimumVersion=3.16
+qgisMaximumVersion=3.99
+description=Analyse de distribution d'espèces par Kernel Density Estimation (KDE). Utilise les observations ponctuelles pour estimer la zone de présence probable.
+version=1.0.0
+author=Norbert Schneider
+email=norbert@example.com
+url=https://github.com/your-org/kde-distribution
+repository=https://github.com/your-org/kde-distribution
+tracker=https://github.com/your-org/kde-distribution/issues
+category=Plugins
+icon=icon.png
+experimental=False
+deprecated=False
+
+changelog=
+    1.0.0 - Version initiale
+    - Analyse KDE de distribution d'espèces
+    - Interface graphique
+    - Export de résultats en Shapefile/GeoPackage
+
+aboutUrl=https://github.com/your-org/kde-distribution
+aboutAuthor=Norbert Schneider, Formation QGIS
+```
+
+**Champs importants** :
+- `qgisMinimumVersion` / `qgisMaximumVersion` : compatibilité
+- `experimental` : marquer comme expérimental si en développement
+- `category` : "Plugins" ou autre catégorie QGIS
+- `changelog` : historique des versions
+
+---
+
+## Étape 2 : Fichier __init__.py
+
+Point d'entrée du plugin :
+
+```python
+"""
+KDE Distribution Analysis Plugin
+Plugin QGIS pour analyser la distribution spatiale d'espèces
+"""
+
+import os
+import sys
+
+
+def classFactory(iface):
+    """
+    Factory appelée par QGIS au chargement du plugin.
+    
+    iface : interface QGIS fournie par QGIS
+    Retour : instance du plugin
+    """
+    from .kde_plugin import KDEDistributionPlugin
+    return KDEDistributionPlugin(iface)
+```
+
+---
+
+## Étape 3 : Fichier kde_plugin.py (classe principale)
+
+```python
+"""
+Classe principale du plugin KDE Distribution
+"""
+
+import os
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QUrl
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
+from qgis.PyQt.QtWidgets import QAction, QMenu
+from qgis.core import (
+    QgsApplication,
+    QgsProcessingProvider,
+    QgsMessageLog,
+    Qgis
+)
+
+from .kde_algorithm import KDEDistributionAlgorithm
+from .ui.kde_dialog import KDEDistributionDialog
+
+
+class KDEDistributionPlugin:
+    """
+    Plugin principal pour l'analyse KDE de distribution d'espèces
+    """
+    
+    def __init__(self, iface):
+        """Initialiser le plugin"""
+        self.iface = iface
+        self.plugin_dir = os.path.dirname(__file__)
+        self.actions = []
+        self.menu = '&KDE Distribution'
+        self.toolbar = None
+        
+        # Charger les traductions si disponibles
+        locale = QSettings().value('locale/userLocale')[0:2]
+        locale_path = os.path.join(
+            self.plugin_dir, 'i18n', f'kde_{locale}.qm'
+        )
+        if os.path.exists(locale_path):
+            self.translator = QTranslator()
+            self.translator.load(locale_path)
+            QCoreApplication.installTranslator(self.translator)
+    
+    def tr(self, message):
+        """Traduire un message"""
+        return QCoreApplication.translate('KDEDistribution', message)
+    
+    def add_action(self, icon_path, text, callback, enabled_flag=True,
+                   add_to_menu=True, add_to_toolbar=True, status_tip=None,
+                   whats_this=None, parent=None):
+        """
+        Créer une action et l'ajouter aux menus/barres d'outils
+        """
+        if parent is None:
+            parent = self.iface.mainWindow()
+        
+        action = QAction(text, parent)
+        
+        if icon_path:
+            action.setIcon(QIcon(icon_path))
+        
+        action.triggered.connect(callback)
+        action.setEnabled(enabled_flag)
+        
+        if status_tip is not None:
+            action.setStatusTip(status_tip)
+        
+        if whats_this is not None:
+            action.setWhatsThis(whats_this)
+        
+        if add_to_toolbar:
+            self.iface.addToolBarIcon(action)
+        
+        if add_to_menu:
+            self.iface.addPluginToMenu(self.menu, action)
+        
+        self.actions.append(action)
+        return action
+    
+    def initGui(self):
+        """
+        Créer les actions du plugin et les ajouter à QGIS
+        """
+        
+        # Chemin vers l'icône
+        icon_path = os.path.join(self.plugin_dir, 'icon.png')
+        
+        # Action 1 : Ouvrir la fenêtre d'analyse
+        self.add_action(
+            icon_path,
+            text=self.tr('Analyse KDE - Distribution d\'espèce'),
+            callback=self.run,
+            parent=self.iface.mainWindow(),
+            status_tip=self.tr('Analyser la distribution d\'une espèce'),
+            whats_this=self.tr('Utilise KDE pour estimer la zone de présence probable')
+        )
+        
+        # Action 2 : Aide
+        self.add_action(
+            None,
+            text=self.tr('Aide / Documentation'),
+            callback=self.show_help,
+            add_to_toolbar=False
+        )
+        
+        # Enregistrer l'algorithme auprès de Processing
+        self.provider = KDEProvider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+        
+        QgsMessageLog.logMessage(
+            'Plugin KDE Distribution chargé',
+            'KDE Distribution',
+            Qgis.Success
+        )
+    
+    def unload(self):
+        """
+        Supprimer les actions et ressources lors du déchargement
+        """
+        # Supprimer du menu et barre d'outils
+        for action in self.actions:
+            self.iface.removePluginMenu(self.menu, action)
+            self.iface.removeToolBarIcon(action)
+        
+        # Supprimer le provider de Processing
+        QgsApplication.processingRegistry().removeProvider(self.provider)
+        
+        del self.actions[:]
+    
+    def run(self):
+        """Exécuter le plugin (afficher la fenêtre d'analyse)"""
+        dialog = KDEDistributionDialog(self.iface)
+        dialog.exec_()
+    
+    def show_help(self):
+        """Afficher la documentation"""
+        help_url = 'https://github.com/your-org/kde-distribution/wiki'
+        QDesktopServices.openUrl(QUrl(help_url))
+
+
+class KDEProvider(QgsProcessingProvider):
+    """Fournisseur d'algorithmes KDE pour Processing"""
+    
+    def loadAlgorithms(self):
+        """Charger les algorithmes du plugin"""
+        self.addAlgorithm(KDEDistributionAlgorithm())
+    
+    def id(self):
+        return 'kde'
+    
+    def name(self):
+        return 'KDE Distribution'
+    
+    def longName(self):
+        return 'Algorithmes de distribution par Kernel Density Estimation'
+```
+
+---
+
+## Étape 4 : Fenêtre graphique (kde_dialog.py)
+
+```python
+"""
+Interface graphique du plugin KDE
+"""
+
+from qgis.PyQt.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout,
+    QLabel, QComboBox, QSpinBox, QDoubleSpinBox,
+    QPushButton, QMessageBox, QProgressBar
+)
+from qgis.PyQt.QtCore import Qt
+from qgis.core import QgsProject, QgsProcessingAlgorithm
+import processing
+
+
+class KDEDistributionDialog(QDialog):
+    """Fenêtre d'analyse KDE"""
+    
+    def __init__(self, iface):
+        super().__init__()
+        self.iface = iface
+        self.initUI()
+    
+    def initUI(self):
+        """Créer l'interface graphique"""
+        self.setWindowTitle('Analyse KDE - Distribution d\'espèce')
+        self.setGeometry(100, 100, 500, 400)
+        
+        layout = QVBoxLayout()
+        
+        # Sélection de la couche
+        layout.addWidget(QLabel('Couche d\'observations :'))
+        self.layer_combo = QComboBox()
+        self.layer_combo.addItems(
+            [layer.name() for layer in QgsProject.instance().mapLayers().values()
+             if layer.type() == 0]  # 0 = Vector layers
+        )
+        layout.addWidget(self.layer_combo)
+        
+        # Sélection de l'espèce
+        layout.addWidget(QLabel('ID de l\'espèce :'))
+        self.species_spinbox = QSpinBox()
+        self.species_spinbox.setMinimum(1)
+        self.species_spinbox.setMaximum(99999)
+        self.species_spinbox.setValue(1)
+        layout.addWidget(self.species_spinbox)
+        
+        # Rayon KDE
+        layout.addWidget(QLabel('Rayon KDE (mètres) :'))
+        self.radius_spinbox = QDoubleSpinBox()
+        self.radius_spinbox.setMinimum(100)
+        self.radius_spinbox.setMaximum(100000)
+        self.radius_spinbox.setValue(1000)
+        self.radius_spinbox.setSingleStep(100)
+        layout.addWidget(self.radius_spinbox)
+        
+        # Pixel size
+        layout.addWidget(QLabel('Résolution pixel (mètres) :'))
+        self.pixel_spinbox = QDoubleSpinBox()
+        self.pixel_spinbox.setMinimum(10)
+        self.pixel_spinbox.setMaximum(10000)
+        self.pixel_spinbox.setValue(100)
+        self.pixel_spinbox.setSingleStep(10)
+        layout.addWidget(self.pixel_spinbox)
+        
+        # Barre de progression
+        self.progress_bar = QProgressBar()
+        layout.addWidget(self.progress_bar)
+        
+        # Boutons
+        button_layout = QHBoxLayout()
+        
+        run_button = QPushButton('Lancer l\'analyse')
+        run_button.clicked.connect(self.run_analysis)
+        button_layout.addWidget(run_button)
+        
+        close_button = QPushButton('Fermer')
+        close_button.clicked.connect(self.close)
+        button_layout.addWidget(close_button)
+        
+        layout.addLayout(button_layout)
+        
+        self.setLayout(layout)
+    
+    def run_analysis(self):
+        """Lancer l'algorithme KDE"""
+        try:
+            layer_name = self.layer_combo.currentText()
+            layer = QgsProject.instance().mapLayersByName(layer_name)[0]
+            
+            # Lancer l'algorithme
+            alg = processing.algorithmHelp('kde:kde_distribution_species')
+            
+            processing.run('kde:kde_distribution_species', {
+                'INPUT_POINTS': layer,
+                'INPUT_SPECIES_ID': self.species_spinbox.value(),
+                'INPUT_KDE_RADIUS': self.radius_spinbox.value(),
+                'INPUT_PIXEL_SIZE': self.pixel_spinbox.value(),
+                'OUTPUT_ZONE': 'memory:kde_result'
+            })
+            
+            QMessageBox.information(
+                self, 'Succès',
+                'Analyse complétée. Le résultat est affiché sur la carte.'
+            )
+        
+        except Exception as e:
+            QMessageBox.critical(self, 'Erreur', f'Erreur : {str(e)}')
+```
+
+---
+
+## Étape 5 : Installation et distribution
+
+### Installation locale
+
+1. Créer le dossier du plugin dans le répertoire des plugins QGIS :
+   ```
+   Linux/Mac : ~/.local/share/QGIS/QGIS3/plugins/kde_distribution_plugin/
+   Windows : %APPDATA%\QGIS\QGIS3\plugins\kde_distribution_plugin\
+   ```
+
+2. Copier tous les fichiers du plugin
+
+3. Redémarrer QGIS
+
+4. Aller dans **Modules > Gérer et installer les modules**
+
+5. Chercher "KDE Distribution" et cocher pour l'activer
+
+### Publication sur le marché QGIS
+
+1. Créer un dépôt GitHub public
+2. Ajouter les fichiers du plugin
+3. Créer une release
+4. Soumettre à la liste [QGIS Plugin Repository](https://plugins.qgis.org/)
+5. Le plugin sera disponible pour tous dans la gestionnaire de modules
+
+---
+
+## Tests et debug
+
+### Logs de QGIS
+
+Ouvrir **Affichage > Panneaux > Messages** pour voir les logs du plugin.
+
+### Mode debug
+
+Dans `kde_plugin.py`, ajouter :
+
+```python
+from qgis.core import QgsMessageLog, Qgis
+
+QgsMessageLog.logMessage(
+    'Message de debug',
+    'KDE Distribution',
+    Qgis.Info
+)
+```
+
+### Tests unitaires
+
+Créer un fichier `tests/test_kde.py` :
+
+```python
+import unittest
+from qgis.core import QgsVectorLayer
+from .kde_algorithm import KDEDistributionAlgorithm
+
+
+class TestKDEAlgorithm(unittest.TestCase):
+    
+    def setUp(self):
+        self.alg = KDEDistributionAlgorithm()
+    
+    def test_algorithm_name(self):
+        self.assertEqual(self.alg.name(), 'kde_distribution_species')
+    
+    def test_algorithm_display_name(self):
+        self.assertIn('KDE', self.alg.displayName())
+```
+
+---
+
+## Ressources
+
+* [QGIS Plugin Development](https://docs.qgis.org/latest/en/docs/pyqgis_developer_guide/plugins/index.html)
+* [Plugin Builder](https://plugins.qgis.org/plugins/pluginbuilder/) : Scaffolder pour créer la structure
+* [QGIS Plugin Repository](https://plugins.qgis.org/)
+* [PyQGIS API](https://qgis.org/api/)
+
+---
+
+## Résumé
+
+Vous avez maintenant :
+
+1. ✅ **Boîte à outils** : outils manuels
+2. ✅ **Modéleur** : flux visuel + export Python
+3. ✅ **Traitement** : algorithme réutilisable
+4. ✅ **Plugin** : composant distributable avec UI
+
+C'est une progression complète du **utilisateur** au **développeur** QGIS !

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis projectname="Biodiv - QFieldSync" saveUser="" saveUserFull="" version="3.34.0" saveDateTime="2026-06-11T00:00:00">
+  <title>Biodiv - QFieldSync</title>
+  <homePath path="." />
+  <projectCrs>
+    <spatialrefsys nativeFormat="Wkt">
+      <authid>EPSG:2056</authid>
+      <description>CH1903+ / LV95</description>
+      <projectionacronym>somerc</projectionacronym>
+      <ellipsoidacronym>EPSG:7004</ellipsoidacronym>
+      <geographicflag>false</geographicflag>
+      <srsid>47</srsid>
+      <srid>2056</srid>
+      <proj4>+proj=somerc +lat_0=46.9524055555556 +lon_0=7.43958333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs</proj4>
+    </spatialrefsys>
+  </projectCrs>
+  <layer-tree-group name="Biodiv" checked="Qt::Checked" expanded="1">
+    <layer-tree-layer id="sites_1" name="sites" providerKey="ogr" source="./biodiv.gpkg|layername=sites" checked="Qt::Checked" expanded="1" />
+    <layer-tree-layer id="observations_1" name="observations" providerKey="ogr" source="./biodiv.gpkg|layername=observations" checked="Qt::Checked" expanded="1" />
+    <layer-tree-layer id="especes_1" name="especes" providerKey="ogr" source="./biodiv.gpkg|layername=especes" checked="Qt::Checked" expanded="1" />
+  </layer-tree-group>
+  <projectlayers>
+    <maplayer type="vector" geometry="Polygon" name="sites" provider="ogr" labelsEnabled="0" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="1" simplifyLocal="1" simplifyMaxScale="1" simplifyDrawingTol="1">
+      <id>sites_1</id>
+      <datasource>./biodiv.gpkg|layername=sites</datasource>
+      <title>Sites</title>
+      <shortname>sites</shortname>
+      <abstract>Zones d'étude Biodiv</abstract>
+      <provider>ogr</provider>
+      <encoding>UTF-8</encoding>
+      <wkbType>Polygon</wkbType>
+      <extent>
+        <xmin>2679000</xmin>
+        <ymin>1243000</ymin>
+        <xmax>2686000</xmax>
+        <ymax>1249500</ymax>
+      </extent>
+      <previewExpression>"nom"</previewExpression>
+      <layerDependencies />
+      <expressionfields />
+      <mapTip />
+      <legend />
+    </maplayer>
+    <maplayer type="vector" geometry="Point" name="observations" provider="ogr" labelsEnabled="0" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="1" simplifyLocal="1" simplifyMaxScale="1" simplifyDrawingTol="1">
+      <id>observations_1</id>
+      <datasource>./biodiv.gpkg|layername=observations</datasource>
+      <title>Observations</title>
+      <shortname>observations</shortname>
+      <abstract>Observations terrain Biodiv</abstract>
+      <provider>ogr</provider>
+      <encoding>UTF-8</encoding>
+      <wkbType>Point</wkbType>
+      <extent>
+        <xmin>2679000</xmin>
+        <ymin>1243000</ymin>
+        <xmax>2686000</xmax>
+        <ymax>1249500</ymax>
+      </extent>
+      <previewExpression>"id_espece"</previewExpression>
+      <layerDependencies />
+      <expressionfields />
+      <mapTip />
+      <legend />
+    </maplayer>
+    <maplayer type="vector" geometry="NoGeometry" name="especes" provider="ogr" labelsEnabled="0" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="1" simplifyLocal="1" simplifyMaxScale="1" simplifyDrawingTol="1">
+      <id>especes_1</id>
+      <datasource>./biodiv.gpkg|layername=especes</datasource>
+      <title>Espèces</title>
+      <shortname>especes</shortname>
+      <abstract>Référentiel des espèces Biodiv</abstract>
+      <provider>ogr</provider>
+      <encoding>UTF-8</encoding>
+      <wkbType>NoGeometry</wkbType>
+      <previewExpression>"nom_latin"</previewExpression>
+      <layerDependencies />
+      <expressionfields />
+      <mapTip />
+      <legend />
+    </maplayer>
+  </projectlayers>
+  <layer-tree>
+    <customproperties>
+      <Option />
+    </customproperties>
+  </layer-tree>
+  <relations />
+  <projectstyles />
+  <customproperties>
+    <Option />
+  </customproperties>
+</qgis>

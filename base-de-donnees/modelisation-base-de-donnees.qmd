@@ -35,6 +35,8 @@ Les données ne vivent pas en isolation. Il existe trois types de relations prin
 2.  **Un-à-Plusieurs (1:N) :** Un objet est lié à plusieurs objets d'une autre table (ex: Une rivière contient plusieurs stations de mesure de qualité).
 3.  **Plusieurs-à-Plusieurs (N:N) :** Plusieurs objets d'une table sont liés à plusieurs objets d'une autre (ex: Une espèce peut être observée sur plusieurs sites, et un site contient plusieurs espèces). *Nécessite une table de jointure intermédiaire.*
 
+Pour les projets de terrain, on ajoute aussi fréquemment une table de **photos / images** afin de stocker les pièces jointes associées aux observations.
+
 ### Pourquoi modéliser avant d'implémenter ?
 
 *   **Éviter la redondance :** Ne pas répéter les mêmes informations (ex: ne pas écrire le nom du propriétaire sur chaque parcelle, mais le lier via un ID).
@@ -57,6 +59,8 @@ Après analyse du besoin, nous identifions trois entités principales :
     *   *Attributs :* Nom latin, Nom vernaculaire, Groupe (Oiseau, Mammifère, Plante), Statut UICN (LC, EN, CR).
 3.  **Observations :** Les relevés terrain ponctuels (Points).
     *   *Attributs :* Date d'observation, Nombre d'individus, Observateur, Commentaires.
+4.  **Photos :** Les images prises sur le terrain et rattachées aux observations (Aucune géométrie, table de pièces jointes).
+    *   *Attributs :* Nom du fichier, chemin relatif, légende, date de prise de vue, auteur, type de média.
 
 ### Définition des Relations
 
@@ -69,6 +73,10 @@ Analysons les liens logiques entre ces entités :
 *   **Espèce ↔ Observation :** Une observation concerne *une seule* espèce. Une espèce peut être observée *plusieurs* fois (dans différentes observations).
     *   👉 Relation **1:N** (Une espèce vers plusieurs observations).
     *   *Implémentation :* La table `Observations` contiendra une clé étrangère `espece_id`.
+
+*   **Observation ↔ Photo :** Une observation peut être illustrée par *plusieurs* photos. Une photo est rattachée à *une seule* observation.
+    *   👉 Relation **1:N** (Une observation vers plusieurs photos).
+    *   *Implémentation :* La table `Photos` contiendra une clé étrangère `id_obs`.
 
 *   **Site ↔ Espèce :** Un site contient plusieurs espèces, et une espèce vit sur plusieurs sites.
     *   👉 Relation **N:N** (Indirecte).
@@ -100,6 +108,16 @@ Voici la représentation textuelle de notre modèle :
 - observateur
 - id_site (Clé Étrangère vers SITE)
 - id_espece (Clé Étrangère vers ESPECE)¨
+
+[PHOTO]
+- id_photo (Clé Primaire)
+- id_obs (Clé Étrangère vers OBSERVATION)
+- nom_fichier
+- chemin_rel
+- legende
+- date_photo
+- auteur
+- type_media
 ```
 
 Voici la représentation graphique de notre modèle de données Biodiversité. 
@@ -132,9 +150,33 @@ erDiagram
         int id_espece FK
     }
 
+    PHOTO {
+        int id_photo PK
+        int id_obs FK
+        text nom_fichier
+        text chemin_rel
+        text legende
+        date date_photo
+        text auteur
+        text type_media
+    }
+
     SITE ||--o{ OBSERVATION : "contient"
     ESPECE ||--o{ OBSERVATION : "est observée dans"
+    OBSERVATION ||--o{ PHOTO : "est illustrée par"
 ```
+
+### Pourquoi prévoir la table PHOTO dès la conception ?
+
+Même si les photos seront surtout utilisées dans la partie QField, il est préférable de les intégrer dès le modèle conceptuel pour :
+
+* prévoir la structure de stockage des fichiers ;
+* savoir si une observation peut avoir une ou plusieurs images ;
+* conserver un lien explicite entre terrain, média et observation ;
+* préparer plus facilement les formulaires QField/QGIS ;
+* éviter de bricoler une solution tardive une fois le terrain commencé.
+
+Dans le cas du projet Biodiv, cette table servira surtout à la **collecte mobile** : les images prises sur le terrain seront rattachées à l'observation correspondante.
 
 ## Exercice Pratique : Gestion de la Qualité de l'Eau
 

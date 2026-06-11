@@ -1,7 +1,220 @@
 ---
 title: "Boîte à outils de géotraitement"
+format:
+  html:
+	 toc: true
+	 number-sections: true
+	 code-fold: false
 ---
 
 ## Objectif
 
-Présenter l’organisation des algorithmes de géotraitement disponibles dans QGIS.
+Découvrir l'organisation et l'utilisation des algorithmes de géotraitement dans QGIS, en particulier les outils moins connus mais puissants pour l'analyse spatiale.
+
+## La Boîte à outils de géotraitement
+
+### Accès et organisation
+
+La boîte à outils est accessible via :
+- Menu **Traitement > Boîte à outils** (ou **Processing > Toolbox**)
+- Ou directement : **Ctrl+Alt+T**
+
+Elle est organisée par **fournisseurs** :
+
+* **QGIS** : algorithmes natives de QGIS (Buffer, Clip, Spatial Join, etc.)
+* **GDAL/OGR** : outils de conversion et transformation
+* **SAGA** : analyses avancées (MNA, analyses statistiques)
+* **Orfeo Toolbox** : traitement d'images satellite
+* **R / Python** : scripts personnalisés
+* **PostgreSQL / PostGIS** : outils de base de données
+
+### Recherche et filtrage
+
+Utiliser le **champ de recherche** pour trouver rapidement un algorithme par mot-clé (ex: "buffer", "dissolve", "kernel", "density").
+
+---
+
+## Outils utiles mais peu connus
+
+Voici quelques algorithmes souvent méconnus mais puissants pour l'analyse spatiale :
+
+### 1. Spatial Join (QGIS)
+
+**Objectif** : attacher les attributs d'une couche à une autre selon la proximité ou la containance.
+
+**Cas d'usage Biodiv** : joindre les observations aux sites en attachant les infos de site à chaque observation.
+
+**Entrée** : observations (points), sites (polygones)
+**Résultat** : chaque observation a les attributs du site qui la contient
+
+### 2. Aggregate statistics (QGIS)
+
+**Objectif** : résumer les données d'une couche en fonction d'un groupe ou d'une autre couche.
+
+**Cas d'usage Biodiv** : calculer le nombre d'observations par espèce, ou le nb_individus moyen par site.
+
+**Exemple** : 
+- Entrée : observations avec champ `id_espece` et `nb_individus`
+- Paramètres : grouper par `id_espece`, calculer SUM(nb_individus), AVG(nb_individus), COUNT(*)
+- Résultat : table avec une ligne par espèce et ses statistiques
+
+### 3. Proximity (QGIS)
+
+**Objectif** : calculer la distance vers le voisin le plus proche.
+
+**Cas d'usage Biodiv** : pour chaque observation d'une espèce, trouver la distance au site de protection le plus proche.
+
+**Résultat** : ajout d'un champ de distance.
+
+### 4. Convex Hull (QGIS)
+
+**Objectif** : créer l'enveloppe convexe (polygone minimal englobant) d'un ensemble de points.
+
+**Cas d'usage Biodiv** : générer la zone minimale englobant toutes les observations d'une espèce rare.
+
+**Entrée** : observations d'une espèce (points)
+**Résultat** : polygone unique englobant tous les points
+
+### 5. Raster Density (SAGA / QGIS)
+
+**Objectif** : créer une couche raster représentant la densité des points.
+
+**Cas d'usage Biodiv** : créer une heatmap des observations, montrer les zones chaudes (forte densité d'observations).
+
+**Entrée** : observations (points)
+**Résultat** : raster avec valeurs de densité
+
+### 6. Kernel Density Estimation (KDE) (SAGA / QGIS)
+
+**Objectif** : créer une surface de densité lissée en utilisant un noyau gaussien. C'est un outil statistique puissant pour modéliser la distribution spatiale.
+
+**Cas d'usage Biodiv** : estimer la zone de distribution probable d'une espèce en fonction de ses observations.
+
+**Particularité** : produit un raster continu avec gradient de densité.
+
+### 7. Extract by Attribute / Select by Attribute
+
+**Objectif** : filtrer une couche selon une condition.
+
+**Cas d'usage Biodiv** : extraire uniquement les observations d'espèces menacées (statut_uicn IN ('EN', 'VU')).
+
+### 8. Dissolve (QGIS)
+
+**Objectif** : fusionner les géométries d'une couche selon un groupement.
+
+**Cas d'usage Biodiv** : fusionner les buffers autour des observations pour créer une zone globale de protection.
+
+### 9. Contour (SAGA / GDAL)
+
+**Objectif** : générer des isolignes (contours) à partir d'un raster.
+
+**Cas d'usage Biodiv** : à partir du raster KDE, générer le polygone qui suit le contour d'une densité spécifique (ex: 90e percentile).
+
+### 10. Rasterize / Vectorize
+
+**Objectif** : convertir entre raster et vecteur.
+
+**Cas d'usage Biodiv** : convertir le raster KDE en polygone.
+
+---
+
+## Flux complet : Analyse de distribution d'espèce (Projet Biodiv)
+
+### Scénario métier
+
+**Objectif** : Pour une espèce menacée (ex: Lynx), identifier la zone de présence probable basée sur les observations, en utilisant le KDE pour lisser les données brutes.
+
+### Étapes du processus
+
+```
+1. FILTRE : Sélectionner observations du Lynx (id_espece = 2)
+	↓
+2. KDE : Analyser la densité des observations avec noyau gaussien
+	↓
+3. TRANSFERT : Rasteriser le KDE en grille de densité
+	↓
+4. STATISTICS : Calculer les percentiles de densité
+	↓
+5. CONTOUR : Générer le polygone au seuil du 90e percentile
+	↓
+6. EXPORT : Résultat = polygone de zone de présence probable
+```
+
+### Détail technique
+
+**Étape 1 : Sélection de l'espèce**
+```
+Select by Expression : "id_espece" = 2
+```
+Résultat : couche temporaire avec observations du Lynx
+
+**Étape 2 : KDE**
+- Entrée : observations filtrées du Lynx (points)
+- Paramètres : 
+  - Radius (bande passante) : ~1000m (à adapter selon la densité et la région)
+  - Pixel size (résolution) : ~100m
+- Sortie : raster de densité
+
+**Étape 3 : Transférer densité aux points (préparation pour contour)**
+- Utiliser l'outil "Sample raster values" pour attacher les valeurs de densité KDE à chaque point
+- Résultat : chaque observation a une colonne de densité KDE
+
+**Étape 4 : Calculer le 90e percentile**
+- Formule : `PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY kde_density)`
+- Ou manuellement : trier les densités, extraire 90% du max
+
+**Étape 5 : Contour au seuil**
+- Outil "Contour" (SAGA) : créer isolignes du raster KDE
+- Filtrer pour ne garder que le contour au seuil du 90e percentile
+- Résultat : polygone(s) englobant les zones de forte densité d'observations
+
+**Étape 6 : Affinage**
+- Simplifier le polygone (Douglas-Peucker) si nécessaire
+- Dissoudre si plusieurs parties
+- Exporter en GeoPackage ou Shapefile
+
+### Intérêt pédagogique
+
+Ce flux illustre :
+- **Chaînage d'outils** : un résultat alimente le suivant
+- **Méthodes statistiques** : KDE et percentiles, concepts issus de l'analyse spatiale
+- **Transformation de formats** : raster → vecteur
+- **Raisonnement métier** : à partir de points d'observation, construire une "zone de présence probable"
+
+---
+
+## Exécution manuelle vs automatisée
+
+### Exécution manuelle (dans cette section)
+
+Chaque outil se lance indépendamment dans la boîte à outils. Cela permet de :
+- Comprendre les paramètres individuels
+- Visualiser les résultats intermédiaires
+- Ajuster en temps réel
+
+**Inconvénient** : répéter manuellement le flux pour chaque espèce est fastidieux.
+
+### Exécution automatisée (section suivante)
+
+Le **modéleur graphique** permet d'enchaîner automatiquement ces outils et de créer un **flux réutilisable**.
+
+---
+
+## Conseil pratique
+
+Avant d'automatiser un flux :
+
+1. **Exécuter manuellement** une fois pour comprendre les étapes
+2. **Noter les paramètres** qui marchent bien
+3. **Documenter le résultat** attendu
+4. **Puis passer au modéleur** pour automatiser
+
+Cela garantit que vous comprenez le problème avant de l'automatiser.
+
+---
+
+## Documentation spécifique
+
+* [Processing Toolbox](https://docs.qgis.org/latest/fr/docs/user_manual/processing/index.html)
+* [Référence des algorithmes QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/processing_algs/index.html)
+* [Kernel Density Estimation](https://docs.qgis.org/latest/fr/docs/user_manual/processing_algs/qgis/interpolation.html#kernel-density-estimation)
