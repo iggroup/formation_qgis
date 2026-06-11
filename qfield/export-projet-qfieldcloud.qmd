@@ -1,10 +1,10 @@
 ---
 title: "Export d’un projet QGIS pour QFieldSync"
 format:
-	html:
-		toc: true
-		number-sections: true
-		code-fold: false
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
 ---
 
 ## Objectif
