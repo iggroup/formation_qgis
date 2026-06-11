@@ -1,7 +1,372 @@
 ---
 title: "Levé et édition QField"
+format:
+	html:
+		toc: true
+		number-sections: true
+		code-fold: false
 ---
 
 ## Objectif
 
 Présenter les bases du levé terrain, de la saisie et de l’édition dans QField.
+
+## Qu'est-ce que QField ?
+
+**QField** est l'application mobile de l'écosystème QGIS pour le travail de terrain. Elle permet d'utiliser un projet préparé dans QGIS sur smartphone, tablette ou ordinateur mobile afin de :
+
+* consulter des données cartographiques sur le terrain ;
+* se positionner avec le GPS/GNSS ;
+* saisir de nouveaux objets ;
+* éditer la géométrie et les attributs ;
+* prendre des photos, sons ou autres pièces jointes ;
+* synchroniser les modifications avec un poste QGIS ou une infrastructure centralisée.
+
+L'idée générale est simple : **QGIS prépare**, **QField collecte**, puis les données reviennent dans le système de production.
+
+---
+
+## Pourquoi utiliser QField ?
+
+QField répond à plusieurs besoins fréquents en SIG :
+
+### 1. Faire du terrain avec le même projet que dans QGIS
+
+On évite de recréer une application spécifique ou une grille de saisie séparée. Le projet QGIS, ses couches, sa symbologie et ses formulaires sont réutilisés sur le mobile.
+
+### 2. Travailler hors connexion
+
+Dans de nombreux contextes, le réseau est absent ou instable. QField permet de travailler avec des données embarquées sur l'appareil, puis de synchroniser plus tard.
+
+### 3. Réduire les doubles saisies
+
+Le relevé terrain est saisi directement dans le système géographique, ce qui évite les ressaisies ultérieures dans Excel, Access ou d'autres outils.
+
+### 4. Standardiser les formulaires de terrain
+
+Les règles de saisie définies dans QGIS (listes de valeurs, contraintes, relations, valeurs par défaut, pièces jointes) peuvent être réutilisées dans QField pour améliorer la qualité des données.
+
+### 5. Accélérer les cycles de mise à jour
+
+Les données peuvent revenir rapidement vers le bureau, voire être partagées avec une équipe entière si une infrastructure de synchronisation est en place.
+
+---
+
+## Les grandes familles d'infrastructure QField
+
+QField peut être déployé selon plusieurs architectures. Le choix dépend surtout de :
+
+* la connectivité réseau ;
+* le nombre d'utilisateurs ;
+* le niveau de centralisation souhaité ;
+* les besoins de synchronisation ;
+* les exigences de sécurité et d'hébergement.
+
+On peut distinguer cinq grands scénarios.
+
+## Schémas simplifiés des infrastructures
+
+Les schémas ci-dessous sont volontairement simplifiés pour la formation. Ils montrent les grands flux sans entrer dans les détails techniques de chaque composant.
+
+### 1. Projet local autonome
+
+```mermaid
+flowchart LR
+	QGIS[QGIS bureau] -->|copie du projet| MOBILE[QField sur mobile]
+	MOBILE -->|saisie terrain| MOBILE
+	MOBILE -->|retour manuel| QGIS
+```
+
+### 2. QFieldSync + synchronisation manuelle
+
+```mermaid
+flowchart LR
+	QGIS[QGIS + QFieldSync] -->|package QField| PACKAGE[Paquet projet + données]
+	PACKAGE -->|copie USB / dossier| MOBILE[QField mobile]
+	MOBILE -->|édition terrain| MOBILE
+	MOBILE -->|copie retour| QGIS
+	QGIS -->|Synchronize from QField| QGIS
+```
+
+### 3. Dossier partagé ou cloud de fichiers
+
+```mermaid
+flowchart LR
+	QGIS[QGIS bureau] --> SHARE[Google Drive / Nextcloud / WebDAV / Syncthing]
+	SHARE --> MOBILE[QField mobile]
+	MOBILE -->|modifications| SHARE
+	SHARE --> QGIS
+```
+
+### 4. QFieldCloud hébergé
+
+```mermaid
+flowchart LR
+	QGIS[QGIS + QFieldSync] --> CLOUD[QFieldCloud]
+	MOBILE[QField mobile] <--> CLOUD
+	CLOUD <--> QGIS
+```
+
+### 5. QFieldCloud auto-hébergé
+
+```mermaid
+flowchart LR
+	QGIS[QGIS + QFieldSync] --> SELF[Instance QFieldCloud interne]
+	MOBILE[QField mobile] <--> SELF
+	SELF --> PG[(PostgreSQL)]
+	SELF --> FILES[(Stockage fichiers)]
+	SELF --> PROXY[Reverse proxy / sécurité]
+```
+
+### 6. Accès direct à des services en ligne
+
+```mermaid
+flowchart LR
+	QGIS[QGIS] --> SERVER[(PostGIS / WMS / WFS)]
+	MOBILE[QField] --> SERVER
+	SERVER --> MOBILE
+```
+
+### 1. Projet local autonome sur l'appareil
+
+C'est l'architecture la plus simple.
+
+#### Principe
+
+Le projet QGIS et ses données sont copiés sur l'appareil mobile, puis ouverts localement dans QField.
+
+#### Cas typiques
+
+* inventaires ponctuels ;
+* petits relevés réalisés par une seule personne ;
+* démonstrations et formations ;
+* contextes sans réseau.
+
+#### Avantages
+
+* très simple à mettre en place ;
+* fonctionne totalement hors ligne ;
+* peu de dépendances techniques ;
+* idéal pour débuter.
+
+#### Limites
+
+* échanges manuels ;
+* risque de versions multiples du projet ;
+* peu adapté au travail collaboratif simultané.
+
+#### Supports possibles
+
+Le projet peut être stocké :
+
+* dans un dossier de fichiers ;
+* directement dans un **GeoPackage** ;
+* dans une archive ZIP importée dans QField ;
+* via une importation locale ou par URL.
+
+> **Bon réflexe :** pour ce mode de travail, le GeoPackage est souvent la solution la plus robuste car il regroupe projet et données dans un format portable.
+
+### 2. Projet packagé avec QFieldSync et synchronisation manuelle
+
+Cette architecture reste majoritairement hors ligne, mais elle introduit une préparation plus rigoureuse du projet via **QFieldSync**.
+
+#### Principe
+
+Depuis QGIS, on "packaging" le projet pour QField. On copie ensuite le paquet sur l'appareil, on réalise le levé, puis on rapatrie les modifications vers le poste de travail.
+
+#### Flux type
+
+1. préparer le projet dans QGIS ;
+2. définir les actions de packaging des couches avec QFieldSync ;
+3. exporter le projet vers QField ;
+4. copier le paquet sur le mobile ;
+5. relever et éditer sur le terrain ;
+6. recopier le projet modifié ;
+7. synchroniser les changements dans QGIS.
+
+#### Avantages
+
+* très adapté au travail terrain hors ligne ;
+* préparation structurée des couches ;
+* possibilité d'intégrer un fond de plan hors ligne ;
+* bon compromis entre simplicité et rigueur.
+
+#### Limites
+
+* synchronisation non continue ;
+* échanges manuels ;
+* **pas de gestion de conflit avancée** en cas de modifications concurrentes.
+
+#### Quand l'utiliser ?
+
+* une ou quelques personnes sur le terrain ;
+* campagnes de terrain par lots ;
+* contextes sans connectivité fiable ;
+* organisations qui veulent garder un flux très maîtrisé.
+
+### 3. Projet local avec échange via dossier partagé ou cloud de fichiers
+
+Il s'agit d'une variante intermédiaire entre le tout-manuel et le cloud applicatif.
+
+#### Principe
+
+Le projet reste essentiellement un ensemble de fichiers, mais son transfert se fait via un service tiers de type :
+
+* Google Drive ;
+* iCloud ;
+* Nextcloud ;
+* WebDAV ;
+* Syncthing ;
+* autre espace partagé.
+
+#### Avantages
+
+* plus pratique que les échanges par câble ;
+* utile pour diffuser rapidement un projet ;
+* intéressant pour des équipes réduites.
+
+#### Limites
+
+* ce n'est pas une vraie gestion collaborative SIG ;
+* risque d'écrasement de fichiers ;
+* suivi des versions plus fragile ;
+* dépend beaucoup des habitudes de l'équipe.
+
+#### Positionnement
+
+Cette solution peut convenir pour des échanges simples, mais elle reste moins robuste qu'une infrastructure dédiée de synchronisation.
+
+### 4. QFieldCloud hébergé
+
+C'est l'architecture la plus moderne pour le travail collaboratif avec QField.
+
+#### Principe
+
+Le projet est publié dans **QFieldCloud**, puis téléchargé sur les appareils mobiles. Les utilisateurs poussent ensuite leurs changements vers le cloud, qui sert de point central de synchronisation entre le terrain et le bureau.
+
+#### Fonctions clés
+
+* gestion centralisée des projets ;
+* synchronisation mobile ↔ cloud ↔ QGIS ;
+* gestion d'équipes et d'organisations ;
+* permissions d'accès ;
+* diffusion simplifiée des projets ;
+* travail multi-utilisateur mieux structuré.
+
+#### Avantages
+
+* centralisation ;
+* meilleure traçabilité ;
+* diffusion plus simple aux équipes ;
+* flux bureau/terrain plus fluide.
+
+#### Limites
+
+* nécessite une infrastructure cloud et des comptes ;
+* dépendance au réseau pour les synchronisations ;
+* demande une meilleure gouvernance des projets.
+
+#### Cas typiques
+
+* équipes de terrain régulières ;
+* projets multi-utilisateurs ;
+* besoin de suivi centralisé ;
+* déploiement institutionnel.
+
+### 5. QFieldCloud auto-hébergé
+
+Cette variante reprend le principe de QFieldCloud, mais l'infrastructure est hébergée par l'organisation elle-même.
+
+#### Principe
+
+L'organisation exploite sa propre instance QFieldCloud, généralement sous forme de services conteneurisés avec :
+
+* application QFieldCloud ;
+* reverse proxy ;
+* base PostgreSQL applicative ;
+* stockage de fichiers ;
+* gestion des tâches en arrière-plan ;
+* composants de sécurité et de certificats.
+
+#### Avantages
+
+* maîtrise de l'hébergement ;
+* meilleure conformité pour certains contextes sensibles ;
+* personnalisation plus large ;
+* intégration possible avec l'infrastructure SI existante.
+
+#### Limites
+
+* plus complexe à administrer ;
+* besoins DevOps / système ;
+* supervision, sauvegardes et mises à jour à assurer.
+
+#### Cas typiques
+
+* administrations ;
+* grandes entreprises ;
+* organisations avec contraintes de souveraineté des données.
+
+---
+
+## Architecture complémentaire : accès direct à des services en ligne
+
+Dans certains cas avancés, QField peut aussi accéder directement à des sources en ligne, par exemple :
+
+* PostgreSQL/PostGIS ;
+* WMS/WFS ;
+* services sécurisés avec authentification.
+
+Cette approche peut être pertinente pour :
+
+* de la consultation en ligne ;
+* des contextes très connectés ;
+* certains workflows d'entreprise.
+
+Mais elle demande davantage de précautions sur :
+
+* la connectivité ;
+* les performances ;
+* la sécurité ;
+* la gestion des identifiants sur mobile.
+
+En formation de base, elle peut être présentée comme **architecture avancée**, sans en faire le scénario principal.
+
+---
+
+## Quel scénario recommander ?
+
+On peut résumer le choix ainsi :
+
+| Besoin | Infrastructure recommandée |
+|---|---|
+| Formation, démonstration, usage individuel | Projet local autonome |
+| Terrain hors ligne avec retour manuel | QFieldSync + synchronisation manuelle |
+| Petite équipe avec partage simple | Dossier partagé / cloud de fichiers |
+| Équipe structurée et synchronisation centralisée | QFieldCloud hébergé |
+| Organisation avec exigences d'hébergement interne | QFieldCloud auto-hébergé |
+
+---
+
+## Message clé pour la suite du module
+
+QField n'est pas seulement une application mobile de consultation cartographique. C'est un **maillon opérationnel** entre :
+
+* le projet préparé dans QGIS,
+* le travail terrain,
+* et la réintégration des données dans une infrastructure SIG.
+
+Autrement dit, la vraie question n'est pas seulement **"comment utiliser QField ?"**, mais aussi **"dans quelle architecture de travail terrain s'inscrit-il ?"**
+
+Dans la suite du module, on se concentrera surtout sur deux scénarios très fréquents :
+
+1. le projet embarqué et synchronisé manuellement ;
+2. le projet diffusé et synchronisé via **QFieldCloud**.
+
+## Documentation spécifique
+
+* [QField - documentation générale](https://docs.qfield.org/fr/)
+* [QFieldSync - packaging par câble](https://docs.qfield.org/fr/get-started/tutorials/get-started-qfs/)
+* [QFieldCloud - prise en main](https://docs.qfield.org/fr/get-started/tutorials/get-started-qfc/)
+* [Gestion du stockage dans QField](https://docs.qfield.org/fr/how-to/project-setup/storage/)
+* [Architecture QFieldCloud](https://docs.qfield.org/fr/reference/qfieldcloud/architecture/)

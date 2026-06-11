@@ -1,0 +1,301 @@
+---
+title: "Modéleur graphique : Flux KDE pour zone de distribution"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
+---
+
+## Objectif
+
+Automatiser le flux d'analyse de distribution d'espèce (KDE) en utilisant le **modéleur graphique** de QGIS, puis exporter le résultat en script Python réutilisable.
+
+## Le Modéleur graphique
+
+### Qu'est-ce que c'est ?
+
+Le modéleur graphique est un outil visuel permettant de :
+
+* **Créer des flux** en connectant les outils entre eux
+* **Paramétrer** les entrées/sorties
+* **Réutiliser** le flux plusieurs fois sans rejouer manuellement
+* **Exporter** en Python ou comme traitement QGIS
+
+### Accès
+
+**Traitement > Modéleur** (ou **Processing > Modeler**)
+
+### Avantages
+
+* Pas de code à écrire
+* Visuel et intuitif
+* Généré automatiquement en script Python
+* Peut être packagé comme traitement QGIS réutilisable
+
+---
+
+## Construction du flux KDE pour Biodiversité
+
+### Vue d'ensemble du modèle
+
+```
+┌─────────────────────────────────────┐
+│ INPUT: Couche observations (points) │
+│ INPUT: ID espèce à analyser (int)   │
+│ INPUT: Rayon KDE (m)                │
+│ INPUT: Résolution pixel (m)         │
+└─────────────────────────────────────┘
+                   │
+                   ↓
+        ┌──────────────────────┐
+        │ SELECT BY ATTRIBUTE  │
+        │ (id_espece = ?)      │
+        └──────────────────────┘
+                   │
+                   ↓
+        ┌──────────────────────┐
+        │ KERNEL DENSITY (KDE) │
+        │ Radius: ?            │
+        │ Pixel size: ?        │
+        └──────────────────────┘
+                   │
+                   ↓
+        ┌──────────────────────┐
+        │ RASTER TO CONTOUR    │
+        │ Seuil: 90%ile        │
+        └──────────────────────┘
+                   │
+                   ↓
+        ┌──────────────────────┐
+        │ OUTPUT: Polygone     │
+        │ de zone de présence  │
+        └──────────────────────┘
+```
+
+### Étape 1 : Ouvrir le modéleur
+
+1. **Traitement > Modéleur**
+2. **Créer un nouveau modèle**
+3. Donner un nom : `kde_zone_distribution`
+4. Sauvegarder dans le projet
+
+### Étape 2 : Définir les entrées
+
+Dans le panneau gauche "Modèle" > **Ajouter une entrée** :
+
+#### Entrée 1 : Couche de points
+- Type : Couche vectorielle (points)
+- Nom : `points_observations`
+- Description : "Observations ponctuelles d'une espèce"
+
+#### Entrée 2 : Identifiant d'espèce
+- Type : Nombre entier
+- Nom : `species_id`
+- Description : "ID de l'espèce à analyser"
+- Valeur par défaut : `1`
+
+#### Entrée 3 : Rayon KDE
+- Type : Nombre (distance)
+- Nom : `kde_radius`
+- Description : "Rayon du noyau gaussien (m)"
+- Valeur par défaut : `1000`
+
+#### Entrée 4 : Résolution raster
+- Type : Nombre (distance)
+- Nom : `pixel_size`
+- Description : "Taille du pixel raster (m)"
+- Valeur par défaut : `100`
+
+### Étape 3 : Ajouter les algorithmes
+
+#### Algorithme 1 : Select by Attribute
+
+- **Outil** : Traitement > Vecteur > Select by attribute (ou "Extract by attribute" pour créer une nouvelle couche)
+- **Configuration** :
+  - Input layer : `points_observations` (l'entrée)
+  - Selection attribute : `id_espece`
+  - Operator : `=`
+  - Value : `species_id` (l'entrée paramétrisée)
+  - Output : `espece_selectionnee`
+
+#### Algorithme 2 : Kernel Density Estimation
+
+- **Outil** : Traitement > SAGA > Raster - Interpolation > Kernel Density Estimation
+- **Configuration** :
+  - Input layer : `espece_selectionnee` (résultat du SELECT)
+  - Radius : `kde_radius` (l'entrée paramétrisée)
+  - Cell size : `pixel_size` (l'entrée paramétrisée)
+  - Output : `kde_raster`
+
+#### Algorithme 3 : Contour / Isolignes
+
+- **Outil** : Traitement > SAGA / GDAL > Raster to vector > Contours (Vectorize)
+- **Configuration** :
+  - Input raster : `kde_raster` (résultat du KDE)
+  - Output contours : `contours_all`
+
+#### Algorithme 4 : Extract by expression (optionnel)
+
+Pour garder uniquement le contour au seuil du 90e percentile :
+
+- **Outil** : Traitement > Vecteur > Extract by Expression (ou Extract)
+- **Expression** : `kde_density >= percentile_90`
+- **Output** : `zone_presence`
+
+#### Algorithme 5 : Dissolve (fusionner)
+
+Au cas où il y aurait plusieurs polygones :
+
+- **Outil** : Traitement > Vecteur > Dissolve
+- **Input** : `zone_presence` (ou `contours_all`)
+- **Output** : `zone_presence_finale`
+
+### Étape 4 : Définir la sortie
+
+- **Ajouter une sortie** : `zone_presence_finale`
+- Type : Couche vectorielle (polygone)
+- Description : "Zone de présence probable de l'espèce"
+
+### Étape 5 : Sauvegarder et tester
+
+1. **Fichier > Sauvegarder le modèle**
+2. Donner un nom : `kde_distribution_espece.qgz`
+3. **Exécuter le modèle** pour le tester
+
+---
+
+## Résultats attendus
+
+Après exécution, vous devez obtenir :
+
+* Un **raster KDE** montrant la densité lissée des observations
+* Un ou plusieurs **polygones** délimitant la zone de présence probable
+* Une **couche finale** en Shapefile ou GeoPackage
+
+Les résultats peuvent être stylisés et importés dans une composition pour la présentation.
+
+---
+
+## Export en Python
+
+Le modéleur peut exporter automatiquement le flux en script Python.
+
+### Procédure
+
+1. **Ouvrir le modèle** créé (`kde_distribution_espece.qgz`)
+2. **Menu Modèle > Exporter en tant que script Python**
+3. Sauvegarder le fichier : `kde_distribution.py`
+
+### Structure du script généré
+
+```python
+"""
+Généré par QGIS Processing (Modéleur)
+Modèle : kde_distribution_espece
+Entrées : points_observations, species_id, kde_radius, pixel_size
+Sorties : zone_presence_finale
+"""
+
+def processAlgorithm(self, parameters, context, feedback, inputs):
+    """
+    Fonction principale exécutant le flux KDE
+    """
+    
+    # Récupérer les entrées
+    points_observations = parameters['points_observations']
+    species_id = parameters['species_id']
+    kde_radius = parameters['kde_radius']
+    pixel_size = parameters['pixel_size']
+    
+    # Algorithme 1 : SELECT
+    selected = processing.run("native:selectbyattribute", {
+        'INPUT': points_observations,
+        'FIELD': 'id_espece',
+        'OPERATOR': 0,  # equals
+        'VALUE': str(species_id),
+        'OUTPUT': 'memory:'
+    }, context=context, feedback=feedback)
+    
+    # Algorithme 2 : KDE
+    kde_result = processing.run("saga:kerneldensityestimation", {
+        'POINTS': selected['OUTPUT'],
+        'RADIUS': kde_radius,
+        'CELL_SIZE': pixel_size,
+        'OUTPUT': 'memory:'
+    }, context=context, feedback=feedback)
+    
+    # Algorithme 3 : CONTOUR
+    contour_result = processing.run("gdal:contour", {
+        'INPUT': kde_result['OUTPUT'],
+        'OUTPUT': 'memory:'
+    }, context=context, feedback=feedback)
+    
+    # Algorithme 5 : DISSOLVE
+    final_result = processing.run("native:dissolve", {
+        'INPUT': contour_result['OUTPUT'],
+        'OUTPUT': parameters['zone_presence_finale']
+    }, context=context, feedback=feedback)
+    
+    return {'zone_presence_finale': final_result['OUTPUT']}
+```
+
+### Utilisation du script
+
+Une fois généré, ce script Python peut être :
+
+1. **Exécuté manuellement** dans la console Python de QGIS
+2. **Converti en traitement personnalisé** (voir chapitre "Développement avancé")
+3. **Intégré dans un plugin** QGIS
+
+---
+
+## Avantages du modéleur
+
+* **Visibilité** : voir exactement le flux et les connexions
+* **Traçabilité** : documenter chaque étape
+* **Reproductibilité** : appliquer le même flux à plusieurs espèces
+* **Code auto-généré** : Python sans le taper manuellement
+* **Partage** : envoyer le `.qgz` à d'autres
+
+---
+
+## Cas d'usage métier
+
+### Analyser plusieurs espèces
+
+1. Modifier la paramètre `species_id` (ex: 1, 2, 3...)
+2. Relancer le modèle
+3. Comparer les zones de présence des différentes espèces
+
+### Intégrer dans une pipeline de production
+
+1. Exporter en Python
+2. Scheduler l'exécution mensuelle / annuelle
+3. Générer des rapports automatiques
+
+### Publier dans QGIS Server
+
+1. Sauvegarder le modèle dans le projet
+2. QGIS Server peut exposer le modèle comme web service
+3. Permettre aux utilisateurs de paramétrer et relancer le flux via une interface web
+
+---
+
+## Prochaines étapes
+
+Le script Python généré peut être :
+
+1. **Raffiné** : ajouter des vérifications d'erreurs, des logs
+2. **Converti en traitement** : packagé dans QGIS comme traitement réutilisable
+3. **Converti en plugin** : interface complète avec formulaire, visualisations, rapports
+
+Voir le chapitre **"Développement avancé"** pour ces conversions.
+
+---
+
+## Documentation spécifique
+
+* [Modéleur de QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/processing/modeler.html)
+* [Exporter en Python](https://docs.qgis.org/latest/fr/docs/user_manual/processing/modeler.html#export)
+* [Processing Python API](https://qgis.org/api/python_api.html)

@@ -1,7 +1,482 @@
 ---
 title: "Expressions QGIS"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
 ---
 
 ## Objectif
 
-Introduire l’utilisation des expressions pour filtrer, calculer et automatiser des comportements dans QGIS.
+Maîtriser les expressions QGIS pour automatiser et contrôler les comportements de visualisation, de saisie et d'analyse de données spatiales. Les expressions sont au cœur de QGIS moderne : elles permettent de créer des règles dynamiques plutôt que des configurations statiques.
+
+## Pourquoi les expressions sont essentielles
+
+Les expressions QGIS permettent de :
+
+* **visualiser les données** selon des règles métier complexes (symbologie conditionnelle),
+* **valider les saisies** (contraintes, valeurs par défaut),
+* **calculer des champs** sur la volée ou de manière persistante,
+* **filtrer l'affichage** des couches ou des formulaires,
+* **automatiser les sélections** sans passer par des requêtes SQL,
+* **enrichir l'interface** avec des étiquettes intelligentes et des actions personnalisées.
+
+À titre d'exemple, nous utiliserons le projet **Biodiversité**, qui contient :
+
+* Table `sites` : zones d'étude (géométrie : Polygone)
+* Table `observations` : relevés d'espèces (géométrie : Point)
+* Table `especes` : catalogue (géométrie : aucune)
+
+> **Prérequis :** Connaître les bases de QGIS, savoir naviguer dans les propriétés de couches et les formulaires d'édition.
+
+---
+
+## 1. Symbologie conditionnelle
+
+La symbologie conditionnelle permet de **visualiser les données selon des règles**.
+
+### Cas d'usage : Colorer les observations selon le statut de conservation
+
+Pour la couche `observations`, colorer chaque point en fonction du statut UICN de l'espèce observée :
+
+* **Vert** pour les espèces "Least Concern" (LC - Préoccupation mineure)
+* **Orange** pour les espèces "Vulnerable" (VU - Vulnérable)
+* **Rouge** pour les espèces "Endangered" (EN - En danger)
+
+### Procédure dans QGIS
+
+1. Clic droit sur la couche `observations` > **Propriétés > Symbologie**.
+2. Changer le mode de rendu de "Symbole unique" à **"Basé sur des règles"**.
+3. Cliquer le bouton **"+"** pour ajouter une règle.
+4. Entrer l'expression de condition :
+   ```
+   "statut_uicn" = 'EN'
+   ```
+5. Configurer le symbole (couleur rouge).
+6. Répéter pour VU (orange) et LC (vert).
+
+Ou, plus élégamment, utiliser **"Basé sur l'apparence graduée"** avec l'expression :
+```
+CASE
+    WHEN "statut_uicn" = 'EN' THEN 'red'
+    WHEN "statut_uicn" = 'VU' THEN 'orange'
+    WHEN "statut_uicn" = 'LC' THEN 'green'
+    ELSE 'gray'
+END
+```
+
+### Cas avancé : Taille du symbole selon l'effectif
+
+Adapter la taille du symbole au nombre d'individus observés :
+
+```
+scale_linear("nb_individus", 1, 100, 2, 10)
+```
+
+Cela échelle linéairement la taille du symbole entre 2 et 10 mm selon nb_individus entre 1 et 100.
+
+### Intérêt pédagogique
+
+Cela montre que les propriétés visuelles ne sont pas figées : elles **réagissent aux données**.
+
+---
+
+## 2. Filtres dans les formulaires (visibilité conditionnelle)
+
+Les filtres permettent d'afficher/masquer des champs du formulaire selon des conditions.
+
+### Cas d'usage : Afficher des champs spécifiques selon le type d'espèce
+
+Dans la couche `especes`, afficher :
+
+* Le champ `altitude_min` et `altitude_max` **seulement si** `groupe` = 'Oiseau'
+* Le champ `profondeur_max` **seulement si** `groupe` = 'Poisson'
+
+### Procédure dans QGIS
+
+1. Clic droit sur la couche `especes` > **Propriétés > Formulaire d'édition**.
+2. Sélectionner le champ `altitude_min`.
+3. Dans la section "Visibilité", ajouter une expression :
+   ```
+   "groupe" = 'Oiseau'
+   ```
+4. Répéter pour les autres champs avec leurs conditions respectives.
+
+### Intérêt pédagogique
+
+Les utilisateurs ne voient que les champs pertinents : le formulaire s'adapte au contexte. Cela réduit la complexité apparente et limite les erreurs de saisie.
+
+---
+
+## 3. Contraintes (validation de saisie)
+
+Les contraintes permettent de **valider** les données saisies et d'afficher un message d'erreur si la condition n'est pas respectée.
+
+### Cas d'usage 1 : Vérifier que nb_individus est positif
+
+Dans la couche `observations`, pour le champ `nb_individus` :
+
+**Expression de contrainte :**
+```
+"nb_individus" >= 0
+```
+
+**Message d'erreur (optionnel) :**
+```
+Le nombre d'individus ne peut pas être négatif.
+```
+
+### Cas d'usage 2 : Vérifier que la date d'observation n'est pas dans le futur
+
+Pour le champ `date_obs` :
+
+**Expression :**
+```
+"date_obs" <= today()
+```
+
+**Message :**
+```
+La date d'observation ne peut pas être ultérieure à aujourd'hui.
+```
+
+### Cas d'usage 3 : Cohérence métier
+
+Vérifier que si l'espèce est menacée (statut_uicn IN ('EN', 'VU')), alors le nombre d'individus observés doit être documenté (nb_individus > 0) :
+
+```
+CASE
+    WHEN "statut_uicn" IN ('EN', 'VU') THEN "nb_individus" > 0
+    ELSE TRUE
+END
+```
+
+### Procédure dans QGIS
+
+1. Propriétés de la couche > **Formulaire d'édition**.
+2. Sélectionner le champ.
+3. Section "Contrainte" : entrer l'expression.
+4. (Optionnel) Ajouter un message de description.
+
+### Intérêt pédagogique
+
+Cela montre que QGIS peut appliquer des règles métier **lors de la saisie**, ce qui garantit la qualité des données.
+
+---
+
+## 4. Sélection par expression (Select by Expression)
+
+La sélection par expression permet de **filtrer dynamiquement** les entités selon des critères complexes.
+
+### Cas d'usage 1 : Sélectionner toutes les observations de pics (Aquila chrysaetos)
+
+Dans le menu **Vector > Select by Expression**, ou directement dans QGIS :
+
+```
+"id_espece" = (SELECT id_espece FROM especes WHERE nom_latin = 'Aquila chrysaetos' LIMIT 1)
+```
+
+Ou plus simplement, si on connaît l'ID :
+```
+"id_espece" = 2
+```
+
+### Cas d'usage 2 : Sélectionner les observations récentes et abondantes
+
+```
+"date_obs" >= date_format(now(), 'yyyy-01-01')
+AND "nb_individus" >= 5
+```
+
+### Cas d'usage 3 : Sélectionner les sites sans observations
+
+Sur la couche `sites`, sélectionner les sites qui n'ont aucune observation liée :
+
+```
+id_site NOT IN (SELECT DISTINCT id_site FROM observations WHERE id_site IS NOT NULL)
+```
+
+### Intérêt pédagogique
+
+Cela montre que les critères de sélection peuvent être **arbitrairement complexes** et combiner plusieurs tables.
+
+---
+
+## 5. Calcul de champs (Field Calculator)
+
+Le Field Calculator permet d'ajouter ou de modifier des champs avec des valeurs calculées.
+
+### Cas d'usage 1 : Calculer l'âge de la donnée
+
+Ajouter un champ `jours_depuis_obs` qui calcule le nombre de jours entre la date d'observation et aujourd'hui :
+
+**Expression :**
+```
+day(now()) - day("date_obs")
+```
+
+Ou plus précisément (nombre de jours écoulés) :
+```
+julianday(now()) - julianday("date_obs")
+```
+
+### Cas d'usage 2 : Créer un identifiant composite
+
+Créer un champ `identifiant_unique` basé sur le site et l'espèce :
+
+```
+"id_site" || '_' || "id_espece" || '_' || date_format("date_obs", 'yyyyMMdd')
+```
+
+Résultat : `1_2_20240615`
+
+### Cas d'usage 3 : Classement automatique
+
+Ajouter un champ `classe_conservation` qui classe les espèces selon leur statut :
+
+```
+CASE
+    WHEN "statut_uicn" = 'EX' THEN 'Éteint'
+    WHEN "statut_uicn" = 'EW' THEN 'Éteint à l''état sauvage'
+    WHEN "statut_uicn" IN ('CR', 'EN') THEN 'Critique/En danger'
+    WHEN "statut_uicn" = 'VU' THEN 'Vulnérable'
+    WHEN "statut_uicn" = 'NT' THEN 'Quasi menacé'
+    WHEN "statut_uicn" = 'LC' THEN 'Préoccupation mineure'
+    ELSE 'Non évalué'
+END
+```
+
+### Procédure dans QGIS
+
+1. Couche > **Field Calculator** (ou Boîte à outils > Field Calculator).
+2. Cocher "Créer un nouveau champ" ou sélectionner un champ existant.
+3. Entrer le nom et le type du champ.
+4. Écrire l'expression.
+5. Cliquer **OK**.
+
+### Intérêt pédagogique
+
+Cela montre que les champs ne sont pas toujours des données brutes : ils peuvent être **dérivés d'autres champs** pour enrichir l'analyse.
+
+---
+
+## 6. Valeurs par défaut
+
+Les valeurs par défaut permettent de **pré-remplir** les formulaires avec des valeurs intelligentes.
+
+### Cas d'usage 1 : Date d'observation = aujourd'hui
+
+Pour le champ `date_obs`, mettre la valeur par défaut :
+
+```
+today()
+```
+
+### Cas d'usage 2 : Observateur = utilisateur actif
+
+Pour le champ `observateur`, utiliser le nom de l'utilisateur QGIS :
+
+```
+@user_account_name
+```
+
+Ou si on veut un texte personnalisé :
+```
+'Obs_' || @user_account_name || '_' || format_date(now(), 'dd/MM/yyyy')
+```
+
+### Cas d'usage 3 : Numéro de site par défaut selon la zone
+
+Si l'observation est saisie dans un site particulier :
+
+```
+@atlas_pagename
+```
+
+Ou manuellement, si on charge le contexte du site :
+```
+(SELECT id_site FROM sites WHERE contains($geometry, @map_extent) LIMIT 1)
+```
+
+### Procédure dans QGIS
+
+1. Propriétés de couche > **Formulaire d'édition**.
+2. Sélectionner le champ.
+3. Section "Par défaut" : entrer l'expression.
+
+### Intérêt pédagogique
+
+Les valeurs par défaut **accélèrent la saisie** et réduisent les erreurs en pré-remplissant les champs répétitifs.
+
+---
+
+## 7. Étiquettes dynamiques
+
+Les étiquettes permettent d'afficher du texte dynamique sur la carte selon les données.
+
+### Cas d'usage 1 : Afficher le nom de l'espèce et le nombre d'individus
+
+Pour la couche `observations`, utiliser l'expression :
+
+```
+"nom_latin" || '\n' || "nb_individus" || ' ind.'
+```
+
+Résultat affiché sur la carte :
+```
+Aquila chrysaetos
+3 ind.
+```
+
+### Cas d'usage 2 : Afficher uniquement les observations significatives
+
+Afficher l'étiquette **seulement si** nb_individus >= 5 :
+
+**Dans les propriétés de la couche > Étiquettes :**
+- Mode : "Basé sur les données"
+- Expression :
+```
+CASE
+    WHEN "nb_individus" >= 5 THEN "nom_latin" || ' (' || "nb_individus" || ')'
+    ELSE ''
+END
+```
+
+### Cas d'usage 3 : Afficher la date d'observation au format lisible
+
+```
+format_date("date_obs", 'dd MMM yyyy')
+```
+
+Résultat : `15 Jun 2024`
+
+### Intérêt pédagogique
+
+Les étiquettes dynamiques permettent de **raconter une histoire** avec les données : plutôt que de montrer des points muets, on affiche directement l'information clé sur la carte.
+
+---
+
+## 8. Variables du projet et de la couche
+
+QGIS propose des variables prédéfinies (contexte) accessibles dans les expressions.
+
+### Variables utiles
+
+| Variable | Signification | Exemple |
+|----------|---------------|---------|
+| `$user_account_name` | Nom d'utilisateur QGIS | `norbert` |
+| `$now` ou `now()` | Date et heure actuelles | `2024-06-15 14:30:00` |
+| `$layer_name` | Nom de la couche actuelle | `observations` |
+| `$map_scale` | Échelle de la carte affichée | `10000` |
+| `@atlas_pagename` | Nom de la page de l'atlas | `Site_A` |
+| `@project_path` | Chemin du projet QGIS | `/path/to/project.qgz` |
+| `@project_title` | Titre du projet | `Biodiversité 2024` |
+
+### Cas d'usage 1 : Afficher le contexte de saisie
+
+Dans un formulaire, afficher qui a saisi et quand :
+
+```
+'Saisi par ' || @user_account_name || ' le ' || format_date(now(), 'dd/MM/yyyy HH:mm')
+```
+
+### Cas d'usage 2 : Créer des valeurs uniques basées sur le projet
+
+```
+@project_title || '_' || @user_account_name || '_' || format_date(now(), 'yyyyMMddHHmm')
+```
+
+### Cas d'usage 3 : Adapter le rendu selon l'échelle
+
+Ne montrer les étiquettes que si on zoome suffisamment :
+
+```
+CASE
+    WHEN $map_scale < 10000 THEN "nom_latin"
+    ELSE ''
+END
+```
+
+### Procédure
+
+1. Dans n'importe quelle expression, taper `@` ou `$` pour voir les variables disponibles.
+2. QGIS proposera l'autocomplétion.
+
+### Intérêt pédagogique
+
+Les variables montrent que les expressions ont accès au **contexte global du projet**, ce qui permet de créer des règles encore plus intelligentes.
+
+---
+
+## 9. Filtres de couche (Layer Filter Expression)
+
+Le filtre de couche permet d'afficher/masquer des entités selon une expression sans modifier les données.
+
+### Cas d'usage 1 : Afficher uniquement les observations d'espèces menacées
+
+Sur la couche `observations`, ajouter un filtre :
+
+```
+"statut_uicn" IN ('EN', 'VU', 'CR')
+```
+
+Seules les observations d'espèces en danger seront visibles.
+
+### Cas d'usage 2 : Afficher uniquement les observations récentes
+
+```
+"date_obs" >= date_format(now(), 'yyyy-01-01')
+```
+
+Seules les observations de cette année s'afficheront.
+
+### Cas d'usage 3 : Filtrer par site et par espèce
+
+```
+"id_site" = 1 AND "nb_individus" >= 3
+```
+
+### Procédure dans QGIS
+
+1. Clic droit sur la couche > **Filtrer** (ou Propriétés > Source).
+2. Entrer l'expression.
+3. Cliquer **OK**.
+
+> **Note :** Le filtre masque seulement l'affichage, il ne supprime pas les données. Les éditions restent possibles.
+
+### Intérêt pédagogique
+
+Le filtre de couche permet de **nettoyer visuellement** la carte sans perdre les données. C'est un excellent outil pour la communication de résultats.
+
+---
+
+## Bonnes pratiques
+
+1. **Tester vos expressions** en utilisant le "bouton fx" dans les dialogues QGIS ou l'outil "Vérifier la syntaxe".
+2. **Documenter les expressions complexes** avec des commentaires : `-- Ceci est un commentaire`.
+3. **Réutiliser les variables de projet** plutôt que les valeurs en dur pour faciliter la maintenance.
+4. **Combiner les expressions** pour créer des règles robustes : une expression peut appeler d'autres expressions ou des sous-requêtes.
+5. **Tester sur un échantillon** avant d'appliquer à toutes les données.
+
+---
+
+## Exercice proposé avec le projet Biodiversité
+
+1. **Créer une symbologie conditionnelle** : colorer les observations selon le statut UICN.
+2. **Ajouter un filtre de formulaire** : afficher/masquer les champs selon le groupe d'espèce.
+3. **Créer une contrainte** : vérifier que date_obs <= aujourd'hui.
+4. **Calculer un champ** : ajouter `jours_depuis_obs` à la couche observations.
+5. **Créer une étiquette dynamique** : afficher le nom de l'espèce et le nombre d'individus.
+6. **Ajouter une valeur par défaut** : mettre date_obs = today().
+7. **Filtrer la couche** : afficher uniquement les observations d'espèces menacées.
+8. **Sélectionner par expression** : extraire toutes les observations du mois dernier.
+
+---
+
+## Documentation spécifique
+
+* [Expressions QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/expressions/index.html)
+* [Référence des fonctions](https://docs.qgis.org/latest/fr/docs/user_manual/expressions/expression_help/index.html)
+* [Symbologie basée sur les données](https://docs.qgis.org/latest/fr/docs/user_manual/style_library/symbol_selector.html)
+* [Formulaires d'édition](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html#attributes-form)
