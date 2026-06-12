@@ -5,7 +5,7 @@ format: {html: {toc: true, number-sections: true, code-fold: false}}
 
 ## Objectif
 
-Découvrir l'organisation et l'utilisation des algorithmes de géotraitement dans QGIS, en particulier les outils moins connus mais puissants pour l'analyse spatiale.
+Découvrir l'organisation et l'utilisation des algorithmes de géotraitement dans QGIS.
 
 ## La Boîte à outils de géotraitement
 
@@ -168,14 +168,6 @@ Résultat : couche temporaire avec observations du Lynx
 - Simplifier le polygone (Douglas-Peucker) si nécessaire
 - Dissoudre si plusieurs parties
 - Exporter en GeoPackage ou Shapefile
-
-### Intérêt pédagogique
-
-Ce flux illustre :
-- **Chaînage d'outils** : un résultat alimente le suivant
-- **Méthodes statistiques** : KDE et percentiles, concepts issus de l'analyse spatiale
-- **Transformation de formats** : raster → vecteur
-- **Raisonnement métier** : à partir de points d'observation, construire une "zone de présence probable"
 
 ---
 

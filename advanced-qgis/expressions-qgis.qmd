@@ -27,6 +27,7 @@ Les expressions QGIS permettent de :
 * Table `sites` : zones d'étude (géométrie : Polygone)
 * Table `observations` : relevés d'espèces (géométrie : Point)
 * Table `especes` : catalogue (géométrie : aucune)
+* Table `images` : catalogue (géométrie : aucune)
 
 > **Prérequis :** Connaître les bases de QGIS, savoir naviguer dans les propriétés de couches et les formulaires d'édition.
 
@@ -76,10 +77,6 @@ scale_linear("nb_individus", 1, 100, 2, 10)
 
 Cela échelle linéairement la taille du symbole entre 2 et 10 mm selon nb_individus entre 1 et 100.
 
-### Intérêt pédagogique
-
-Cela montre que les propriétés visuelles ne sont pas figées : elles **réagissent aux données**.
-
 ---
 
 ## Filtres dans les formulaires (visibilité conditionnelle)
@@ -102,10 +99,6 @@ Dans la couche `especes`, afficher :
    "groupe" = 'Oiseau'
    ```
 4. Répéter pour les autres champs avec leurs conditions respectives.
-
-### Intérêt pédagogique
-
-Les utilisateurs ne voient que les champs pertinents : le formulaire s'adapte au contexte. Cela réduit la complexité apparente et limite les erreurs de saisie.
 
 ---
 
@@ -159,13 +152,9 @@ END
 3. Section "Contrainte" : entrer l'expression.
 4. (Optionnel) Ajouter un message de description.
 
-### Intérêt pédagogique
-
-Cela montre que QGIS peut appliquer des règles métier **lors de la saisie**, ce qui garantit la qualité des données.
-
 ---
 
-## 4. Sélection par expression (Select by Expression)
+## Sélection par expression (Select by Expression)
 
 La sélection par expression permet de **filtrer dynamiquement** les entités selon des critères complexes.
 
@@ -197,13 +186,9 @@ Sur la couche `sites`, sélectionner les sites qui n'ont aucune observation lié
 id_site NOT IN (SELECT DISTINCT id_site FROM observations WHERE id_site IS NOT NULL)
 ```
 
-### Intérêt pédagogique
-
-Cela montre que les critères de sélection peuvent être **arbitrairement complexes** et combiner plusieurs tables.
-
 ---
 
-## 5. Calcul de champs (Field Calculator)
+## Calcul de champs (Field Calculator)
 
 Le Field Calculator permet d'ajouter ou de modifier des champs avec des valeurs calculées.
 
@@ -255,10 +240,6 @@ END
 4. Écrire l'expression.
 5. Cliquer **OK**.
 
-### Intérêt pédagogique
-
-Cela montre que les champs ne sont pas toujours des données brutes : ils peuvent être **dérivés d'autres champs** pour enrichir l'analyse.
-
 ---
 
 ## Valeurs par défaut
@@ -305,10 +286,6 @@ Ou manuellement, si on charge le contexte du site :
 2. Sélectionner le champ.
 3. Section "Par défaut" : entrer l'expression.
 
-### Intérêt pédagogique
-
-Les valeurs par défaut **accélèrent la saisie** et réduisent les erreurs en pré-remplissant les champs répétitifs.
-
 ---
 
 ## Étiquettes dynamiques
@@ -351,9 +328,6 @@ format_date("date_obs", 'dd MMM yyyy')
 
 Résultat : `15 Jun 2024`
 
-### Intérêt pédagogique
-
-Les étiquettes dynamiques permettent de **raconter une histoire** avec les données : plutôt que de montrer des points muets, on affiche directement l'information clé sur la carte.
 
 ---
 
@@ -403,10 +377,6 @@ END
 1. Dans n'importe quelle expression, taper `@` ou `$` pour voir les variables disponibles.
 2. QGIS proposera l'autocomplétion.
 
-### Intérêt pédagogique
-
-Les variables montrent que les expressions ont accès au **contexte global du projet**, ce qui permet de créer des règles encore plus intelligentes.
-
 ---
 
 ## Filtres de couche (Layer Filter Expression)
@@ -445,9 +415,6 @@ Seules les observations de cette année s'afficheront.
 
 > **Note :** Le filtre masque seulement l'affichage, il ne supprime pas les données. Les éditions restent possibles.
 
-### Intérêt pédagogique
-
-Le filtre de couche permet de **nettoyer visuellement** la carte sans perdre les données. C'est un excellent outil pour la communication de résultats.
 
 ---
 
