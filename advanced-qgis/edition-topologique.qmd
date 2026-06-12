@@ -5,3 +5,76 @@ title: "Édition topologique"
 ## Objectif
 
 Présenter les règles et outils permettant de préserver la cohérence topologique lors de l’édition.
+
+## Prérequis
+
+Les outils d’édition avancée (tracer, remodeler, fusionner, découper, etc.) ont déjà été vus dans le module précédent.
+Cette section se concentre sur la **qualité topologique** et le **contrôle de cohérence**.
+
+### Topologie dans les SIG
+
+La topologie est l'ensemble des règles géométriques qui définissent et maintiennent les relations spatiales explicites entre les entités (points, lignes, polygones). Contrairement au simple stockage de coordonnées ("spaghetti data"), la topologie assure la cohérence logique du territoire : elle garantit que les polygones adjacents partagent exactement la même frontière (pas de doublons ni de vides), que les lignes d'un réseau hydrographique sont correctement connectées aux nœuds (pas de ruptures invisibles) et que les éléments ne se chevauchent pas indûment. Dans un contexte de base de données (GPKG ou PostGIS), la topologie est cruciale pour la qualité des données et l'analyse de réseau (ex: calcul d'itinéraire, flux) ; 
+
+La topologie peut:
+* être gérée nativement par le moteur de la base de donnée (comme avec l'extension [PostGIS Topology](https://postgis.net/workshops/postgis-intro/topology.html))
+* vérifiée en cours de digitalisation par le SIG
+* vérifiée a posteriori via des outils de contrôle dans QGIS (ex: "Vérifier la validité", "Corriger les géométries") et de l'édition manuelle ou automatique pour éliminer les erreurs de numérisation comme les "slivers" (micro-polygones) ou les nœuds non connectés.
+
+### Paramètres de topologie à activer (20 min)
+
+Dans les paramètres de numérisation QGIS :
+
+- **Accrochage** : tolérance, mode sommet/segment, couches de référence.
+- **Édition topologique** : déplacement partagé des frontières.
+- **Éviter les chevauchements** : empêcher les recouvrements sur les couches surfaciques.
+
+Installer le plugin de contrôle de topologie:
+[Plugin Topology Checker](https://docs.qgis.org/latest/fr/docs/user_manual/plugins/core_plugins/plugins_topology_checker.html) 
+
+
+#### Vérificateur de topologie
+
+Règles à configurer et exécuter sur le projet Biodiv :
+
+- Polygones `sites` :
+	- ne doivent pas se chevaucher,
+	- ne doivent pas avoir de trous non voulus,
+	- doivent être valides.
+- Points `observations` :
+	- doivent être couverts par `sites`.
+
+#### Outils de validation/correction
+
+- **Vérifier la validité** des géométries.
+- **Corriger les géométries** pour les cas réparables automatiquement.
+- Recontrôler avec le Vérificateur de topologie jusqu’à obtenir un résultat propre.
+
+### Mise en pratique
+
+#### Digitaliser des sites et des observations avec des erreurs topologiques
+
+* Télécharger le biodiv.gpkg
+* Ajouter les couches au projet QGIS
+* Digitaliser des polygones avec des chevauchements, des trous, des géométries invalides
+* Digitaliser des points d’observation hors des polygones
+
+#### Exercice A — Nettoyage des polygones `sites`
+
+1. Lancer le vérificateur.
+2. Identifier au moins 3 erreurs (chevauchement, trou, géométrie invalide).
+3. Corriger les erreurs.
+4. Repasser la vérification et documenter le résultat.
+
+#### Exercice B — Cohérence `observations` / `sites`
+
+1. Contrôler la règle “les observations doivent être dans un site”.
+2. Corriger les observations hors polygone.
+3. Vérifier qu’il ne reste aucune erreur de couverture.
+
+### Critères de validation
+
+- 0 recouvrement non autorisé dans `sites`.
+- 0 observation hors `sites`.
+- 100 % de géométries valides sur les couches éditées.
+- Rapport de contrôle archivé (capture ou tableau récapitulatif).
+

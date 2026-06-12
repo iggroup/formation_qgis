@@ -20,57 +20,62 @@ La numérisation avancée regroupe donc les outils qui permettent de **modifier 
 
 ---
 
+## Prépartion de la démonstration
+
+* Télécharger: advanced_digitalisation.gpkg
+* Ouvrir les couches dans un projet QGIS configuré avec l'`EPSG:2056`
+* Si nécessaire, activez l'outil de sommet: Vue → Panneaux → Editeur de sommets. 
+* Si nécessaire, activer les outils de numérisation avancée: Vue → Barre d'outils → Numérisation avancée
+* Si nécessaire, activer les outils de numérisation avancée: Vue → Panneaux → Numérisation avancée
+* Si nécessaire, activer les outils d'accrochage: Vue → Barre d'outils → Accrochage
+
+### Questions:
+* Qu'est-ce qu'une géométrie multi-part ? 
+* Comment vérifier les types de géométries des couches (multi-part ou simple) ?
+
 ## Éditer les sommets d'une géométrie
 
-L'outil de sommets est l'un des outils les plus importants pour corriger ou affiner une géométrie existante.
+* Entrer en mode édition sur une couche, cliquer sur l'outil de sommet.
 
-Il permet notamment de :
+L'outil de sommet permet notamment de :
 
 * sélectionner une entité et afficher ses sommets,
-* déplacer un sommet,
-* ajouter un sommet sur un segment,
-* supprimer un sommet,
-* déplacer plusieurs sommets à la fois,
-* modifier directement les coordonnées.
-
-### Cas d'usage typiques
-
-* rectifier un contour polygonal,
-* ajuster précisément un point ou une limite,
-* corriger une géométrie issue d'une importation,
-* réaligner un objet sur une référence de fond.
+* déplacer un sommet (clic gauche pour sélectionner, glisser pour déplacer),
+* ajouter un sommet sur un segment (clic sur la petite croix au milieu du segment),
+* ajouter un sommet à une extrémité (clic sur le petit plus à l'extrémité),
+* supprimer un sommet (clic sur un sommet puis appuyer sur la touche Suppr),
+* déplacer un segment entier (clic sur le segment puis glisser).
 
 ### Édition précise des coordonnées
 
 Dans QGIS, il est possible d'éditer un sommet en saisissant directement ses coordonnées `X` et `Y`.
+
+Si le panneau d'éditeur de sommets est ouvert, lors d'un clic droit sur une géométrie, il affiche les coordonnées de chaque sommet et permet de les modifier directement.
 
 Cette approche est particulièrement utile lorsque :
 
 * on dispose de coordonnées de terrain,
 * on veut garantir une position exacte,
 * on souhaite corriger une géométrie sans déplacement approximatif à la souris.
-
-> **Bon réflexe :** travailler dans un SCR projeté adapté afin que les coordonnées soient exprimées dans une unité exploitable, généralement le mètre.
-
-### Points d'attention
-
-* déplacer un sommet peut modifier la forme globale de l'entité ;
-* supprimer un sommet ne doit pas dégrader inutilement la géométrie ;
-* sur un polygone, un excès de sommets complexifie l'entretien et la lisibilité de la donnée.
+* vérifier la qualité de la géométrie (ex: éviter les auto-intersections, les trous non désirés, les segments très courts, les noeuds redondants).
 
 ---
 
 ## Utiliser le panneau de numérisation avancée
-
 Le panneau de numérisation avancée permet de saisir des géométries de manière beaucoup plus contrôlée que le simple clic manuel.
 
-Il est utile pour construire des entités à partir de :
+Il est utile pour construire des entités avec des valeurs mesurées ou calculées, par exemple :
 
 * distances,
 * angles,
 * coordonnées absolues,
 * coordonnées relatives,
 * contraintes de direction.
+  
+### Activer les outils de numérisation avancée
+
+Vue → Panneaux → Numérisation avancée
+
 
 ### Exemples d'usages
 
@@ -79,17 +84,41 @@ Il est utile pour construire des entités à partir de :
 * prolonger une ligne avec un angle précis,
 * positionner un point par décalage relatif.
 
-### Intérêt pédagogique
-
-Ce panneau permet de faire comprendre que la numérisation n'est pas seulement graphique : elle peut aussi être **pilotée par des valeurs mesurées ou calculées**.
-
 ---
 
 ## Modifier la forme d'une géométrie
 
 Au-delà des sommets individuels, QGIS propose des outils pour modifier plus globalement la forme d'une entité.
 
+### Tracer (outil de traçage)
+
+
+[Tracer - suivre une géométrie existante](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#automatic-tracing)
+
+L’outil **Tracer** permet de dessiner une nouvelle géométrie en suivant automatiquement des segments existants.
+
+Il est particulièrement utile pour :
+
+* reprendre une limite parcellaire sans redessiner à la main,
+* créer un polygone adjacent sans interstice,
+* limiter les erreurs de superposition ou de décalage.
+
+Pré-requis recommandés :
+
+* activer l’**accrochage** (sommet + segment),
+* utiliser une tolérance adaptée à l’échelle de travail,
+* vérifier la couche de référence utilisée pour le traçage.
+
+Exercice rapide :
+
+1. Démarrer la numérisation d’un nouveau polygone.
+2. Activer le mode **Tracer**.
+3. Suivre une frontière existante, puis fermer la géométrie.
+4. Modifier les deux objets avec l'édition topologique pour voir l'impact du traçage sur les géométries (activer l'édition topologique dans la barre d'accrochage)
+
 ### Reshape
+
+[Reshape - remodelage](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#reshape-features)
 
 L'outil de **remodelage** permet de redessiner une partie d'une ligne ou d'un polygone sans recréer entièrement l'entité.
 
@@ -99,29 +128,29 @@ Il est très utile pour :
 * adapter une limite à une nouvelle référence,
 * reprendre une géométrie longue sans repartir de zéro.
 
-### Déplacement de segments
-
-Selon le contexte d'édition, il peut être plus efficace de déplacer un segment entier plutôt que sommet par sommet.
 
 ### Ajout et suppression d'anneaux
 
-Pour les polygones, il faut aussi présenter :
+[Add and delete rings](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#add-ring)
+
 
 * l'ajout d'un trou dans un polygone,
 * la suppression d'un anneau,
-* la différence entre contour extérieur et anneaux intérieurs.
+* la différence entre contour extérieur et anneaux intérieurs 
 
-Ces notions sont importantes pour des objets comme :
 
-* des plans d'eau avec îles,
-* des zones d'exclusion,
-* des emprises complexes.
 
 ---
 
 ## Créer et gérer des multi-géométries
 
+[Multi-part geometries](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#add-part)
+
+Une multi-géométrie n'est pas seulement un « groupe visuel » d'objets : c'est **une seule entité attributaire** avec plusieurs parties géométriques.
+
 Les multi-géométries permettent de stocker plusieurs parties dans une seule entité.
+
+Lors de la conception d'une base de données, il est important de se demander si une entité doit être modélisée comme une multi-géométrie ou comme plusieurs entités simples afin d'éviter des erreurs de digitalisation et d'intégration de données par la suite.
 
 Exemples :
 
@@ -130,25 +159,9 @@ Exemples :
 * un ouvrage linéaire discontinu,
 * un relevé ponctuel regroupé sous une même fiche objet.
 
-### Opérations à présenter
-
-Dans ce thème, il est pertinent de montrer :
-
+Digitalisatiion d'une multi-géométrie :
 * l'ajout d'une nouvelle partie à une entité existante,
-* la distinction entre plusieurs entités simples et une seule entité multi-part,
-* l'intérêt métier du multi-part,
-* les précautions lors de la sélection, de la suppression ou de l'édition.
-
-### Point pédagogique important
-
-Une multi-géométrie n'est pas seulement un « groupe visuel » d'objets : c'est **une seule entité attributaire** avec plusieurs parties géométriques.
-
-Autrement dit :
-
-* **plusieurs entités simples** = plusieurs lignes dans la table attributaire,
-* **une multi-géométrie** = une seule ligne, plusieurs parties géométriques.
-
-Cette distinction est essentielle pour éviter les erreurs de modélisation.
+* la suppression d'une partie d'une multi-géométrie.
 
 ---
 
@@ -157,6 +170,10 @@ Cette distinction est essentielle pour éviter les erreurs de modélisation.
 La numérisation avancée inclut aussi les opérations de transformation géométrique courantes.
 
 ### Découper une entité
+
+[Découper - séparer les entités](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#split-features)
+
+[Découper - séparer les parties](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#split-parts)
 
 L'outil de découpe permet de séparer :
 
@@ -171,75 +188,31 @@ Usages fréquents :
 
 ### Fusionner des entités
 
+[Fusionner - regrouper les entités sélectionnées](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#merge-selected-features)
+
 À l'inverse, la fusion permet de regrouper plusieurs objets lorsque cela a du sens métier.
 
-Il faut distinguer :
+Il ne faut pas confonde la fusion géométrique et
+[la fusion des attributs](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#merge-attributes-of-selected-features).
 
-* la fusion géométrique,
-* la fusion avec gestion des attributs.
 
 ### Copier, dupliquer, réutiliser une géométrie
+[Copier, dupliquer, réutiliser une géométrie](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#cutting-copying-and-pasting-features)
 
 QGIS permet aussi de réemployer une géométrie existante comme base de travail, ce qui accélère fortement certaines opérations de mise à jour.
 
+### Autres fonctions de numérisation avancée
+* **Translater** 
+* **Rotation**
+* **Mise à l'échelle**
+* **Simplifier**
+* **Offset**: Gonfler ou rétrécir une géométrie de manière uniforme
+* **Inverser**: Inverser le sens d'une ligne
 ---
-
-## Bonnes pratiques à transmettre
-
-### Travailler avec l'accrochage activé
-
-Même si le sujet est traité plus en détail dans le chapitre topologique, il est utile de rappeler que la précision de numérisation dépend fortement de l'accrochage.
-
-### Éviter les corrections « à la main levée »
-
-Lorsqu'une position doit être exacte, il vaut mieux utiliser :
-
-* la saisie de coordonnées,
-* les contraintes de distance et d'angle,
-* les outils de sommets,
-* les outils de remodelage.
-
-### Limiter la complexité géométrique inutile
-
-Trop de sommets compliquent :
-
-* l'édition,
-* la maintenance,
-* la lisibilité,
-* parfois les performances.
-
-### Vérifier le sens métier avant de créer une multi-géométrie
-
-Une multi-géométrie est pertinente si plusieurs parties représentent **un seul objet métier**. Sinon, il faut créer plusieurs entités distinctes.
-
----
-
-## Proposition de démonstration en formation
-
-Une séquence simple et efficace peut être :
-
-1. créer un polygone de base ;
-2. corriger sa forme avec l'outil de sommets ;
-3. modifier un sommet par saisie de coordonnées ;
-4. ajouter un anneau ;
-5. transformer ou enrichir l'objet en multi-part ;
-6. découper puis fusionner des entités pour comparer les résultats.
-
-Cette progression montre bien la différence entre **création**, **correction**, **structuration** et **transformation** d'une géométrie.
-
----
-
-## À retenir
-
-La numérisation avancée dans QGIS ne consiste pas seulement à dessiner plus vite, mais à :
-
-* **dessiner plus précisément**,
-* **modifier plus proprement**,
-* **adapter les géométries à des besoins métier réels**,
-* **préparer des données plus robustes pour l'analyse et l'édition ultérieure**.
 
 ## Documentation spécifique
 
 * [Numérisation avancée](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html)
 * [Panneau de numérisation avancée](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#the-advanced-digitizing-panel)
-* [Modification de géométrie](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#reshape-features)
+* [Panneau d'édition de sommets](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/editing_geometry_attributes.html#vertex-editor-panel)
+
