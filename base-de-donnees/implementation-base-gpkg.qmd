@@ -64,6 +64,9 @@ Répétez l'opération pour les autres entités :
 *   **Table `especes` :**
     *   *Astuce :* Pour une table sans géométrie, dans la fenêtre de création, sélectionnez **Pas de géométrie** (ou "None") dans le type.
     *   Ajoutez les champs : `nom_latin`, `nom_vernaculaire`, `groupe`, `statut_uicn`.
+*   **Table `photos` :**
+    *   Sans géométrie (table de pièces jointes).
+    *   Vous n'avez pas besoin d'ajouter les champs ici, nous les ajouterons via SQL par la suite.
 
 ### Vérification
 Une fois validé, le fichier `.gpkg` apparaît dans le panneau des couches de QGIS. Vous pouvez ouvrir la **Table d'attributs** pour constater que la structure est créée. Cependant, les liens (clés étrangères) ne sont pas encore activés au niveau de la base de données (ce sont pour l'instant de simples champs entiers).
@@ -114,9 +117,10 @@ PRAGMA foreign_keys = ON;
 DELETE FROM observations;
 DELETE FROM sites;
 DELETE FROM especes;
+DELETE FROM photos;
 
 -- Réinitialisation des compteurs auto-incrémentés SQLite
-DELETE FROM sqlite_sequence WHERE name IN ('sites', 'observations', 'especes');
+DELETE FROM sqlite_sequence WHERE name IN ('sites', 'observations', 'especes', 'photos');
 
 -- 1) Table SITES (spatiale créée au préalable par QGIS)
 -- id_site est créé automatiquement par QGIS (auto-incrément)
@@ -141,8 +145,24 @@ ALTER TABLE especes ADD COLUMN nom_latin TEXT(255) NOT NULL;
 ALTER TABLE especes ADD COLUMN nom_vernaculaire TEXT(255);
 ALTER TABLE especes ADD COLUMN groupe TEXT(100);
 ALTER TABLE especes ADD COLUMN statut_uicn TEXT(20) CHECK (statut_uicn IN ('LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'EX'));
+ALTER TABLE especes ADD COLUMN altitude_min INTEGER;
+ALTER TABLE especes ADD COLUMN altitude_max INTEGER;
+ALTER TABLE especes ADD COLUMN profondeur_max INTEGER;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_especes_nom_latin_unique ON especes(nom_latin);
+
+-- 4) Table PHOTOS (sans géométrie, créée au préalable par QGIS)
+-- id_photo est créé automatiquement par QGIS (auto-incrément)
+ALTER TABLE photos ADD COLUMN id_obs INTEGER NOT NULL;
+ALTER TABLE photos ADD COLUMN nom_fichier TEXT(255);
+ALTER TABLE photos ADD COLUMN chemin_rel TEXT(500);
+ALTER TABLE photos ADD COLUMN legende TEXT;
+ALTER TABLE photos ADD COLUMN date_photo DATE;
+ALTER TABLE photos ADD COLUMN auteur TEXT(150);
+ALTER TABLE photos ADD COLUMN type_media TEXT(50) DEFAULT 'photo';
+
+-- Création de l'index sur la clé étrangère
+CREATE INDEX IF NOT EXISTS idx_photos_obs ON photos(id_obs);
 
 -- Insertion de données de test pour l'exercice suivant
 INSERT INTO especes (id_espece, nom_latin, nom_vernaculaire, groupe, statut_uicn) VALUES 

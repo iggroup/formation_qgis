@@ -67,17 +67,17 @@ Elle est particulièrement adaptée lorsque :
 
 ## Cas d'étude : Biodiv
 
-* l'ajout de **photos** / pièces jointes rattachées aux observations ;
-Le projet Biodiv contient trois couches principales :
+Le projet Biodiv contient quatre couches principales :
 
-* `sites` : zones d'étude ;
-* `observations` : relevés terrain ;
-* `especes` : table de référence.
+* `sites` : zones d'étude (polygones) ;
+* `observations` : relevés terrain (points) ;
+* `especes` : table de référence (sans géométrie) ;
+* `photos` : pièces jointes rattachées aux observations (sans géométrie).
 
 Ce projet est intéressant pour QField car il permet de montrer :
 
 * la saisie de nouvelles observations sur le terrain ;
-| `photos` | **Offline editing** | table des images liées aux observations |
+* l'ajout de **photos** / pièces jointes rattachées aux observations ;
 * la modification d'entités existantes ;
 * l'utilisation de relations et de listes de valeurs ;
 * le retour des données vers QGIS après la collecte.
@@ -88,14 +88,15 @@ Ce projet est intéressant pour QField car il permet de montrer :
 
 1. Ouvrir QGIS.
 2. Charger le fichier [biodiv_qfieldsync.qgs](../ressources/fichiers/qfield/qfieldsync-biodiv/biodiv_qfieldsync.qgs).
-3. Vérifier que les couches `sites`, `observations` et `especes` sont bien présentes.
+3. Vérifier que les couches `sites`, `observations`, `especes` et `photos` sont bien présentes.
 4. Ouvrir la table attributaire de chaque couche pour vérifier les champs.
 
 ### Vérifications utiles
 
 * le SCR doit être en **EPSG:2056** ;
 * les données doivent pointer vers le GeoPackage local `biodiv.gpkg` ;
-* la couche `observations` doit être celle qui sera principalement modifiée sur le terrain.
+* la couche `observations` doit être celle qui sera principalement modifiée sur le terrain ;
+* la table `photos` doit être liée à `observations` par la relation `observation_photos`.
 
 ---
 
@@ -110,6 +111,7 @@ Dans QGIS, ouvrir les propriétés du projet ou utiliser la barre d'outils QFiel
 | `observations` | **Offline editing** | couche principale de saisie terrain |
 | `sites` | **Keep existing (copy if missing)** ou **Offline editing** selon le scénario | couche de contexte ou couche à corriger |
 | `especes` | **Copy** ou **Keep existing** | table de référence pour les formulaires |
+| `photos` | **Offline editing** | table des images liées aux observations |
 
 ### Interprétation pédagogique
 
@@ -124,23 +126,24 @@ Dans QGIS, ouvrir les propriétés du projet ou utiliser la barre d'outils QFiel
 
 ## Étape 3 : préparer le projet pour le mobile
 
-Avant l'export :
+Avant l'export, vérifier les éléments suivants :
 
-3. prendre une photo et la joindre à une observation via la table `photos` ;
-4. vérifier que la valeur par défaut du formulaire s’applique correctement ;
-5. contrôler la validation des contraintes de saisie.
+1. vérifier les relations entre `observations` et `especes` ;
+2. vérifier la relation entre `observations` et `photos` ;
+3. les photos sont bien rattachées aux observations ;
 4. vérifier les styles de couches ;
-5. vérifier les relations entre `observations` et `especes` ;
-6. ajouter éventuellement un fond de plan ;
-7. choisir une zone de travail si nécessaire.
+5. vérifier que les valeurs par défaut du formulaire s'appliquent correctement ;
+6. contrôler la validation des contraintes de saisie ;
+7. ajouter éventuellement un fond de plan ;
+8. choisir une zone de travail si nécessaire.
 
-* les photos sont bien rattachées aux observations ;
 ### Bonnes pratiques
 
 * privilégier des noms de champs explicites ;
 * éviter les géométries trop complexes pour le terrain ;
-* s’assurer que les données utiles sont bien embarquées ;
-* préparer les valeurs par défaut pour accélérer la saisie.
+* s'assurer que les données utiles sont bien embarquées ;
+* préparer les valeurs par défaut pour accélérer la saisie ;
+* vérifier que la table `photos` est correctement liée via le formulaire de `observations`.
 
 ---
 

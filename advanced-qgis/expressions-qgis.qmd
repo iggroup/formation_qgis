@@ -27,7 +27,7 @@ Les expressions QGIS permettent de :
 * Table `sites` : zones d'étude (géométrie : Polygone)
 * Table `observations` : relevés d'espèces (géométrie : Point)
 * Table `especes` : catalogue (géométrie : aucune)
-* Table `images` : catalogue (géométrie : aucune)
+* Table `photos` : pièces jointes (géométrie : aucune)
 
 > **Prérequis :** Connaître les bases de QGIS, savoir naviguer dans les propriétés de couches et les formulaires d'édition.
 

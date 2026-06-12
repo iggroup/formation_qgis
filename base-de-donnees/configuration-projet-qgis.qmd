@@ -145,11 +145,24 @@ Ajoutez une seconde relation :
   
 Effet attendu : depuis une espèce, QGIS affiche automatiquement les observations associées.
 
+### Relation `observations` → `photos` (1:N)
+
+Ajoutez une troisième relation pour gérer les pièces jointes :
+* **Force de la relation** : *Association*.
+* **Nom** : `observation_photos`
+* **Couche parente** : `observations`
+* **Champ parent** : `id_obs`
+* **Couche enfant** : `photos`
+* **Champ enfant** : `id_obs`
+  
+Effet attendu : depuis une observation, QGIS affiche automatiquement les photos associées. Cette relation est essentielle pour le workflow QField, car elle permet de joindre des images prises sur le terrain à chaque observation.
+
 ### Test rapide des relations
 
 1. Ouvrez la table attributaire de `sites`.
 2. Sélectionnez un enregistrement.
 3. Vérifiez dans le formulaire qu'un volet « enfants » affiche les lignes liées d'`observations`.
+4. Vérifiez également que depuis une observation, les photos liées s'affichent dans le formulaire.
 
 ---
 
@@ -189,6 +202,26 @@ Conseils :
 * `statut` : **Liste de valeurs** (ex. `Réserve`, `Parc`, `Zone humide`, `Autre`).
 
 Ajoutez, si utile, une **expression de valeur par défaut** pour certains champs récurrents.
+
+### Formulaire de `photos`
+
+La table `photos` est particulière : elle est avant tout une **table de pièces jointes**. Sa configuration dans QGIS est au service de la relation avec `observations`.
+
+Configuration recommandée :
+
+* `id_obs` → **Référence de relation** vers `observations` (lien automatique, généralement caché).
+* `nom_fichier` → **Texte** (listé automatiquement depuis le chemin du fichier embarqué).
+* `legende` → **Texte multiligne** (permettre une brève description de la photo).
+* `date_photo` → **Date/Heure** (valeur par défaut : date du jour).
+* `auteur` → **Texte** (valeur par défaut : nom de l'utilisateur si disponible).
+* `chemin_rel` → **Texte** (généralement complété automatiquement par QField lors de l'upload).
+* `type_media` → **Liste de valeurs** (ex. `photo`, `schéma`, `video`, `audio`, `autre`).
+
+**Points clés pour QField :**
+
+* Les fichiers photos sont généralement stockés en relatif par rapport au projet.
+* QField gère automatiquement l'upload et le stockage des images si configuré correctement.
+* La table `photos` sert de registre métadonnées : pas d'image directement "dans" la base de données, mais des références à des fichiers.
 
 ### Contrôles qualité via expressions
 
