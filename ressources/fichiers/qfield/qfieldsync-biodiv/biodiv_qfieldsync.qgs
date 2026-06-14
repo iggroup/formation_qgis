@@ -19,6 +19,7 @@
     <layer-tree-layer id="sites_1" name="sites" providerKey="ogr" source="./biodiv.gpkg|layername=sites" checked="Qt::Checked" expanded="1" />
     <layer-tree-layer id="observations_1" name="observations" providerKey="ogr" source="./biodiv.gpkg|layername=observations" checked="Qt::Checked" expanded="1" />
     <layer-tree-layer id="especes_1" name="especes" providerKey="ogr" source="./biodiv.gpkg|layername=especes" checked="Qt::Checked" expanded="1" />
+    <layer-tree-layer id="photos_1" name="photos" providerKey="ogr" source="./biodiv.gpkg|layername=photos" checked="Qt::Checked" expanded="1" />
   </layer-tree-group>
   <projectlayers>
     <maplayer type="vector" geometry="Polygon" name="sites" provider="ogr" labelsEnabled="0" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="1" simplifyLocal="1" simplifyMaxScale="1" simplifyDrawingTol="1">
@@ -78,13 +79,38 @@
       <mapTip />
       <legend />
     </maplayer>
+    <maplayer type="vector" geometry="NoGeometry" name="photos" provider="ogr" labelsEnabled="0" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="1" simplifyLocal="1" simplifyMaxScale="1" simplifyDrawingTol="1">
+      <id>photos_1</id>
+      <datasource>./biodiv.gpkg|layername=photos</datasource>
+      <title>Photos</title>
+      <shortname>photos</shortname>
+      <abstract>Pièces jointes liées aux observations Biodiv</abstract>
+      <provider>ogr</provider>
+      <encoding>UTF-8</encoding>
+      <wkbType>NoGeometry</wkbType>
+      <previewExpression>"nom_fichier"</previewExpression>
+      <layerDependencies />
+      <expressionfields />
+      <mapTip />
+      <legend />
+    </maplayer>
   </projectlayers>
   <layer-tree>
     <customproperties>
       <Option />
     </customproperties>
   </layer-tree>
-  <relations />
+  <relations>
+    <relation id="site_observations" name="site_observations" referencedLayer="sites_1" referencingLayer="observations_1" strength="Association">
+      <fieldRef referencedField="id_site" referencingField="id_site"/>
+    </relation>
+    <relation id="espece_observations" name="espece_observations" referencedLayer="especes_1" referencingLayer="observations_1" strength="Association">
+      <fieldRef referencedField="id_espece" referencingField="id_espece"/>
+    </relation>
+    <relation id="observation_photos" name="observation_photos" referencedLayer="observations_1" referencingLayer="photos_1" strength="Association">
+      <fieldRef referencedField="id_observation" referencingField="id_observation"/>
+    </relation>
+  </relations>
   <projectstyles />
   <customproperties>
     <Option />

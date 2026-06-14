@@ -100,8 +100,8 @@ Ensuite, on complète la structure en SQL : attributs, index, relations logiques
 
 Principe :
 
-1. Créer les couches `sites` (Polygone), `observations` (Point) et la table `especes` (sans géométrie) dans QGIS.
-2. Créer les identifiants principaux en format texte et si nécessaire les renommer ex: `id_site`, `id_observation`, `id_espece`.
+1. Créer les couches `sites` (Polygone), `observations` (Point) et les tables `photos` et `especes` (sans géométrie) dans QGIS.
+2. Créer les identifiants principaux en format **texte** et les nommer ex: `id_site`, `id_observation`, `id_espece`, `id_photo`.
 3. Ajouter les attributs et contraintes via SQL.
 4. Ajouter les index pour accélérer les jointures et les recherches.
 
@@ -136,12 +136,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_sites_code_unique ON sites(code_national);
 ALTER TABLE observations ADD COLUMN date_obs DATE;
 ALTER TABLE observations ADD COLUMN nb_individus INTEGER CHECK (nb_individus >= 0);
 ALTER TABLE observations ADD COLUMN observateur TEXT(100);
-ALTER TABLE observations ADD COLUMN id_site INTEGER;
-ALTER TABLE observations ADD COLUMN id_espece INTEGER;
+ALTER TABLE observations ADD COLUMN id_site TEXT(255);
+ALTER TABLE observations ADD COLUMN id_espece TEXT(255);
 
 -- 3) Table ESPECES (sans géométrie, créée au préalable par QGIS)
 -- id_espece est créé automatiquement par QGIS (auto-incrément)
-ALTER TABLE especes ADD COLUMN nom_latin TEXT(255) NOT NULL;
+
+ALTER TABLE especes ADD COLUMN nom_latin TEXT(255);-- NOT NULL;
 ALTER TABLE especes ADD COLUMN nom_vernaculaire TEXT(255);
 ALTER TABLE especes ADD COLUMN groupe TEXT(100);
 ALTER TABLE especes ADD COLUMN statut_uicn TEXT(20) CHECK (statut_uicn IN ('LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'EX'));
@@ -153,23 +154,32 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_especes_nom_latin_unique ON especes(nom_la
 
 -- 4) Table PHOTOS (sans géométrie, créée au préalable par QGIS)
 -- id_photo est créé automatiquement par QGIS (auto-incrément)
-ALTER TABLE photos ADD COLUMN id_obs INTEGER NOT NULL;
 ALTER TABLE photos ADD COLUMN nom_fichier TEXT(255);
 ALTER TABLE photos ADD COLUMN chemin_rel TEXT(500);
 ALTER TABLE photos ADD COLUMN legende TEXT;
 ALTER TABLE photos ADD COLUMN date_photo DATE;
 ALTER TABLE photos ADD COLUMN auteur TEXT(150);
 ALTER TABLE photos ADD COLUMN type_media TEXT(50) DEFAULT 'photo';
+ALTER TABLE photos ADD COLUMN id_observation TEXT(255);
 
 -- Création de l'index sur la clé étrangère
-CREATE INDEX IF NOT EXISTS idx_photos_obs ON photos(id_obs);
+CREATE INDEX IF NOT EXISTS idx_photos_obs ON photos(id_observation);
 
 -- Insertion de données de test pour l'exercice suivant
-INSERT INTO especes (id_espece, nom_latin, nom_vernaculaire, groupe, statut_uicn) VALUES 
-('37c268d6-3ca5-4f3d-8e4d-7985f64c4e66', 'Ursus arctos', 'Ours brun', 'Mammifère', 'LC'),
-('49ebd4fd-1a4b-4af7-af4f-dbe53f4bf766', 'Aquila chrysaetos', 'Aigle royal', 'Oiseau', 'LC'),
-('bf72f4f5-2ff3-4818-b862-a752a22eb143', 'Lynx lynx', 'Lynx boréal', 'Mammifère', 'VU'),
-('9a4b41d5-b2f4-407a-ac6d-a9968c279d6e', 'Salmo salar', 'Saumon atlantique', 'Poisson', 'EN');
+INSERT INTO especes (
+    id_espece,
+    nom_latin,
+    nom_vernaculaire,
+    groupe,
+    statut_uicn,
+    altitude_min,
+    altitude_max,
+    profondeur_max
+) VALUES 
+('37c268d6-3ca5-4f3d-8e4d-7985f64c4e66', 'Ursus arctos', 'Ours brun', 'Mammifère', 'LC', 500, 2800, NULL),
+('49ebd4fd-1a4b-4af7-af4f-dbe53f4bf766', 'Aquila chrysaetos', 'Aigle royal', 'Oiseau', 'LC', 200, 3000, NULL),
+('bf72f4f5-2ff3-4818-b862-a752a22eb143', 'Lynx lynx', 'Lynx boréal', 'Mammifère', 'VU', 400, 2400, NULL),
+('9a4b41d5-b2f4-407a-ac6d-a9968c279d6e', 'Salmo salar', 'Saumon atlantique', 'Poisson', 'EN', NULL, NULL, 10);
 
 -- Création des index
 CREATE INDEX IF NOT EXISTS idx_observations_site ON observations(id_site);

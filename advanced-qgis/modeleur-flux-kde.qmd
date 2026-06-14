@@ -9,7 +9,7 @@ format:
 
 ## Objectif
 
-Automatiser le flux d'analyse de distribution d'espèce (KDE) en utilisant le **modéleur graphique** de QGIS, puis exporter le résultat en script Python réutilisable.
+Automatiser le flux d'analyse de distribution d'espèce en utilisant le **modéleur graphique** de QGIS, puis exporter le résultat en script Python réutilisable.
 
 ## Le Modéleur graphique
 
@@ -24,7 +24,7 @@ Le modéleur graphique est un outil visuel permettant de :
 
 ### Accès
 
-**Traitement > Modéleur** (ou **Processing > Modeler**)
+**Traitement > Modeleur** (ou **Processing > Modeler**)
 
 ### Avantages
 
@@ -62,8 +62,20 @@ Le modéleur graphique est un outil visuel permettant de :
                    │
                    ↓
         ┌──────────────────────┐
-        │ RASTER TO CONTOUR    │
+        │ RASTER TO POINT      │
+        │ (kde_points)         │
+        └──────────────────────┘
+             │
+             ↓
+        ┌──────────────────────┐
+        │ SÉLECTION PERCENTILE │
         │ Seuil: 90%ile        │
+        └──────────────────────┘
+             │
+             ↓
+        ┌──────────────────────┐
+        │ RASTER TO CONTOUR    │
+        │ / EXTRACTION ZONE    │
         └──────────────────────┘
                    │
                    ↓
@@ -128,22 +140,58 @@ Dans le panneau gauche "Modèle" > **Ajouter une entrée** :
   - Cell size : `pixel_size` (l'entrée paramétrisée)
   - Output : `kde_raster`
 
-#### Algorithme 3 : Contour / Isolignes
+#### Algorithme 3 : Raster to point
+- **Outil** : Traitement > GDAL > Raster to point
+- **Configuration** :
+  - Input raster : `kde_raster` (résultat du KDE)
+  - Output : `kde_points`
+
+#### Algorithme 4 : Selection pourcentile
+
+Objectif : conserver les points KDE dont la valeur est supérieure ou égale au 90e percentile.
+
+- **Outil** : Traitement > Vecteur > Extract by expression
+- **Input layer** : `kde_points`
+- **Expression** (adapter le nom du champ, ex. `kde_val` ou `DN`) :
+
+```qgis
+with_variable(
+  'vals',
+  array_sort( aggregate(@layer, 'array_agg', "kde_val") ),
+  "kde_val" >= array_get(@vals, floor((array_length(@vals)-1) * 0.9))
+)
+```
+
+- **Output** : `kde_points_p90`
+
+> Cette approche permet de calculer le seuil dans le modéleur lui-même, sans étape manuelle ni second modèle.
+> La couche `kde_points_p90` peut servir de contrôle visuel (hotspots principaux) même si la zone finale est extraite depuis les isolignes.
+
+#### Algorithme 5 : Contour / Isolignes
 
 - **Outil** : Traitement > SAGA / GDAL > Raster to vector > Contours (Vectorize)
 - **Configuration** :
   - Input raster : `kde_raster` (résultat du KDE)
   - Output contours : `contours_all`
 
-#### Algorithme 4 : Extract by expression (optionnel)
+#### Algorithme 6 : Extract by expression (optionnel)
 
 Pour garder uniquement le contour au seuil du 90e percentile :
 
 - **Outil** : Traitement > Vecteur > Extract by Expression (ou Extract)
-- **Expression** : `kde_density >= percentile_90`
+- **Expression** (adapter le nom du champ, souvent `ELEV`) :
+
+```qgis
+with_variable(
+  'vals',
+  array_sort( aggregate(@layer, 'array_agg', "ELEV") ),
+  "ELEV" >= array_get(@vals, floor((array_length(@vals)-1) * 0.9))
+)
+```
+
 - **Output** : `zone_presence`
 
-#### Algorithme 5 : Dissolve (fusionner)
+#### Algorithme 7 : Dissolve (fusionner)
 
 Au cas où il y aurait plusieurs polygones :
 
@@ -225,15 +273,35 @@ def processAlgorithm(self, parameters, context, feedback, inputs):
         'OUTPUT': 'memory:'
     }, context=context, feedback=feedback)
     
-    # Algorithme 3 : CONTOUR
+    # Algorithme 3 : RASTER TO POINT
+    kde_points = processing.run("gdal:pixelstopoints", {
+      'INPUT_RASTER': kde_result['OUTPUT'],
+      'OUTPUT': 'memory:'
+    }, context=context, feedback=feedback)
+
+    # Algorithme 4 : EXTRACT P90 SUR POINTS KDE
+    points_p90 = processing.run("native:extractbyexpression", {
+      'INPUT': kde_points['OUTPUT'],
+      'EXPRESSION': 'with_variable(''vals'', array_sort(aggregate(@layer, ''array_agg'', "kde_val")), "kde_val" >= array_get(@vals, floor((array_length(@vals)-1) * 0.9)))',
+      'OUTPUT': 'memory:'
+    }, context=context, feedback=feedback)
+
+    # Algorithme 5 : CONTOUR
     contour_result = processing.run("gdal:contour", {
         'INPUT': kde_result['OUTPUT'],
         'OUTPUT': 'memory:'
     }, context=context, feedback=feedback)
+
+    # Algorithme 6 : EXTRACT P90 SUR ISOLIGNES (optionnel)
+    zone_presence = processing.run("native:extractbyexpression", {
+      'INPUT': contour_result['OUTPUT'],
+      'EXPRESSION': 'with_variable(''vals'', array_sort(aggregate(@layer, ''array_agg'', "ELEV")), "ELEV" >= array_get(@vals, floor((array_length(@vals)-1) * 0.9)))',
+      'OUTPUT': 'memory:'
+    }, context=context, feedback=feedback)
     
-    # Algorithme 5 : DISSOLVE
+    # Algorithme 7 : DISSOLVE
     final_result = processing.run("native:dissolve", {
-        'INPUT': contour_result['OUTPUT'],
+      'INPUT': zone_presence['OUTPUT'],
         'OUTPUT': parameters['zone_presence_finale']
     }, context=context, feedback=feedback)
     
@@ -274,12 +342,6 @@ Une fois généré, ce script Python peut être :
 2. Scheduler l'exécution mensuelle / annuelle
 3. Générer des rapports automatiques
 
-### Publier dans QGIS Server
-
-1. Sauvegarder le modèle dans le projet
-2. QGIS Server peut exposer le modèle comme web service
-3. Permettre aux utilisateurs de paramétrer et relancer le flux via une interface web
-
 ---
 
 ## Prochaines étapes
@@ -298,4 +360,4 @@ Voir le chapitre **"Développement avancé"** pour ces conversions.
 
 * [Modéleur de QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/processing/modeler.html)
 * [Exporter en Python](https://docs.qgis.org/latest/fr/docs/user_manual/processing/modeler.html#export)
-* [Processing Python API](https://qgis.org/api/python_api.html)
+* [Processing Python API](https://qgis.org/pyqgis/master/processing/index.html)

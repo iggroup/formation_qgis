@@ -11,6 +11,18 @@ format:
 
 Maîtriser les expressions QGIS pour automatiser et contrôler les comportements de visualisation, de saisie et d'analyse de données spatiales. Les expressions sont au cœur de QGIS moderne : elles permettent de créer des règles dynamiques plutôt que des configurations statiques.
 
+---
+
+## Documentation spécifique
+
+* [Expressions QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/expressions/index.html)
+* [Référence des fonctions](https://docs.qgis.org/latest/fr/docs/user_manual/expressions/expression_help/index.html)
+* [Symbologie basée sur les données](https://docs.qgis.org/latest/fr/docs/user_manual/style_library/symbol_selector.html)
+* [Formulaires d'édition](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html#attributes-form)
+
+
+---
+
 ## Pourquoi les expressions sont essentielles
 
 Les expressions QGIS permettent de :
@@ -143,6 +155,14 @@ CASE
     WHEN "statut_uicn" IN ('EN', 'VU') THEN "nb_individus" > 0
     ELSE TRUE
 END
+```
+
+### Cas d'usage 4 : Contraintes spatiales
+
+Ne lister que les sites qui contiennent l'observation en cours de saisie.
+
+```
+id_site IN (SELECT id_site FROM sites WHERE contains($geometry, @map_extent))
 ```
 
 ### Procédure dans QGIS
@@ -439,11 +459,4 @@ Seules les observations de cette année s'afficheront.
 7. **Filtrer la couche** : afficher uniquement les observations d'espèces menacées.
 8. **Sélectionner par expression** : extraire toutes les observations du mois dernier.
 
----
 
-## Documentation spécifique
-
-* [Expressions QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/expressions/index.html)
-* [Référence des fonctions](https://docs.qgis.org/latest/fr/docs/user_manual/expressions/expression_help/index.html)
-* [Symbologie basée sur les données](https://docs.qgis.org/latest/fr/docs/user_manual/style_library/symbol_selector.html)
-* [Formulaires d'édition](https://docs.qgis.org/latest/fr/docs/user_manual/working_with_vector/vector_properties.html#attributes-form)

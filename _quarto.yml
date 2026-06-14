@@ -55,10 +55,12 @@ website:
                 text: "Numérisation avancée"
               - href: advanced-qgis/edition-topologique.qmd
                 text: "Édition topologique"
-          - section: "Géotraitement"
+          - section: "Expressions QGIS"
             contents:
               - href: advanced-qgis/expressions-qgis.qmd
                 text: "Expressions QGIS"
+          - section: "Géotraitement"
+            contents:
               - href: advanced-qgis/boite-outils-geotraitement.qmd
                 text: "Boîte à outils de géotraitement"
               - href: advanced-qgis/automatisation-flux-geotraitement.qmd

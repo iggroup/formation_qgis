@@ -4,7 +4,7 @@ title: "Module : Développement avancé"
 
 ## Bienvenue dans le module Développement avancé QGIS
 
-Ce module couvre la progression complète du **utilisateur** de QGIS au **développeur** qui crée et distribue des extensions.
+Ce module couvre la progression complète de l'**utilisateur** de QGIS au **développeur** qui crée et distribue des extensions.
 
 ### Structure du module
 
@@ -44,7 +44,7 @@ Script Python (automatisation)
         ↓
 Traitement personnalisé (réutilisable)
         ↓
-Plugin QGIS (distributable)
+Plugin QGIS (distribuable)
 ```
 
 Chaque étape construit sur la précédente, montrant comment :
@@ -56,14 +56,10 @@ Chaque étape construit sur la précédente, montrant comment :
 
 ## Cas d'usage réels
 
-### Pour un chercheur
-Créer un traitement d'analyse écologique réutilisable que d'autres peuvent télécharger.
+Créer un traitement:
 
-### Pour une collectivité
-Packager les workflows SIG locaux en plugin pour tous les techniciens.
-
-### Pour une agence de conseil
-Distribuer les méthodologies standardisées sous forme de plugin aux clients.
+* A partager avec la communauté (publication du plugin) 
+* A partager avec des clients / en interne
 
 ---
 
@@ -73,6 +69,7 @@ Distribuer les méthodologies standardisées sous forme de plugin aux clients.
 * **La progression est incrémentale** : chaque étape ajoute une complexité gérée
 * **La documentation est tout** : un bon plugin est un plugin bien documenté
 * **Les tests assurent la qualité** : toujours valider avant de distribuer
+* **Penser générique et réutilisable**: Hardcoder une variable ou copier-coller du code est un mauvais signe!
 
 ---
 

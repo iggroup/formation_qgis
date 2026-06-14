@@ -20,9 +20,9 @@ La numérisation avancée regroupe donc les outils qui permettent de **modifier 
 
 ---
 
-## Prépartion de la démonstration
+## Préparation de la démonstration
 
-* Télécharger: advanced_digitalisation.gpkg
+* Télécharger le GeoPackage d'exercice : [advanced_digitalisation.gpkg](../ressources/fichiers/numerisation-avancee/advanced_digitalisation.gpkg){download="advanced_digitalisation.gpkg"}
 * Ouvrir les couches dans un projet QGIS configuré avec l'`EPSG:2056`
 * Si nécessaire, activez l'outil de sommet: Vue → Panneaux → Editeur de sommets. 
 * Si nécessaire, activer les outils de numérisation avancée: Vue → Barre d'outils → Numérisation avancée

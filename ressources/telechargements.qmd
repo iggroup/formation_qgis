@@ -2,6 +2,7 @@
 title: "Téléchargements"
 ---
 
+Cette page regroupe les fichiers utiles par module.
 
 ## Introduction à QGIS
 
@@ -17,21 +18,22 @@ title: "Téléchargements"
 
 ## Base de données
 
-<!-- - [Télécharger un GeoPackage](fichiers/base-de-donnees/exemple.gpkg){download="exemple.gpkg"}
-- [Télécharger un projet QGIS](fichiers/base-de-donnees/projet.qgz){download="projet.qgz"}
-- [Télécharger un package QField](fichiers/qfield/projet_qfield.zip){download="projet_qfield.zip"} -->
 - [Tables biodiversité sans attributs pour ajout via SQL](fichiers/base-de-donnees/biodiversite_tables_vides.gpkg){download="biodiversite_tables_vides.gpkg"}
 - [Tables biodiversité avec attributs](fichiers/base-de-donnees/biodiversite_tables_et_attributs.gpkg){download="biodiversite_tables_et_attributs.gpkg"}
+- [GPKG biodiversité avec données](fichiers/base-de-donnees/biodiversite_data.gpkg){download="biodiversite_data.gpkg"}
+- [Script SQL d'enrichissement des données biodiversité](fichiers/base-de-donnees/donnees_biodiv_enrichies.sql){download="donnees_biodiv_enrichies.sql"}
 - [Modèle interlis KbS](fichiers/base-de-donnees/KbS_V1_5.ili){download="KbS_V1_5.ili"}
 
-<!-- ## Comment lier depuis un autre chapitre
+## QField
 
-Depuis un fichier dans `base-de-donnees/` :
+- [GeoPackage Biodiv pour QFieldSync](fichiers/qfield/qfieldsync-biodiv/biodiv.gpkg){download="biodiv.gpkg"}
+- [Projet QGIS préconfiguré (QGS)](fichiers/qfield/qfieldsync-biodiv/biodiv_qfieldsync.qgs){download="biodiv_qfieldsync.qgs"}
+- [Projet QGIS préconfiguré (QGZ)](fichiers/qfield/qfieldsync-biodiv/biodiv_qfieldsync.qgz){download="biodiv_qfieldsync.qgz"}
+- [Script SQL ajout table photos](fichiers/qfield/qfieldsync-biodiv/ajout_table_photos.sql){download="ajout_table_photos.sql"}
+- [README exercice QFieldSync](fichiers/qfield/qfieldsync-biodiv/README.md){download="README_qfieldsync-biodiv.md"}
 
-- `[Jeu de données (GPKG)](../ressources/fichiers/base-de-donnees/exemple.gpkg){download="exemple.gpkg"}`
+## Advanced QGIS
 
-Depuis un fichier dans `advanced-qgis/` :
-
-- `[Projet d'exercice](../ressources/fichiers/base-de-donnees/projet.qgz){download="projet.qgz"}`
-
-> Astuce : gardez des noms de fichiers stables (sans espaces) pour éviter de casser les liens. -->
+- [GeoPackage numérisation avancée](fichiers/numerisation-avancee/advanced_digitalisation.gpkg){download="advanced_digitalisation.gpkg"}
+- [Script SQL génération du GeoPackage de numérisation avancée](fichiers/numerisation-avancee/generate_advanced_digitalisation_gpkg.sql){download="generate_advanced_digitalisation_gpkg.sql"}
+- [README numérisation avancée](fichiers/numerisation-avancee/README.md){download="README_numerisation-avancee.md"}

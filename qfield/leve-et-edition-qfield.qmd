@@ -30,23 +30,23 @@ L'idée générale est simple : **QGIS prépare**, **QField collecte**, puis les
 
 QField répond à plusieurs besoins fréquents en SIG :
 
-### 1. Faire du terrain avec le même projet que dans QGIS
+### Faire du terrain avec le même projet que dans QGIS
 
 On évite de recréer une application spécifique ou une grille de saisie séparée. Le projet QGIS, ses couches, sa symbologie et ses formulaires sont réutilisés sur le mobile.
 
-### 2. Travailler hors connexion
+### Travailler hors connexion
 
 Dans de nombreux contextes, le réseau est absent ou instable. QField permet de travailler avec des données embarquées sur l'appareil, puis de synchroniser plus tard.
 
-### 3. Réduire les doubles saisies
+### Réduire les doubles saisies
 
-Le relevé terrain est saisi directement dans le système géographique, ce qui évite les ressaisies ultérieures dans Excel, Access ou d'autres outils.
+Le relevé terrain est saisi directement dans le système géographique, ce qui évite les ressaisies ultérieures.
 
-### 4. Standardiser les formulaires de terrain
+### Standardiser les formulaires de terrain
 
 Les règles de saisie définies dans QGIS (listes de valeurs, contraintes, relations, valeurs par défaut, pièces jointes) peuvent être réutilisées dans QField pour améliorer la qualité des données.
 
-### 5. Accélérer les cycles de mise à jour
+### Accélérer les cycles de mise à jour
 
 Les données peuvent revenir rapidement vers le bureau, voire être partagées avec une équipe entière si une infrastructure de synchronisation est en place.
 
@@ -68,7 +68,7 @@ On peut distinguer cinq grands scénarios.
 
 Les schémas ci-dessous sont volontairement simplifiés pour la formation. Ils montrent les grands flux sans entrer dans les détails techniques de chaque composant.
 
-### 1. Projet local autonome
+### Projet local autonome
 
 ```mermaid
 flowchart LR
@@ -77,7 +77,7 @@ flowchart LR
 	MOBILE -->|retour manuel| QGIS
 ```
 
-### 2. QFieldSync + synchronisation manuelle
+### QFieldSync + synchronisation manuelle
 
 ```mermaid
 flowchart LR
@@ -127,7 +127,7 @@ flowchart LR
 	SERVER --> MOBILE
 ```
 
-### 1. Projet local autonome sur l'appareil
+### Projet local autonome sur l'appareil
 
 C'est l'architecture la plus simple.
 
@@ -166,7 +166,7 @@ Le projet peut être stocké :
 
 > **Bon réflexe :** pour ce mode de travail, le GeoPackage est souvent la solution la plus robuste car il regroupe projet et données dans un format portable.
 
-### 2. Projet packagé avec QFieldSync et synchronisation manuelle
+### Projet packagé avec QFieldSync et synchronisation manuelle
 
 Cette architecture reste majoritairement hors ligne, mais elle introduit une préparation plus rigoureuse du projet via **QFieldSync**.
 
@@ -236,7 +236,7 @@ Le projet reste essentiellement un ensemble de fichiers, mais son transfert se f
 
 Cette solution peut convenir pour des échanges simples, mais elle reste moins robuste qu'une infrastructure dédiée de synchronisation.
 
-### 4. QFieldCloud hébergé
+### QFieldCloud hébergé
 
 C'est l'architecture la plus moderne pour le travail collaboratif avec QField.
 
@@ -273,7 +273,7 @@ Le projet est publié dans **QFieldCloud**, puis téléchargé sur les appareils
 * besoin de suivi centralisé ;
 * déploiement institutionnel.
 
-### 5. QFieldCloud auto-hébergé
+### QFieldCloud auto-hébergé
 
 Cette variante reprend le principe de QFieldCloud, mais l'infrastructure est hébergée par l'organisation elle-même.
 
