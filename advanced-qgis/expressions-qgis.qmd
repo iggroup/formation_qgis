@@ -41,13 +41,10 @@ Les expressions QGIS permettent de :
 * Table `especes` : catalogue (géométrie : aucune)
 * Table `photos` : pièces jointes (géométrie : aucune)
 
-> **Prérequis :** Connaître les bases de QGIS, savoir naviguer dans les propriétés de couches et les formulaires d'édition.
 
 ---
 
 ## Symbologie conditionnelle
-
-La symbologie conditionnelle permet de **visualiser les données selon des règles**.
 
 ### Cas d'usage : Colorer les observations selon le statut de conservation
 
@@ -57,29 +54,24 @@ Pour la couche `observations`, colorer chaque point en fonction du statut UICN d
 * **Orange** pour les espèces "Vulnerable" (VU - Vulnérable)
 * **Rouge** pour les espèces "Endangered" (EN - En danger)
 
-### Procédure dans QGIS
+#### Procédure dans QGIS
 
 1. Clic droit sur la couche `observations` > **Propriétés > Symbologie**.
-2. Changer le mode de rendu de "Symbole unique" à **"Basé sur des règles"**.
-3. Cliquer le bouton **"+"** pour ajouter une règle.
+2. Changer le mode de rendu de "Symbole unique" à **"Catégorisé"**.
+3. Cliquer l'icône expression.
 4. Entrer l'expression de condition :
    ```
-   "statut_uicn" = 'EN'
+   ` attributes(get_feature( '_90a6356d_1046_4cbd_b978_a6b4c4137bc8', 'id_espece', "id_espece"))['statut_uicn']`
    ```
-5. Configurer le symbole (couleur rouge).
-6. Répéter pour VU (orange) et LC (vert).
+5. Classer les valeurs et appliquer les couleurs correspondantes.
 
-Ou, plus élégamment, utiliser **"Basé sur l'apparence graduée"** avec l'expression :
-```
-CASE
-    WHEN "statut_uicn" = 'EN' THEN 'red'
-    WHEN "statut_uicn" = 'VU' THEN 'orange'
-    WHEN "statut_uicn" = 'LC' THEN 'green'
-    ELSE 'gray'
-END
-```
+Autres fonctions utiles pour les relations entre tables : `represent_value()`, `relation_aggregate()`.
 
-### Cas avancé : Taille du symbole selon l'effectif
+Alternativement, on peut créer une jointure entre `observations` et `especes` pour accéder directement au champ `statut_uicn` dans la couche `observations`.
+
+### Cas d'usage : Taille du symbole selon l'effectif
+
+#### Procédure dans QGIS
 
 Adapter la taille du symbole au nombre d'individus observés :
 
@@ -88,6 +80,18 @@ scale_linear("nb_individus", 1, 100, 2, 10)
 ```
 
 Cela échelle linéairement la taille du symbole entre 2 et 10 mm selon nb_individus entre 1 et 100.
+
+On peut aussi choisir un valeur par défaut pour les observations sans nombre d'individus renseigné ou plus grand que 100:
+
+```
+CASE
+    WHEN "nb_individus" IS NULL THEN 2
+    WHEN "nb_individus" > 100 THEN 10
+    ELSE scale_linear("nb_individus", 1, 100, 2, 10)
+END 
+```
+
+Alternativement, la fonction `if()` peut être utilisée pour des conditions plus simples.
 
 ---
 
@@ -138,7 +142,7 @@ Pour le champ `date_obs` :
 
 **Expression :**
 ```
-"date_obs" <= today()
+"date_obs" <= now()
 ```
 
 **Message :**
@@ -161,16 +165,18 @@ END
 
 Ne lister que les sites qui contiennent l'observation en cours de saisie.
 
-```
-id_site IN (SELECT id_site FROM sites WHERE contains($geometry, @map_extent))
-```
+
 
 ### Procédure dans QGIS
 
 1. Propriétés de la couche > **Formulaire d'édition**.
-2. Sélectionner le champ.
-3. Section "Contrainte" : entrer l'expression.
-4. (Optionnel) Ajouter un message de description.
+2. Sélectionner la relation.
+3. Section "Filter expression" : entrer l'expression.
+
+```
+overlay_contains('_2352b27c_4c3e_42e8_8bc6_0d72c5b366f9')
+```
+
 
 ---
 
@@ -183,7 +189,7 @@ La sélection par expression permet de **filtrer dynamiquement** les entités se
 Dans le menu **Vector > Select by Expression**, ou directement dans QGIS :
 
 ```
-"id_espece" = (SELECT id_espece FROM especes WHERE nom_latin = 'Aquila chrysaetos' LIMIT 1)
+ "id_espece" = attributes(get_feature( '_90a6356d_1046_4cbd_b978_a6b4c4137bc8', 'nom_latin', 'Aquila chrysaetos'))['id_espece'] 
 ```
 
 Ou plus simplement, si on connaît l'ID :
@@ -194,7 +200,7 @@ Ou plus simplement, si on connaît l'ID :
 ### Cas d'usage 2 : Sélectionner les observations récentes et abondantes
 
 ```
-"date_obs" >= date_format(now(), 'yyyy-01-01')
+"date_obs" >= now()
 AND "nb_individus" >= 5
 ```
 
@@ -203,7 +209,7 @@ AND "nb_individus" >= 5
 Sur la couche `sites`, sélectionner les sites qui n'ont aucune observation liée :
 
 ```
-id_site NOT IN (SELECT DISTINCT id_site FROM observations WHERE id_site IS NOT NULL)
+ relation_aggregate( 'observatio_id_site__2352b27c__id_site', 'count', "id_observation")<1
 ```
 
 ---
@@ -218,13 +224,11 @@ Ajouter un champ `jours_depuis_obs` qui calcule le nombre de jours entre la date
 
 **Expression :**
 ```
-day(now()) - day("date_obs")
+
+day(age(now(),"date_obs")) 
 ```
 
-Ou plus précisément (nombre de jours écoulés) :
-```
-julianday(now()) - julianday("date_obs")
-```
+
 
 ### Cas d'usage 2 : Créer un identifiant composite
 
@@ -271,7 +275,7 @@ Les valeurs par défaut permettent de **pré-remplir** les formulaires avec des 
 Pour le champ `date_obs`, mettre la valeur par défaut :
 
 ```
-today()
+now()
 ```
 
 ### Cas d'usage 2 : Observateur = utilisateur actif
@@ -287,18 +291,6 @@ Ou si on veut un texte personnalisé :
 'Obs_' || @user_account_name || '_' || format_date(now(), 'dd/MM/yyyy')
 ```
 
-### Cas d'usage 3 : Numéro de site par défaut selon la zone
-
-Si l'observation est saisie dans un site particulier :
-
-```
-@atlas_pagename
-```
-
-Ou manuellement, si on charge le contexte du site :
-```
-(SELECT id_site FROM sites WHERE contains($geometry, @map_extent) LIMIT 1)
-```
 
 ### Procédure dans QGIS
 
@@ -429,34 +421,21 @@ Seules les observations de cette année s'afficheront.
 
 ### Procédure dans QGIS
 
-1. Clic droit sur la couche > **Filtrer** (ou Propriétés > Source).
-2. Entrer l'expression.
-3. Cliquer **OK**.
+1. Ouvrir la table d'attribut.
+2. Bouton au fond à droite > Filtre avancé
 
-> **Note :** Le filtre masque seulement l'affichage, il ne supprime pas les données. Les éditions restent possibles.
+
+> **Note :** A ne pas confondre avec le filtre de la couche (clic droit sur la couche > Filtrer) qui filtre à la source en utilisant le moteur de la base de données (SQL) et qui est plus performant pour les grandes couches. 
 
 
 ---
 
 ## Bonnes pratiques
 
-1. **Tester vos expressions** en utilisant le "bouton fx" dans les dialogues QGIS ou l'outil "Vérifier la syntaxe".
-2. **Documenter les expressions complexes** avec des commentaires : `-- Ceci est un commentaire`.
-3. **Réutiliser les variables de projet** plutôt que les valeurs en dur pour faciliter la maintenance.
-4. **Combiner les expressions** pour créer des règles robustes : une expression peut appeler d'autres expressions ou des sous-requêtes.
-5. **Tester sur un échantillon** avant d'appliquer à toutes les données.
+1. **Documenter les expressions complexes** avec des commentaires : `-- Ceci est un commentaire`.
+2. **Réutiliser les variables de projet** plutôt que les valeurs en dur pour faciliter la maintenance.
+3. **Combiner les expressions** pour créer des règles robustes : une expression peut appeler d'autres expressions ou des sous-requêtes.
 
----
 
-## Exercice proposé avec le projet Biodiversité
-
-1. **Créer une symbologie conditionnelle** : colorer les observations selon le statut UICN.
-2. **Ajouter un filtre de formulaire** : afficher/masquer les champs selon le groupe d'espèce.
-3. **Créer une contrainte** : vérifier que date_obs <= aujourd'hui.
-4. **Calculer un champ** : ajouter `jours_depuis_obs` à la couche observations.
-5. **Créer une étiquette dynamique** : afficher le nom de l'espèce et le nombre d'individus.
-6. **Ajouter une valeur par défaut** : mettre date_obs = today().
-7. **Filtrer la couche** : afficher uniquement les observations d'espèces menacées.
-8. **Sélectionner par expression** : extraire toutes les observations du mois dernier.
 
 

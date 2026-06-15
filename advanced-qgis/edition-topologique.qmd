@@ -20,21 +20,29 @@ La topologie peut:
 * vérifiée en cours de digitalisation par le SIG
 * vérifiée a posteriori via des outils de contrôle dans QGIS (ex: "Vérifier la validité", "Corriger les géométries") et de l'édition manuelle ou automatique pour éliminer les erreurs de numérisation comme les "slivers" (micro-polygones) ou les nœuds non connectés.
 
-### Paramètres de topologie à activer (20 min)
+### Fonctionnalités de topologie QGIS
+
+#### Barre d'outils d'accrochage
+Si nécessaire, activer la barre d'outils d'accrochage : Vue > Barre d'outils > Accrochage.
 
 Dans les paramètres de numérisation QGIS :
 
 - **Accrochage** : tolérance, mode sommet/segment, couches de référence.
-- **Édition topologique** : déplacement partagé des frontières.
+- **Édition topologique** : déplacement simultanédes frontières partagées.
 - **Éviter les chevauchements** : empêcher les recouvrements sur les couches surfaciques.
+
+#### Plugin de contrôle de topologie
 
 Installer le plugin de contrôle de topologie:
 [Plugin Topology Checker](https://docs.qgis.org/latest/fr/docs/user_manual/plugins/core_plugins/plugins_topology_checker.html) 
 
+### Mise en pratique sur le projet Biodiv
 
-#### Vérificateur de topologie
+* Télécharger le GPKG d'exercice : [biodiversite_data.gpkg](../ressources/fichiers/base-de-donnees/biodiversite_data.gpkg){download="biodiversite_data.gpkg"}
 
-Règles à configurer et exécuter sur le projet Biodiv :
+* Ajouter les couches `sites` et `observations` au projet QGIS.
+
+#### Règles de topologie à respecter
 
 - Polygones `sites` :
 	- ne doivent pas se chevaucher,
@@ -43,38 +51,29 @@ Règles à configurer et exécuter sur le projet Biodiv :
 - Points `observations` :
 	- doivent être couverts par `sites`.
 
-#### Outils de validation/correction
+#### Edition topologique
+* Configurer les règles d'accrochage pour éviter les chevauchements et les trous lors de la numérisation.
+* Activer l'édition topologique pour que les modifications sur une frontière partagée soient répercutées sur les entités adjacentes.
+* Numériser des polygones `sites` en respectant les règles de topologie
+* Numériser des points `observations` en respectant les règles de topologie (doivent être à l’intérieur des polygones `sites`).
 
-- **Vérifier la validité** des géométries.
-- **Corriger les géométries** pour les cas réparables automatiquement.
-- Recontrôler avec le Vérificateur de topologie jusqu’à obtenir un résultat propre.
 
-### Mise en pratique
+#### Vérificateur de topologie
 
-#### Digitaliser des sites et des observations avec des erreurs topologiques
+* Configurer le vérificateur de topologie pour détecter les chevauchements, les trous et les points hors polygone.
+* Cliquer sur "Tout valider"
+* Désactiver les fonctions d'accrochage et ajouter des erreurs topologiques (chevauchements, trous, points hors polygone) pour tester le vérificateur.
+* Cliquer sur "Tout valider" pour identifier les erreurs.
 
-* Télécharger le biodiv.gpkg
-* Ajouter les couches au projet QGIS
-* Digitaliser des polygones avec des chevauchements, des trous, des géométries invalides
-* Digitaliser des points d’observation hors des polygones
 
-#### Exercice A — Nettoyage des polygones `sites`
+### Outils de corction
 
-1. Lancer le vérificateur.
-2. Identifier au moins 3 erreurs (chevauchement, trou, géométrie invalide).
-3. Corriger les erreurs.
-4. Repasser la vérification et documenter le résultat.
+#### Manuels
+- **Barre d'outils d'accrocchage** : corriger les chevauchements et les trous en déplaçant les sommets.
 
-#### Exercice B — Cohérence `observations` / `sites`
-
-1. Contrôler la règle “les observations doivent être dans un site”.
-2. Corriger les observations hors polygone.
-3. Vérifier qu’il ne reste aucune erreur de couverture.
-
-### Critères de validation
-
-- 0 recouvrement non autorisé dans `sites`.
-- 0 observation hors `sites`.
-- 100 % de géométries valides sur les couches éditées.
-- Rapport de contrôle archivé (capture ou tableau récapitulatif).
+#### Automatiques
+- Vecteur > Outils de géométrie > Vérifier la validité : détecte les erreurs de géométrieet propose des corrections.
+- Boite à outils de géotraitement > Géométrie vectorielle > Accrocher les géométries à la couche
+- Boite à outils de géotraitement > Géométrie vectorielle > Dissoudre les géométries pour éliminer les "slivers" (micro-polygones) indésirables.
+- Boite à outils de géotraitement > Géométrie vectorielle > Supprimer les sommets en double pour nettoyer les géométries.
 

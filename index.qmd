@@ -38,9 +38,12 @@ title: "Formation QGIS"
 - [Numérisation avancée](advanced-qgis/numerisation-avancee.qmd)
 - [Édition topologique](advanced-qgis/edition-topologique.qmd)
 
-#### Géotraitement
+#### Expressions QGIS
 
 - [Expressions QGIS](advanced-qgis/expressions-qgis.qmd)
+
+#### Géotraitement
+
 - [Boîte à outils de géotraitement](advanced-qgis/boite-outils-geotraitement.qmd)
 - [Automatisation de flux de géotraitement](advanced-qgis/automatisation-flux-geotraitement.qmd)
 - [Modéleur graphique : flux KDE](advanced-qgis/modeleur-flux-kde.qmd)
