@@ -53,7 +53,7 @@ Interlis ne remplace pas PostGIS ou GPKG : il les complète en définissant une 
 ---
 ### Schéma d'architecture
 
-```{mermaid}
+```mermaid
 flowchart LR
   A[Modèle Interlis .ili\n(Canton / Confédération)] --> B[Création de la base\nGPKG ou PostGIS\nselon le modèle]
   B --> C[Ajout / édition des données\ndans la base]
