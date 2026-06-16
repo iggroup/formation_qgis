@@ -70,7 +70,7 @@ Les schémas ci-dessous sont volontairement simplifiés pour la formation. Ils m
 
 ### Projet local autonome
 
-```mermaid
+```{mermaid}
 flowchart LR
 	QGIS[QGIS bureau] -->|copie du projet| MOBILE[QField sur mobile]
 	MOBILE -->|saisie terrain| MOBILE
@@ -79,7 +79,7 @@ flowchart LR
 
 ### QFieldSync + synchronisation manuelle
 
-```mermaid
+```{mermaid}
 flowchart LR
 	QGIS[QGIS + QFieldSync] -->|package QField| PACKAGE[Paquet projet + données]
 	PACKAGE -->|copie USB / dossier| MOBILE[QField mobile]
@@ -90,7 +90,7 @@ flowchart LR
 
 ### 3. Dossier partagé ou cloud de fichiers
 
-```mermaid
+```{mermaid}
 flowchart LR
 	QGIS[QGIS bureau] --> SHARE[Google Drive / Nextcloud / WebDAV / Syncthing]
 	SHARE --> MOBILE[QField mobile]
@@ -100,7 +100,7 @@ flowchart LR
 
 ### 4. QFieldCloud hébergé
 
-```mermaid
+```{mermaid}
 flowchart LR
 	QGIS[QGIS + QFieldSync] --> CLOUD[QFieldCloud]
 	MOBILE[QField mobile] <--> CLOUD
@@ -109,7 +109,7 @@ flowchart LR
 
 ### 5. QFieldCloud auto-hébergé
 
-```mermaid
+```{mermaid}
 flowchart LR
 	QGIS[QGIS + QFieldSync] --> SELF[Instance QFieldCloud interne]
 	MOBILE[QField mobile] <--> SELF
@@ -120,7 +120,7 @@ flowchart LR
 
 ### 6. Accès direct à des services en ligne
 
-```mermaid
+```{mermaid}
 flowchart LR
 	QGIS[QGIS] --> SERVER[(PostGIS / WMS / WFS)]
 	MOBILE[QField] --> SERVER

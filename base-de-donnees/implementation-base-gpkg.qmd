@@ -96,6 +96,8 @@ Vous avez deux options principales :
 
 Il est recommandé de créer d'abord les couches spatiales via QGIS (comme vu en partie pratique) pour garantir la bonne initialisation des métadonnées GeoPackage (`gpkg_contents`, `gpkg_geometry_columns`, etc.).
 
+> **Note :**  Dans une base de données GPKG, les fonctions spatiales ne sont pas stockées dans le fichier lui-même mais sont gérées par le client (QGIS). Par conséquent, on ne peut pas créer les tables spatiales directement dans DB Browser for SQLite sans passer par QGIS /(ou sans une configuration de DB Browser [configuration avancée](https://github-wiki-see.page/m/sqlitebrowser/sqlitebrowser/wiki/SpatiaLite-on-Windows)).
+
 Ensuite, on complète la structure en SQL : attributs, index, relations logiques et contraintes.
 
 Principe :

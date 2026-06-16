@@ -17,15 +17,12 @@ Ce tutoriel est pensé comme un **exercice complet** : il s'appuie sur un projet
 
 ## Ressources fournies
 
-Le dossier ressource dédié se trouve ici :
+Télécharger le projet préconfiguré et les données associées depuis la section [Téléchargements](../ressources/fichiers/base-de-donnees/):
 
-* [ressources/fichiers/qfield/qfieldsync-biodiv](../ressources/fichiers/qfield/qfieldsync-biodiv)
 
-Il contient :
+* `biodiversite_data.gpkg` : la base de données GeoPackage du cas Biodiv ;
+* `biodiversite.qgs` : le projet QGIS préconfiguré ;
 
-* `biodiv.gpkg` : la base de données GeoPackage du cas Biodiv ;
-* `biodiv_qfieldsync.qgs` : le projet QGIS préconfiguré ;
-* `README.md` : le rappel des objectifs et du contenu.
 
 > **Conseil :** ouvrez d'abord le projet fourni, puis enregistrez une copie de travail dans un autre dossier avant de commencer l'exercice.
 
@@ -35,7 +32,7 @@ Il contient :
 
 Le scénario QFieldSync repose sur un flux simple :
 
-```mermaid
+```{mermaid}
 flowchart LR
 		QGIS[QGIS + QFieldSync] --> PACKAGE[Paquet projet QField]
 		PACKAGE --> MOBILE[QField sur appareil mobile]

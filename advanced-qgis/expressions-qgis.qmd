@@ -197,21 +197,6 @@ Ou plus simplement, si on connaît l'ID :
 "id_espece" = 2
 ```
 
-### Cas d'usage 2 : Sélectionner les observations récentes et abondantes
-
-```
-"date_obs" >= now()
-AND "nb_individus" >= 5
-```
-
-### Cas d'usage 3 : Sélectionner les sites sans observations
-
-Sur la couche `sites`, sélectionner les sites qui n'ont aucune observation liée :
-
-```
- relation_aggregate( 'observatio_id_site__2352b27c__id_site', 'count', "id_observation")<1
-```
-
 ---
 
 ## Calcul de champs (Field Calculator)
@@ -226,34 +211,6 @@ Ajouter un champ `jours_depuis_obs` qui calcule le nombre de jours entre la date
 ```
 
 day(age(now(),"date_obs")) 
-```
-
-
-
-### Cas d'usage 2 : Créer un identifiant composite
-
-Créer un champ `identifiant_unique` basé sur le site et l'espèce :
-
-```
-"id_site" || '_' || "id_espece" || '_' || date_format("date_obs", 'yyyyMMdd')
-```
-
-Résultat : `1_2_20240615`
-
-### Cas d'usage 3 : Classement automatique
-
-Ajouter un champ `classe_conservation` qui classe les espèces selon leur statut :
-
-```
-CASE
-    WHEN "statut_uicn" = 'EX' THEN 'Éteint'
-    WHEN "statut_uicn" = 'EW' THEN 'Éteint à l''état sauvage'
-    WHEN "statut_uicn" IN ('CR', 'EN') THEN 'Critique/En danger'
-    WHEN "statut_uicn" = 'VU' THEN 'Vulnérable'
-    WHEN "statut_uicn" = 'NT' THEN 'Quasi menacé'
-    WHEN "statut_uicn" = 'LC' THEN 'Préoccupation mineure'
-    ELSE 'Non évalué'
-END
 ```
 
 ### Procédure dans QGIS
@@ -427,6 +384,84 @@ Seules les observations de cette année s'afficheront.
 
 > **Note :** A ne pas confondre avec le filtre de la couche (clic droit sur la couche > Filtrer) qui filtre à la source en utilisant le moteur de la base de données (SQL) et qui est plus performant pour les grandes couches. 
 
+---
+
+## Exercice
+
+Réalisez les exercices ci-dessous dans QGIS. Essayez d'abord sans regarder la correction.
+
+### Exercice 1 — Sélection d'observations récentes et abondantes
+
+Sur la couche `observations`, écrire une expression pour sélectionner :
+
+* les observations dont la date est postérieure à maintenant ;
+* et avec au moins 5 individus.
+
+<details>
+<summary><strong>Voir la solution</strong></summary>
+
+```qgis
+"date_obs" >= now()
+AND "nb_individus" >= 5
+```
+
+</details>
+
+### Exercice 2 — Identifier les sites sans observations
+
+Sur la couche `sites`, écrire une expression qui retourne uniquement les sites sans observation liée.
+
+<details>
+<summary><strong>Voir la solution</strong></summary>
+
+```qgis
+relation_aggregate('observatio_id_site__2352b27c__id_site', 'count', "id_observation") < 1
+```
+
+</details>
+
+### Exercice 3 — Créer un identifiant composite
+
+Dans le calculateur de champs (couche `observations`), créer un champ `identifiant_unique` basé sur le site, l'espèce et la date.
+
+Exemple attendu : `1_2_20240615`
+
+<details>
+<summary><strong>Voir la solution</strong></summary>
+
+```qgis
+"id_site" || '_' || "id_espece" || '_' || date_format("date_obs", 'yyyyMMdd')
+```
+
+</details>
+
+### Exercice 4 — Classer le statut de conservation
+
+Dans la table `especes`, créer un champ `classe_conservation` qui traduit `statut_uicn` en libellé lisible.
+
+* 'EX' > 'Éteint'
+* 'EW' > 'Éteint à l''état sauvage'
+* 'CR', 'EN' > 'Critique/En danger'
+* 'VU' > 'Vulnérable'
+* 'NT' > 'Quasi menacé'
+* 'LC' > 'Préoccupation mineure'
+
+<details>
+<summary><strong>Voir la solution</strong></summary>
+
+```qgis
+CASE
+    WHEN "statut_uicn" = 'EX' THEN 'Éteint'
+    WHEN "statut_uicn" = 'EW' THEN 'Éteint à l''état sauvage'
+    WHEN "statut_uicn" IN ('CR', 'EN') THEN 'Critique/En danger'
+    WHEN "statut_uicn" = 'VU' THEN 'Vulnérable'
+    WHEN "statut_uicn" = 'NT' THEN 'Quasi menacé'
+    WHEN "statut_uicn" = 'LC' THEN 'Préoccupation mineure'
+    ELSE 'Non évalué'
+END
+```
+
+</details>
 
 ---
 
