@@ -51,6 +51,19 @@ Interlis ne remplace pas PostGIS ou GPKG : il les complète en définissant une 
 * **Validation** : contrôle de conformité des données par rapport au modèle et ses contraintes.
 
 ---
+### Schéma d'architecture
+
+```{mermaid}
+flowchart LR
+  A[Modèle Interlis .ili\n(Canton / Confédération)] --> B[Création de la base\nGPKG ou PostGIS\nselon le modèle]
+  B --> C[Ajout / édition des données\ndans la base]
+  C --> D[Export Interlis .xtf\ndepuis la base]
+  A --> E[Validation avec ilivalidator]
+  D --> E
+  E --> F[Livraison du XTF validé\n(Canton / Confédération)]
+```
+
+---
 
 ## Analyse d'un modèle
 

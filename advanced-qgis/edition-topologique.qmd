@@ -16,6 +16,7 @@ Cette section se concentre sur la **qualité topologique** et le **contrôle de 
 La topologie est l'ensemble des règles géométriques qui définissent et maintiennent les relations spatiales explicites entre les entités (points, lignes, polygones). Contrairement au simple stockage de coordonnées ("spaghetti data"), la topologie assure la cohérence logique du territoire : elle garantit que les polygones adjacents partagent exactement la même frontière (pas de doublons ni de vides), que les lignes d'un réseau hydrographique sont correctement connectées aux nœuds (pas de ruptures invisibles) et que les éléments ne se chevauchent pas indûment. Dans un contexte de base de données (GPKG ou PostGIS), la topologie est cruciale pour la qualité des données et l'analyse de réseau (ex: calcul d'itinéraire, flux) ; 
 
 La topologie peut:
+
 * être gérée nativement par le moteur de la base de donnée (comme avec l'extension [PostGIS Topology](https://postgis.net/workshops/postgis-intro/topology.html))
 * vérifiée en cours de digitalisation par le SIG
 * vérifiée a posteriori via des outils de contrôle dans QGIS (ex: "Vérifier la validité", "Corriger les géométries") et de l'édition manuelle ou automatique pour éliminer les erreurs de numérisation comme les "slivers" (micro-polygones) ou les nœuds non connectés.
@@ -66,7 +67,7 @@ Installer le plugin de contrôle de topologie:
 * Cliquer sur "Tout valider" pour identifier les erreurs.
 
 
-### Outils de corction
+### Outils de correction
 
 #### Manuels
 - **Barre d'outils d'accrocchage** : corriger les chevauchements et les trous en déplaçant les sommets.

@@ -169,12 +169,16 @@ Ne lister que les sites qui contiennent l'observation en cours de saisie.
 
 ### Procédure dans QGIS
 
+Prérequis: Dans le formulaire d'observation, le champs `id_site` est configuré comme une valeur relationnelle sur la couche `sites`.
 1. Propriétés de la couche > **Formulaire d'édition**.
-2. Sélectionner la relation.
+2. Sélectionner `id_site`.
 3. Section "Filter expression" : entrer l'expression.
 
 ```
-overlay_contains('_2352b27c_4c3e_42e8_8bc6_0d72c5b366f9')
+intersects(
+$geometry, --géométrie du site (candidat)
+geometry(@current_feature) --géométrie de l'observation en cours
+)
 ```
 
 
@@ -348,9 +352,9 @@ END
 
 ---
 
-## Filtres de couche (Layer Filter Expression)
+## Filtre de table 
 
-Le filtre de couche permet d'afficher/masquer des entités selon une expression sans modifier les données.
+Le filtre de table permet d'afficher/masquer des entités selon une expression sans modifier les données. Le bouton de filtre se trouve dans la table au fond à gauche (Montrer toutes les entités > Filtrer). Il filtre dans la table d'attributs mais pas dans la carte.
 
 ### Cas d'usage 1 : Afficher uniquement les observations d'espèces menacées
 
