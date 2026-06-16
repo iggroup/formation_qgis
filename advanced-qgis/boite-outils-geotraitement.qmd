@@ -62,55 +62,35 @@ Voici quelques algorithmes souvent méconnus mais puissants pour l'analyse spati
 
 **Résultat** : ajout d'un champ de distance.
 
-### 4. Convex Hull (QGIS)
+### 4. Géométrie par expression (QGIS)
 
-**Objectif** : créer l'enveloppe convexe (polygone minimal englobant) d'un ensemble de points.
+**Accès** : Traitement → Géométrie vectorielle → Géométrie par expression
 
-**Cas d'usage Biodiv** : générer la zone minimale englobant toutes les observations d'une espèce rare.
+**Objectif** : créer ou modifier des géométries à l'aide d'une expression QGIS, sans écrire de code Python.
 
-**Entrée** : observations d'une espèce (points)
-**Résultat** : polygone unique englobant tous les points
+**Cas d'usage Biodiv** : générer un buffer variable autour des observations en fonction du nombre d'individus observés (`nb_individus`), ou projeter des points selon un azimut et une distance calculés dynamiquement.
 
-### 5. Raster Density (SAGA / QGIS)
+**Exemple** :
+- Expression : `buffer($geometry, "nb_individus" * 10)`
+- Résultat : polygone de tampon proportionnel à la taille de la population observée
 
-**Objectif** : créer une couche raster représentant la densité des points.
+**Avantage** : combine la puissance des expressions QGIS (fonctions, champs, variables) avec la flexibilité du géotraitement vectoriel.
 
-**Cas d'usage Biodiv** : créer une heatmap des observations, montrer les zones chaudes (forte densité d'observations).
+### 5. Joindre les attributs par le plus proche (QGIS)
 
-**Entrée** : observations (points)
-**Résultat** : raster avec valeurs de densité
+**Accès** : Traitement → Analyse vectorielle → Joindre les attributs par le plus proche *(Join attributes by nearest)*
 
-### 6. Kernel Density Estimation (KDE) (SAGA / QGIS)
+**Objectif** : pour chaque entité d'une couche, trouver l'entité la plus proche d'une autre couche et y joindre ses attributs.
 
-**Objectif** : créer une surface de densité lissée en utilisant un noyau gaussien. C'est un outil statistique puissant pour modéliser la distribution spatiale.
+**Cas d'usage Biodiv** : associer à chaque observation l'espèce dont le site de référence est le plus proche, ou enrichir les points d'observation avec les attributs du site naturel le plus proche.
 
-**Cas d'usage Biodiv** : estimer la zone de distribution probable d'une espèce en fonction de ses observations.
+**Paramètres clés** :
+- **Couche source** : entités à enrichir (ex: observations)
+- **Couche de jointure** : entités à rechercher (ex: sites)
+- **Nombre maximum de voisins les plus proches** : 1 par défaut
+- **Distance maximale** : optionnel, pour exclure les voisins trop éloignés
 
-**Particularité** : produit un raster continu avec gradient de densité.
-
-### 7. Extract by Attribute / Select by Attribute
-
-**Objectif** : filtrer une couche selon une condition.
-
-**Cas d'usage Biodiv** : extraire uniquement les observations d'espèces menacées (statut_uicn IN ('EN', 'VU')).
-
-### 8. Dissolve (QGIS)
-
-**Objectif** : fusionner les géométries d'une couche selon un groupement.
-
-**Cas d'usage Biodiv** : fusionner les buffers autour des observations pour créer une zone globale de protection.
-
-### 9. Contour (SAGA / GDAL)
-
-**Objectif** : générer des isolignes (contours) à partir d'un raster.
-
-**Cas d'usage Biodiv** : à partir du raster KDE, générer le polygone qui suit le contour d'une densité spécifique (ex: 90e percentile).
-
-### 10. Rasterize / Vectorize
-
-**Objectif** : convertir entre raster et vecteur.
-
-**Cas d'usage Biodiv** : convertir le raster KDE en polygone.
+**Résultat** : couche enrichie avec les attributs du voisin le plus proche et un champ `distance` indiquant la distance calculée.
 
 ---
 
@@ -127,7 +107,7 @@ Voici quelques algorithmes souvent méconnus mais puissants pour l'analyse spati
 	↓
 2. KDE : Analyser la densité des observations avec noyau gaussien
 	↓
-3. TRANSFERT : Rasteriser le KDE en grille de densité
+3. TRANSFERT : Attribuer les valeurs de densité KDE à chaque point d'observation
 	↓
 4. STATISTICS : Calculer les percentiles de densité
 	↓

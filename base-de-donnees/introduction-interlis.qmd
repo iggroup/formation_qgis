@@ -6,7 +6,8 @@ format:
     toc: true
     number-sections: true
     code-fold: true
-    mermaid: true
+    mermaid:
+      theme: neutral
 ---
 
 ## Introduction
