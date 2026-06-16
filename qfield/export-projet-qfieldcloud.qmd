@@ -9,7 +9,7 @@ format:
 
 ## Objectif
 
-Préparer un projet **Biodiv** pour le travail de terrain avec **QFieldSync**, puis exporter, transférer, utiliser et resynchroniser le projet sur QField.
+Préparer un projet **Biodiversite** pour le travail de terrain avec **QFieldSync**, puis exporter, transférer, utiliser et resynchroniser le projet sur QField.
 
 Ce tutoriel est pensé comme un **exercice complet** : il s'appuie sur un projet QGIS préconfiguré et un GeoPackage déjà prêt à l'emploi.
 
@@ -84,16 +84,20 @@ Ce projet est intéressant pour QField car il permet de montrer :
 ## Étape 1 : ouvrir le projet préconfiguré
 
 1. Ouvrir QGIS.
-2. Charger le fichier [biodiv_qfieldsync.qgs](../ressources/fichiers/qfield/qfieldsync-biodiv/biodiv_qfieldsync.qgs).
+2. Charger le fichier [biodiversite.qgs](../ressources/fichiers/base-de-donnees/biodiversite.qgs).
 3. Vérifier que les couches `sites`, `observations`, `especes` et `photos` sont bien présentes.
 4. Ouvrir la table attributaire de chaque couche pour vérifier les champs.
 
 ### Vérifications utiles
 
 * le SCR doit être en **EPSG:2056** ;
-* les données doivent pointer vers le GeoPackage local `biodiv.gpkg` ;
+* les données doivent pointer vers le GeoPackage local `biodiversite_data.gpkg` ;
 * la couche `observations` doit être celle qui sera principalement modifiée sur le terrain ;
 * la table `photos` doit être liée à `observations` par la relation `observation_photos`.
+* Vérifier que les formulaires de saisie sont configurés pour les champs utiles.
+* Ouvrir le projet dans QField pour windows et vérifier que les formulaires s'affichent correctement.
+
+> **Note :** À ce stade, on a déjà un projet QGIS prêt à être utilisé dans QField, mais il n'est pas encore optimisé pour le terrain. L'étape suivante consiste à configurer les actions de synchronisation avec QFieldSync.
 
 ---
 
@@ -101,7 +105,7 @@ Ce projet est intéressant pour QField car il permet de montrer :
 
 Dans QGIS, ouvrir les propriétés du projet ou utiliser la barre d'outils QFieldSync.
 
-### Recommandation pour le cas Biodiv
+### Recommandation pour le cas Biodiversité
 
 | Couche | Action QFieldSync recommandée | Rôle sur le terrain |
 |---|---|---|
@@ -109,17 +113,25 @@ Dans QGIS, ouvrir les propriétés du projet ou utiliser la barre d'outils QFiel
 | `sites` | **Keep existing (copy if missing)** ou **Offline editing** selon le scénario | couche de contexte ou couche à corriger |
 | `especes` | **Copy** ou **Keep existing** | table de référence pour les formulaires |
 | `photos` | **Offline editing** | table des images liées aux observations |
+| `swissimage` (service **WMS**) | **Keep existing** (en ligne) ou **Basemap hors ligne générée** via QFieldSync | fond de plan visuel pour le repérage terrain |
 
-### Interprétation pédagogique
 
 * **Offline editing** : utile pour les couches que l’on veut modifier sur le terrain.
-* **Copy** : utile pour les couches de référence à embarquer.
+* **Copy** : utile pour les couches de référence à embarquer qui ne seront pas modifiées sur le terrain.
 * **Keep existing** : utile si la couche ne change pas souvent et doit être recopiée seulement si nécessaire.
+* **Basemap WMS (swissimage)** : un service WMS ne s'édite pas ; il est soit consommé en ligne, soit converti/embarquée en fond hors ligne pour le terrain.
+
+Configuration recommandée pour `swissimage` :
+
+1. si connexion disponible sur le terrain : garder le WMS en **Keep existing** ;
+2. si travail hors ligne : générer un fond de plan offline depuis QFieldSync (emprise + niveaux de zoom) ;
+3. limiter les niveaux de zoom utiles pour contenir la taille du paquet ;
+4. vérifier l'affichage du fond en mode avion avant départ terrain.
 
 > **Point d'attention :** éviter d'utiliser inutilement plusieurs couches dans un même GeoPackage si cela complique la synchronisation. Pour la formation, garder une structure simple et lisible.
-6. vérifier la relation entre `observations` et `photos` ;
+1. vérifier la relation entre `observations` et `photos` ;
 
----
+> **Point d'attention :** L'affichage swissimage peut être lent et consommer beaucoup de données. Il est souvent préférable de générer un fond hors ligne pour le terrain.
 
 ## Étape 3 : préparer le projet pour le mobile
 
@@ -265,7 +277,7 @@ Après le terrain, revenir sur le poste bureau et :
 
 ---
 
-## Ce que l'apprenant doit retenir
+## Points clés
 
 * QFieldSync sert à **préparer** un projet QGIS pour QField.
 * Le flux est basé sur un **paquet de travail** à transférer sur le terrain.

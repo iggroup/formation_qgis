@@ -82,43 +82,32 @@ flowchart LR
 ```{mermaid}
 flowchart LR
 	QGIS[QGIS + QFieldSync] -->|package QField| PACKAGE[Paquet projet + données]
-	PACKAGE -->|copie USB / dossier| MOBILE[QField mobile]
-	MOBILE -->|édition terrain| MOBILE
-	MOBILE -->|copie retour| QGIS
+	PACKAGE -->|copie USB / dossier| MOBILE1[QField mobile - Client 1]
+	PACKAGE -->|copie USB / dossier| MOBILE2[QField mobile - Client 2]
+	PACKAGE -->|copie USB / dossier| MOBILE3[QField mobile - Client 3]
+	MOBILE1 -->|édition terrain| MOBILE1
+	MOBILE2 -->|édition terrain| MOBILE2
+	MOBILE3 -->|édition terrain| MOBILE3
+	MOBILE1 -->|copie retour| QGIS
+	MOBILE2 -->|copie retour| QGIS
+	MOBILE3 -->|copie retour| QGIS
 	QGIS -->|Synchronize from QField| QGIS
 ```
 
-### 3. Dossier partagé ou cloud de fichiers
 
-```{mermaid}
-flowchart LR
-	QGIS[QGIS bureau] --> SHARE[Google Drive / Nextcloud / WebDAV / Syncthing]
-	SHARE --> MOBILE[QField mobile]
-	MOBILE -->|modifications| SHARE
-	SHARE --> QGIS
-```
-
-### 4. QFieldCloud hébergé
+### QFieldCloud hébergé
 
 ```{mermaid}
 flowchart LR
 	QGIS[QGIS + QFieldSync] --> CLOUD[QFieldCloud]
-	MOBILE[QField mobile] <--> CLOUD
+	MOBILE1[QField mobile - Client 1] <--> CLOUD
+	MOBILE2[QField mobile - Client 2] <--> CLOUD
+	MOBILE3[QField mobile - Client 3] <--> CLOUD
 	CLOUD <--> QGIS
 ```
 
-### 5. QFieldCloud auto-hébergé
 
-```{mermaid}
-flowchart LR
-	QGIS[QGIS + QFieldSync] --> SELF[Instance QFieldCloud interne]
-	MOBILE[QField mobile] <--> SELF
-	SELF --> PG[(PostgreSQL)]
-	SELF --> FILES[(Stockage fichiers)]
-	SELF --> PROXY[Reverse proxy / sécurité]
-```
-
-### 6. Accès direct à des services en ligne
+### Accès direct à des services en ligne
 
 ```{mermaid}
 flowchart LR
@@ -204,38 +193,6 @@ Depuis QGIS, on "packaging" le projet pour QField. On copie ensuite le paquet su
 * contextes sans connectivité fiable ;
 * organisations qui veulent garder un flux très maîtrisé.
 
-### 3. Projet local avec échange via dossier partagé ou cloud de fichiers
-
-Il s'agit d'une variante intermédiaire entre le tout-manuel et le cloud applicatif.
-
-#### Principe
-
-Le projet reste essentiellement un ensemble de fichiers, mais son transfert se fait via un service tiers de type :
-
-* Google Drive ;
-* iCloud ;
-* Nextcloud ;
-* WebDAV ;
-* Syncthing ;
-* autre espace partagé.
-
-#### Avantages
-
-* plus pratique que les échanges par câble ;
-* utile pour diffuser rapidement un projet ;
-* intéressant pour des équipes réduites.
-
-#### Limites
-
-* ce n'est pas une vraie gestion collaborative SIG ;
-* risque d'écrasement de fichiers ;
-* suivi des versions plus fragile ;
-* dépend beaucoup des habitudes de l'équipe.
-
-#### Positionnement
-
-Cette solution peut convenir pour des échanges simples, mais elle reste moins robuste qu'une infrastructure dédiée de synchronisation.
-
 ### QFieldCloud hébergé
 
 C'est l'architecture la plus moderne pour le travail collaboratif avec QField.
@@ -259,6 +216,7 @@ Le projet est publié dans **QFieldCloud**, puis téléchargé sur les appareils
 * meilleure traçabilité ;
 * diffusion plus simple aux équipes ;
 * flux bureau/terrain plus fluide.
+* **Support OpenGIS** (vous avez un support et vous financez le développement de la solution)
 
 #### Limites
 
@@ -272,40 +230,6 @@ Le projet est publié dans **QFieldCloud**, puis téléchargé sur les appareils
 * projets multi-utilisateurs ;
 * besoin de suivi centralisé ;
 * déploiement institutionnel.
-
-### QFieldCloud auto-hébergé
-
-Cette variante reprend le principe de QFieldCloud, mais l'infrastructure est hébergée par l'organisation elle-même.
-
-#### Principe
-
-L'organisation exploite sa propre instance QFieldCloud, généralement sous forme de services conteneurisés avec :
-
-* application QFieldCloud ;
-* reverse proxy ;
-* base PostgreSQL applicative ;
-* stockage de fichiers ;
-* gestion des tâches en arrière-plan ;
-* composants de sécurité et de certificats.
-
-#### Avantages
-
-* maîtrise de l'hébergement ;
-* meilleure conformité pour certains contextes sensibles ;
-* personnalisation plus large ;
-* intégration possible avec l'infrastructure SI existante.
-
-#### Limites
-
-* plus complexe à administrer ;
-* besoins DevOps / système ;
-* supervision, sauvegardes et mises à jour à assurer.
-
-#### Cas typiques
-
-* administrations ;
-* grandes entreprises ;
-* organisations avec contraintes de souveraineté des données.
 
 ---
 
@@ -330,11 +254,9 @@ Mais elle demande davantage de précautions sur :
 * la sécurité ;
 * la gestion des identifiants sur mobile.
 
-En formation de base, elle peut être présentée comme **architecture avancée**, sans en faire le scénario principal.
-
 ---
 
-## Quel scénario recommander ?
+## Résumé des architectures
 
 On peut résumer le choix ainsi :
 
@@ -358,10 +280,6 @@ QField n'est pas seulement une application mobile de consultation cartographique
 
 Autrement dit, la vraie question n'est pas seulement **"comment utiliser QField ?"**, mais aussi **"dans quelle architecture de travail terrain s'inscrit-il ?"**
 
-Dans la suite du module, on se concentrera surtout sur deux scénarios très fréquents :
-
-1. le projet embarqué et synchronisé manuellement ;
-2. le projet diffusé et synchronisé via **QFieldCloud**.
 
 ## Documentation spécifique
 
@@ -369,4 +287,3 @@ Dans la suite du module, on se concentrera surtout sur deux scénarios très fr�
 * [QFieldSync - packaging par câble](https://docs.qfield.org/fr/get-started/tutorials/get-started-qfs/)
 * [QFieldCloud - prise en main](https://docs.qfield.org/fr/get-started/tutorials/get-started-qfc/)
 * [Gestion du stockage dans QField](https://docs.qfield.org/fr/how-to/project-setup/storage/)
-* [Architecture QFieldCloud](https://docs.qfield.org/fr/reference/qfieldcloud/architecture/)

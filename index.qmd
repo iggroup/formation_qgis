@@ -28,8 +28,9 @@ title: "Formation QGIS"
 
 ### QField
 
-- [Export d’un projet QGIS pour QFieldSync](qfield/export-projet-qfieldcloud.qmd)
 - [Levé et édition QField](qfield/leve-et-edition-qfield.qmd)
+- [Export d’un projet QGIS pour QFieldSync](qfield/export-projet-qfieldcloud.qmd)
+
 
 ### QGIS Avancé
 
