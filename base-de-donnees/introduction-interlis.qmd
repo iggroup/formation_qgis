@@ -50,7 +50,6 @@ Interlis ne remplace pas PostGIS ou GPKG : il les complète en définissant une 
 * **Transfert** : import/export de données conformes au modèle via des fichiers `.xtf` (format XML).
 * **Validation** : contrôle de conformité des données par rapport au modèle et ses contraintes.
 
----
 ### Schéma d'architecture
 
 ```text
