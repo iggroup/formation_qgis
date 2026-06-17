@@ -1,0 +1,125 @@
+---
+title: "Actions QGIS"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
+---
+
+## Objectif
+
+Comprendre les **actions QGIS** (boutons déclencheurs) sans développer de plugin.
+
+---
+
+## Pourquoi utiliser des actions de formulaire ?
+
+Les actions permettent d'ajouter des boutons contextuels directement dans la saisie attributaire.
+
+Cas d'usage fréquents :
+
+* ouvrir une URL métier liée à l'entité,
+* ouvrir un fichier local (photo, PDF),
+* lancer un script Python court,
+* déclencher une commande externe.
+
+Elles sont rapides à mettre en place et très utiles pour améliorer l'ergonomie de terrain.
+
+---
+
+## Types d'actions dans QGIS
+
+QGIS distingue notamment :
+
+* **Action de couche/entité** : configurée dans les propriétés de couche, exécutable depuis la table, l'identification et le formulaire.
+
+
+Dans ce chapitre, on se concentre sur les **actions de couche**.
+
+---
+
+## Mise en place pas à pas
+
+1. Ouvrir la console Python pour afficher les messages d'erreur éventuels.
+2. Ouvrir **Propriétés de la couche > Actions**.
+3. Cliquer sur **Ajouter une action**.
+4. Choisir le type (ex: **Ouvrir URL**).
+5. Définir les **champs d'application** (où l'action sera disponible).
+6. Saisir la commande/expression.
+7. Enregistrer.
+8. Dans **Formulaire d'attributs**, ajouter un widget **Action** pour afficher un bouton dédié.
+
+### Champs d'application de l'action
+
+Dans QGIS, une action peut être activée dans plusieurs contextes. Les plus utiles sont :
+
+* **Entité** : action exécutée pour l'entité courante (cas standard).
+* **Formulaire** : action visible directement dans le formulaire d'attributs.
+* **Canevas** : action disponible depuis l'interface cartographique / identification.
+* **Champ** : action liée à une valeur de champ spécifique (utile pour URL, email, téléphone).
+* **Couche** : action appliquée à l'échelle de la couche (sans dépendre d'un champ unique).
+
+Recommandation : pour un bouton dans le formulaire, cocher au minimum **Entité** + **Formulaire**.
+
+---
+
+## Exemple concret : bouton "Décaler la géométrie de 100 m"
+
+### Contexte
+
+Couche vectorielle éditable (ex: `observations`) dans un SCR projeté en mètres (ex: EPSG:2056).
+
+Objectif : ajouter un bouton dans le formulaire qui décale la géométrie de l'entité courante de **100 m vers l'Est**.
+
+### Configuration
+
+Créer une action de type **Python** avec le script :
+
+```python
+from qgis.core import QgsFeatureRequest, QgsGeometry, QgsProject
+
+layer = QgsProject.instance().mapLayer('[% @layer_id %]')
+fid = int('[% $id %]')
+print (f"Action déclenchée pour l'entité ID={fid} de la couche {layer.name()}")
+if layer:
+  if not layer.isEditable():
+    layer.startEditing()
+
+  feat = next(layer.getFeatures(QgsFeatureRequest().setFilterFid(fid)), None)
+  if feat is not None:
+    geom = QgsGeometry(feat.geometry())
+    geom.translate(100, 0)  # +100 m en X (Est), 0 m en Y
+    ok = layer.changeGeometry(fid, geom)
+    if ok:
+      layer.triggerRepaint()
+```
+
+Libellé du bouton : **Décaler +100 m**.
+
+Champs d'application recommandés : **Entité** + **Formulaire**.
+
+### Résultat attendu
+
+Depuis le formulaire d'entité, un clic sur le bouton décale la géométrie de l'entité de 100 m vers l'Est.
+
+---
+
+## Bonnes pratiques
+
+* Cocher les champs d'application **Entité** + **Formulaire**.
+* Si l'entité n'est pas encore enregistrée (pas d'ID), enregistrer d'abord puis relancer l'action.
+* Vérifier que le SCR de la couche est bien en unités métriques.
+* Adapter les valeurs de translation (`translate(dx, dy)`) selon le besoin (ex: Nord = `translate(0, 100)`).
+* Donner des libellés d'actions explicites pour l'utilisateur.
+* Tester les actions sur plusieurs postes (Windows/macOS/Linux) si le projet est partagé.
+
+---
+
+## Limites et articulation avec les plugins
+
+Les actions de couche sont parfaites pour des besoins simples et rapides.
+
+Quand la logique devient complexe (validation métier, multi-étapes, interface riche), passer à un **plugin Python** est préférable.
+
+Voir ensuite : [Introduction au développement et plugins](introduction-developpement.qmd).

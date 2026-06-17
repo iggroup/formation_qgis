@@ -323,13 +323,36 @@ class KDEDistributionAlgorithm(QgsProcessingAlgorithm):
 
 ## Enregistrer le traitement
 
-### Option 1 : Placer le script dans le dossier Processing
+### Étape 1 : Créer le fichier script
 
-1. Créer un fichier `kde_distribution.py`
-2. Le placer dans `processing/scripts/` du profil QGIS
-3. Redémarrer QGIS
+Créer un fichier **`kde_distribution_species.py`**.
 
-Le traitement apparaît automatiquement.
+### Étape 2 : Placer le fichier au bon endroit
+
+Copier ce fichier dans le dossier des scripts Processing du profil QGIS :
+
+* Linux/Mac : `~/.local/share/QGIS/QGIS3/profiles/default/processing/scripts/`
+* Windows : `%APPDATA%\QGIS\QGIS3\profiles\default\processing\scripts\`
+
+Astuce : ouvrir ce dossier via **Préférences > Profils utilisateur > Ouvrir le dossier du profil** puis `processing/scripts`.
+
+### Étape 3 : Coller le code
+
+Dans `kde_distribution_species.py`, coller la classe `KDEDistributionAlgorithm` présentée dans ce chapitre.
+
+### Étape 4 : Recharger les scripts
+
+Deux options :
+
+1. Redémarrer QGIS
+2. ou utiliser **Traitement > Boîte à outils > Scripts > Recharger les scripts**
+
+### Étape 5 : Vérifier la présence
+
+Dans la boîte à outils Processing, rechercher :
+
+* `kde_distribution_species` (id de l'algorithme),
+* ou **Zone de distribution KDE (Biodiversité)** (nom affiché).
 
 ### Option 2 : Créer un Provider (pour un plugin)
 
@@ -364,15 +387,16 @@ QgsApplication.processingRegistry().addProvider(KDEProvider())
 
 ## Tester le traitement
 
-1. Ouvrir la **Boîte à outils de géotraitement**
-2. Chercher "kde" dans le champ de recherche
-3. Double-cliquer sur "Zone de distribution KDE"
+1. Ouvrir la **Boîte à outils de géotraitement**.
+2. Chercher `kde_distribution_species`.
+3. Double-cliquer sur **Zone de distribution KDE (Biodiversité)**.
 4. Remplir les paramètres :
    - Couche : `observations`
    - Espèce : `2` (Lynx)
    - Rayon KDE : `1000`
    - Pixel size : `100`
-5. Cliquer **Exécuter**
+5. Cliquer **Exécuter**.
+6. Vérifier les messages dans le panneau de logs Processing.
 
 ### Résultat attendu
 

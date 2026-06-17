@@ -8,9 +8,11 @@ format:
 
 ## Objectif
 
-Convertir et packager des scripts Python en traitements QGIS personnalisés et en plugins.
+Comprendre la logique globale du développement avancé dans QGIS :
 
-Cette section couvre la transition de **scripts d'automatisation** vers des **composants réutilisables et distribuables**.
+* passer d'un flux manuel à un script,
+* transformer ce script en traitement réutilisable,
+* intégrer ce traitement dans un plugin distribuable.
 
 ## Contexte
 
@@ -23,7 +25,7 @@ Cette section couvre la transition de **scripts d'automatisation** vers des **co
 ### Progression
 
 ```
-Script Python (generé par modéleur)
+Script Python (généré par modéleur)
         ↓
 Traitement personnalisé (provider QGIS)
         ↓
@@ -37,389 +39,89 @@ Plugin QGIS (UI complète, distribution)
 
 ---
 
-## 1. Convertir un script Python en traitement personnalisé
+## Concepts clés
 
-### 1.1 Structure minimale d'un traitement
+### Script issu du modéleur
 
-Un traitement QGIS est une classe Python héritant de `QgsProcessingAlgorithm` :
+Le script exporté par le modéleur est utile pour démarrer vite, mais reste souvent lié à un cas d'usage ponctuel.
 
-```python
-from qgis.core import (
-    QgsProcessing,
-    QgsProcessingAlgorithm,
-    QgsProcessingParameterFeatureSource,
-    QgsProcessingParameterNumber,
-    QgsProcessingParameterFeatureSink,
-    QgsProcessingUtils
-)
-import processing
+### Traitement personnalisé (`QgsProcessingAlgorithm`)
 
+Le traitement personnalisé apporte :
 
-class KDEDistributionAlgorithm(QgsProcessingAlgorithm):
-    """
-    Algorithme personnalisé : KDE Distribution d'Espèce
-    """
-    
-    # Identifiants des paramètres
-    INPUT_POINTS = 'INPUT_POINTS'
-    INPUT_SPECIES_ID = 'INPUT_SPECIES_ID'
-    INPUT_KDE_RADIUS = 'INPUT_KDE_RADIUS'
-    INPUT_PIXEL_SIZE = 'INPUT_PIXEL_SIZE'
-    OUTPUT_ZONE = 'OUTPUT_ZONE'
-    
-    def tr(self, string):
-        """
-        Traduire les textes (pour les localiser en plusieurs langues)
-        """
-        return QCoreApplication.translate('Processing', string)
-    
-    def createInstance(self):
-        """
-        Créer une nouvelle instance de l'algorithme
-        """
-        return KDEDistributionAlgorithm()
-    
-    def name(self):
-        """Identifiant unique (pas d'espaces)"""
-        return 'kde_distribution'
-    
-    def displayName(self):
-        """Nom affiché dans l'interface"""
-        return self.tr('Analyse KDE - Zone de distribution')
-    
-    def group(self):
-        """Groupe dans la boîte à outils"""
-        return self.tr('Biodiversité')
-    
-    def groupId(self):
-        """ID unique du groupe"""
-        return 'biodiversity'
-    
-    def shortHelpString(self):
-        """Description courte"""
-        return self.tr(
-            'Calcule la zone de distribution probable d\'une espèce '
-            'basée sur la densité des observations (KDE).'
-        )
-    
-    def initAlgorithm(self, config=None):
-        """
-        Définir les paramètres d'entrée et de sortie
-        """
-        
-        # Paramètres d'entrée
-        self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT_POINTS,
-                self.tr('Couche de points d\'observations'),
-                [QgsProcessing.TypeVectorPoint]
-            )
-        )
-        
-        self.addParameter(
-            QgsProcessingParameterNumber(
-                self.INPUT_SPECIES_ID,
-                self.tr('ID de l\'espèce'),
-                type=QgsProcessingParameterNumber.Integer,
-                defaultValue=1
-            )
-        )
-        
-        self.addParameter(
-            QgsProcessingParameterNumber(
-                self.INPUT_KDE_RADIUS,
-                self.tr('Rayon KDE (mètres)'),
-                type=QgsProcessingParameterNumber.Double,
-                defaultValue=1000
-            )
-        )
-        
-        self.addParameter(
-            QgsProcessingParameterNumber(
-                self.INPUT_PIXEL_SIZE,
-                self.tr('Résolution pixel (mètres)'),
-                type=QgsProcessingParameterNumber.Double,
-                defaultValue=100
-            )
-        )
-        
-        # Paramètre de sortie
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT_ZONE,
-                self.tr('Zone de présence probable'),
-                QgsProcessing.TypeVectorPolygon
-            )
-        )
-    
-    def processAlgorithm(self, parameters, context, feedback):
-        """
-        Exécuter l'algorithme
-        """
-        
-        # Récupérer les paramètres
-        points_source = self.parameterAsSource(
-            parameters, self.INPUT_POINTS, context
-        )
-        species_id = self.parameterAsInt(
-            parameters, self.INPUT_SPECIES_ID, context
-        )
-        kde_radius = self.parameterAsDouble(
-            parameters, self.INPUT_KDE_RADIUS, context
-        )
-        pixel_size = self.parameterAsDouble(
-            parameters, self.INPUT_PIXEL_SIZE, context
-        )
-        
-        # Étape 1 : Sélectionner par espèce
-        feedback.pushInfo(f'Sélection de l\'espèce {species_id}...')
-        
-        alg_select = processing.run(
-            "native:selectbyexpression",
-            {
-                'INPUT': points_source,
-                'EXPRESSION': f'"id_espece" = {species_id}',
-                'OUTPUT': 'memory:'
-            },
-            context=context,
-            feedback=feedback
-        )
-        
-        selected = alg_select['OUTPUT']
-        
-        # Étape 2 : KDE
-        feedback.pushInfo('Calcul de la densité KDE...')
-        
-        alg_kde = processing.run(
-            "saga:kerneldensityestimation",
-            {
-                'POINTS': selected,
-                'RADIUS': kde_radius,
-                'CELL_SIZE': pixel_size,
-                'OUTPUT': 'memory:'
-            },
-            context=context,
-            feedback=feedback
-        )
-        
-        kde_raster = alg_kde['OUTPUT']
-        
-        # Étape 3 : Contours
-        feedback.pushInfo('Génération des contours...')
-        
-        alg_contour = processing.run(
-            "gdal:contour",
-            {
-                'INPUT': kde_raster,
-                'BAND': 1,
-                'OFFSET': 0,
-                'SPACING': 10,
-                'OUTPUT': 'memory:'
-            },
-            context=context,
-            feedback=feedback
-        )
-        
-        contours = alg_contour['OUTPUT']
-        
-        # Étape 4 : Dissolve pour fusionner
-        feedback.pushInfo('Fusion des polygones...')
-        
-        alg_dissolve = processing.run(
-            "native:dissolve",
-            {
-                'INPUT': contours,
-                'OUTPUT': parameters[self.OUTPUT_ZONE]
-            },
-            context=context,
-            feedback=feedback
-        )
-        
-        feedback.pushInfo('Analyse terminée.')
-        
-        return {self.OUTPUT_ZONE: alg_dissolve['OUTPUT']}
-```
+* des paramètres d'entrée/sortie explicites,
+* une exécution répétable,
+* une intégration native dans la boîte à outils et le modéleur,
+* une meilleure maintenabilité.
 
-### 1.2 Où placer le traitement ?
+### Plugin QGIS
 
-Les traitements personnalisés se rangent dans :
+Le plugin ajoute une couche produit :
 
-```
-~/.local/share/QGIS/QGIS3/profiles/default/processing/scripts/
-(Linux/Mac)
-
-%APPDATA%\QGIS\QGIS3\profiles\default\processing\scripts\
-(Windows)
-```
-
-Ou directement dans le dossier du projet QGIS.
-
-### 1.3 Charger et tester le traitement
-
-1. Placer le fichier `.py` dans le dossier `processing/scripts/`
-2. Redémarrer QGIS
-3. Le traitement apparaît dans **Traitement > Boîte à outils > Scripts > Mon traitement**
+* interface utilisateur dédiée,
+* menu/barre d'outils,
+* packaging et distribution,
+* publication possible sur le dépôt de plugins QGIS.
 
 ---
 
-## 2. Convertir en plugin QGIS
+## Introduction aux plugins Python
 
-### 2.1 Structure d'un plugin
+Avant de coder un plugin complet, il faut comprendre 2 éléments :
 
-Un plugin QGIS est plus complexe : il nécessite une structure de dossier :
+1. le rôle d'un plugin Python dans QGIS,
+2. l'architecture minimale d'un plugin généré automatiquement.
 
-```
-kde_distribution_plugin/
-    ├── __init__.py           # Point d'entrée
-    ├── metadata.txt          # Métadonnées
-    ├── resources.qrc         # Ressources (icônes, UI)
-    ├── kde_distribution.py   # Code principal
-    ├── kde_algorithm.py      # Algorithme (réutilisé du traitement)
-    ├── ui/                   # Fichiers UI (PyQt5)
-    └── i18n/                 # Traductions (optionnel)
-```
+### Pourquoi un plugin ?
 
-### 2.2 Fichier __init__.py
+Un plugin sert à intégrer une logique métier directement dans QGIS :
 
-```python
-"""
-KDE Distribution Plugin
-Plugin pour analyser la distribution d'espèces via KDE
-"""
+* automatiser des tâches répétitives,
 
-def classFactory(iface):
-    """
-    Classe factory appelée par QGIS pour charger le plugin
-    """
-    from .kde_distribution import KDEDistributionPlugin
-    return KDEDistributionPlugin(iface)
-```
+### Architecture minimale d'un plugin
 
-### 2.3 Fichier metadata.txt
+Dans un plugin généré (EasyPlugin / Plugin Builder), identifier :
 
-```
-[general]
-name=KDE Distribution Analysis
-qgisMinimumVersion=3.16
-qgisMaximumVersion=3.99
-description=Analyse de distribution d'espèces par Kernel Density Estimation
-version=1.0.0
-author=Norbert Schneider
-email=norbert@example.com
-url=https://example.com/kde-plugin
-repository=https://github.com/example/kde-plugin
-tracker=https://github.com/example/kde-plugin/issues
-category=Plugins
-
-[ui]
-icon=resources/icon.png
-
-changelog=
-    1.0.0 - Première version
-```
-
-### 2.4 Fichier kde_distribution.py (plugin principal)
-
-```python
-from qgis.PyQt.QtWidgets import QAction, QDialog, QVBoxLayout, QLabel
-from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsApplication, QgsMessageLog, Qgis
-from .kde_algorithm import KDEDistributionAlgorithm
-
-
-class KDEDistributionPlugin:
-    
-    def __init__(self, iface):
-        """Initialiser le plugin"""
-        self.iface = iface
-        self.plugin_dir = os.path.dirname(__file__)
-        self.actions = []
-        self.menu = '&KDE Distribution'
-        
-    def initGui(self):
-        """Créer les actions du plugin"""
-        
-        # Créer une action
-        icon_path = os.path.join(self.plugin_dir, 'resources', 'icon.png')
-        action = QAction(
-            QIcon(icon_path),
-            'Analyser distribution KDE',
-            self.iface.mainWindow()
-        )
-        action.triggered.connect(self.run)
-        
-        self.iface.addToolBarIcon(action)
-        self.iface.addPluginToMenu(self.menu, action)
-        self.actions.append(action)
-        
-        # Enregistrer l'algorithme
-        QgsApplication.processingRegistry().addProvider(
-            KDEDistributionProvider()
-        )
-    
-    def unload(self):
-        """Supprimer les actions lors du déchargement"""
-        for action in self.actions:
-            self.iface.removePluginMenu('&KDE Distribution', action)
-            self.iface.removeToolBarIcon(action)
-    
-    def run(self):
-        """Exécuter le plugin (afficher la fenêtre)"""
-        dialog = KDEDistributionDialog()
-        dialog.exec_()
-
-
-class KDEDistributionProvider(QgsProcessingProvider):
-    """
-    Fournisseur d'algorithmes pour le traitement
-    """
-    
-    def loadAlgorithms(self):
-        """Charger les algorithmes du plugin"""
-        self.addAlgorithm(KDEDistributionAlgorithm())
-    
-    def id(self):
-        return 'kde_distribution'
-    
-    def name(self):
-        return 'KDE Distribution'
-
-
-class KDEDistributionDialog(QDialog):
-    """
-    Interface graphique du plugin
-    """
-    
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle('KDE Distribution Analysis')
-        self.initUI()
-    
-    def initUI(self):
-        layout = QVBoxLayout()
-        layout.addWidget(QLabel('Analyse de distribution par KDE'))
-        self.setLayout(layout)
-        self.resize(400, 300)
-```
-
-### 2.5 Installer le plugin
-
-1. Placer le dossier `kde_distribution_plugin/` dans :
-   - Linux/Mac : `~/.local/share/QGIS/QGIS3/plugins/`
-   - Windows : `%APPDATA%\QGIS\QGIS3\plugins\`
-
-2. Redémarrer QGIS
-3. Aller dans **Modules > Gérer et installer les modules**
-4. Chercher "KDE Distribution" et cocher pour l'activer
+* `metadata.txt` : métadonnées et compatibilité,
+* `__init__.py` : point d'entrée (`classFactory`),
+* fichier principal du plugin : `initGui()`, `unload()`, `run()`,
+* ressources UI (`.ui`, icônes, traductions).
 
 ---
 
-## 3. Ressources et documentation
+## Où trouver la pratique détaillée
+
+### Implémenter le traitement
+
+Voir [Traitement personnalisé KDE](traitement-kde.qmd) pour :
+
+* la classe `QgsProcessingAlgorithm`,
+* le code de l'algorithme,
+* les fichiers à créer et leur emplacement,
+* les étapes de test dans QGIS.
+
+### Implémenter le plugin
+
+Voir [Plugin QGIS KDE](plugin-kde.qmd) pour :
+
+* l'architecture de dossier du plugin,
+* les fichiers `metadata.txt`, `__init__.py`, `kde_plugin.py`,
+* l'interface PyQt,
+* l'installation locale, debug et distribution.
+
+---
+
+## Ressources et documentation
 
 * [QGIS Processing Provider](https://qgis.org/api/classQgsProcessingProvider.html)
 * [QGIS Plugin Development](https://docs.qgis.org/latest/en/docs/pyqgis_developer_guide/index.html)
+* [PyQGIS Cookbook](https://docs.qgis.org/latest/en/docs/pyqgis_developer_cookbook/)
+* [EasyPlugin](https://plugins.qgis.org/plugins/easyplugin/) : Outil simple pour générer une base de plugin
+* [Plugin Builder](https://plugins.qgis.org/plugins/pluginbuilder/) : Outil complet pour scaffolder un plugin
+* [QGIS Plugin Development](https://docs.qgis.org/latest/en/docs/pyqgis_developer_guide/index.html)
 * [PyQGIS Cookbook](https://docs.qgis.org/latest/en/docs/pyqgis_developer_guide/index.html)
-* [Plugin Builder](https://plugins.qgis.org/plugins/pluginbuilder/): Outil pour scaffolder un plugin
+* [EasyPlugin](https://plugins.qgis.org/plugins/easyplugin/): Outil simple pour générer une base de plugin
+* [Plugin Builder](https://plugins.qgis.org/plugins/pluginbuilder/): Outil complet pour scaffolder un plugin
 
 ---
 

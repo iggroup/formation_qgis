@@ -34,7 +34,7 @@ Utiliser le **champ de recherche** pour trouver rapidement un algorithme par mot
 
 Voici quelques algorithmes souvent méconnus mais puissants pour l'analyse spatiale :
 
-### 1. Spatial Join (QGIS)
+### 1. Joindre les attributs par la localisation
 
 **Objectif** : attacher les attributs d'une couche à une autre selon la proximité ou la containance.
 
@@ -43,7 +43,7 @@ Voici quelques algorithmes souvent méconnus mais puissants pour l'analyse spati
 **Entrée** : observations (points), sites (polygones)
 **Résultat** : chaque observation a les attributs du site qui la contient
 
-### 2. Aggregate statistics (QGIS)
+### 2.  Joindre les attributs par la localisation (résumé)
 
 **Objectif** : résumer les données d'une couche en fonction d'un groupe ou d'une autre couche.
 
@@ -54,7 +54,7 @@ Voici quelques algorithmes souvent méconnus mais puissants pour l'analyse spati
 - Paramètres : grouper par `id_espece`, calculer SUM(nb_individus), AVG(nb_individus), COUNT(*)
 - Résultat : table avec une ligne par espèce et ses statistiques
 
-### 3. Proximity (QGIS)
+### 3. Distance au plus proche centre (points)
 
 **Objectif** : calculer la distance vers le voisin le plus proche.
 
@@ -135,13 +135,13 @@ Résultat : couche temporaire avec observations du Lynx
 - Utiliser l'outil "Sample raster values" pour attacher les valeurs de densité KDE à chaque point
 - Résultat : chaque observation a une colonne de densité KDE
 
-**Étape 4 : Calculer le 90e percentile**
-- Formule : `PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY kde_density)`
-- Ou manuellement : trier les densités, extraire 90% du max
+**Étape 4 : Calculer le statistics**
+- Outil "Basic statistics for fields" sur la colonne de densité KDE
+- Noter la valeur du stdev
 
 **Étape 5 : Contour au seuil**
 - Outil "Contour" (SAGA) : créer isolignes du raster KDE
-- Filtrer pour ne garder que le contour au seuil du 90e percentile
+- Mettre comme niveau de contour : stdev * 2 
 - Résultat : polygone(s) englobant les zones de forte densité d'observations
 
 **Étape 6 : Affinage**

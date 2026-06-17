@@ -8,16 +8,20 @@ Ce module couvre la progression complète de l'**utilisateur** de QGIS au **dév
 
 ### Structure du module
 
-* [Introduction au développement](introduction-developpement.qmd)
+* [Actions QGIS dans les formulaires](actions-qgis-formulaires.qmd)
+        - Ajouter des boutons dans les formulaires d'entités
+        - Ouvrir des photos, URLs ou scripts contextuels
+
+* [Introduction au développement et plugins](introduction-developpement.qmd)
   - Progression du script au plugin
   - Architecture générale
 
-* [Traitement personnalisé KDE](traitement-kde.qmd)
+* [Traitement personnalisé Biodiversité](traitement-kde.qmd)
   - Convertir un script Python en traitement QGIS
   - Classe `QgsProcessingAlgorithm`
   - Enregistrement et tests
 
-* [Plugin QGIS KDE](plugin-kde.qmd)
+* [Plugin QGIS Biodiversité](plugin-kde.qmd)
   - Structure complète d'un plugin
   - Interface graphique (PyQt5)
   - Métadonnées et distribution

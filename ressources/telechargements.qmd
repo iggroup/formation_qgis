@@ -37,3 +37,8 @@ Cette page regroupe les fichiers utiles par module.
 - [GeoPackage numérisation avancée](fichiers/numerisation-avancee/advanced_digitalisation.gpkg){download="advanced_digitalisation.gpkg"}
 - [Script SQL génération du GeoPackage de numérisation avancée](fichiers/numerisation-avancee/generate_advanced_digitalisation_gpkg.sql){download="generate_advanced_digitalisation_gpkg.sql"}
 - [README numérisation avancée](fichiers/numerisation-avancee/README.md){download="README_numerisation-avancee.md"}
+
+### Géotraitements (modeleur)
+
+- [Solution modeleur - calcul des statistiques](fichiers/geotraitements/01_compute_stats.model3){download="01_compute_stats.model3"}
+- [Solution modeleur - génération de contours](fichiers/geotraitements/02_contours.model3){download="02_contours.model3"}

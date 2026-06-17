@@ -381,8 +381,8 @@ class KDEDistributionDialog(QDialog):
 
 1. Créer le dossier du plugin dans le répertoire des plugins QGIS :
    ```
-   Linux/Mac : ~/.local/share/QGIS/QGIS3/plugins/kde_distribution_plugin/
-   Windows : %APPDATA%\QGIS\QGIS3\plugins\kde_distribution_plugin\
+    Linux/Mac : ~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/kde_distribution_plugin/
+    Windows : %APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\kde_distribution_plugin\
    ```
 
 2. Copier tous les fichiers du plugin

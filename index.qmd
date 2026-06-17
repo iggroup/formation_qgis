@@ -48,11 +48,11 @@ title: "Formation QGIS"
 - [Boîte à outils de géotraitement](advanced-qgis/boite-outils-geotraitement.qmd)
 - [Automatisation de flux de géotraitement](advanced-qgis/automatisation-flux-geotraitement.qmd)
 - [Modéleur graphique : flux KDE](advanced-qgis/modeleur-flux-kde.qmd)
-- [Introduction aux plugins QGIS](advanced-qgis/introduction-plugins-qgis.qmd)
 
 ### Développement avancé QGIS
 
-- [Introduction au développement](developpement-avance/introduction-developpement.qmd)
+- [Actions QGIS dans les formulaires](developpement-avance/actions-qgis-formulaires.qmd)
+- [Introduction au développement et plugins](developpement-avance/introduction-developpement.qmd)
 - [Traitement personnalisé KDE](developpement-avance/traitement-kde.qmd)
 - [Plugin QGIS KDE](developpement-avance/plugin-kde.qmd)
 

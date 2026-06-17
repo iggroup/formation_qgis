@@ -6,8 +6,6 @@ format:
     toc: true
     number-sections: true
     code-fold: true
-    mermaid:
-      theme: neutral
 ---
 
 ## Introduction
@@ -54,30 +52,14 @@ Interlis ne remplace pas PostGIS ou GPKG : il les complète en définissant une 
 
 ### Schéma d'architecture
 
-
-<!-- ```text
-Modèle Interlis .ili (Canton / Confédération)
-  ↓
-Création de la base de données
-(GPKG ou PostGIS selon le modèle)
-  ↓
-Ajout / édition des données dans la base
-  ↓
-Export Interlis .xtf depuis la base
-  ↓
-Validation avec ilivalidator contre le modèle
-  ↓
-Livraison du XTF validé au Canton / à la Confédération
-``` -->
-
 ```{mermaid}
 flowchart LR
-    A[Modèle Interlis .ili\n(Canton / Confédération)] --> B[Création de la base de données\nGPKG ou PostGIS selon le modèle]
-    B --> C[Ajout / édition des données\ndans la base]
-    C --> D[Export Interlis .xtf\ndepuis la base]
-    A --> E[Validation avec ilivalidator\ncontre le modèle]
+  A[Modele Interlis .ili] --> B[Creation de la base GPKG ou PostGIS]
+  B --> C[Saisie et edition des donnees]
+  C --> D[Export Interlis .xtf]
+  A --> E[Validation avec ilivalidator]
     D --> E
-    E --> F[Livraison du XTF validé\nau Canton / à la Confédération]
+  E --> F[Livraison du XTF valide]
 ```
 
 ---

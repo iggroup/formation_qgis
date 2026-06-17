@@ -1,7 +1,105 @@
 ---
 title: "Automatisation de flux de géotraitement"
+format: {html: {toc: true, number-sections: true, code-fold: false}}
 ---
 
 ## Objectif
 
-Décrire comment enchaîner et automatiser des traitements géographiques dans QGIS.
+Comprendre le **modeleur graphique** de QGIS et automatiser un flux de géotraitement complet à partir du scénario Biodiv vu dans [Boîte à outils de géotraitement](boite-outils-geotraitement.qmd).
+
+---
+
+## Introduction au modeleur graphique
+
+Le modeleur graphique permet de transformer une suite d'outils lancés manuellement en un **algorithme réutilisable**.
+
+### Pourquoi utiliser le modeleur
+
+* **Gagner du temps** : un seul lancement au lieu de 6 à 8 outils successifs.
+* **Réduire les erreurs** : les paramètres sont fixés une fois.
+* **Standardiser** les traitements : même méthode pour toutes les espèces.
+* **Partager** un flux : le modèle peut être transmis à l'équipe.
+
+### Où l'ouvrir dans QGIS
+
+* Menu **Traitement > Modeleur graphique**.
+* Ou depuis la boîte à outils : **Modèles**.
+
+### Éléments de base du modeleur
+
+Dans un modèle, vous manipulez principalement :
+
+* des **entrées** (couche, champ, nombre, texte),
+* des **algorithmes** (KDE, statistiques, contour, etc.),
+* des **sorties** (couche finale, couche intermédiaire, table de stats).
+
+Bon réflexe : nommer clairement chaque bloc (`kde_raster`, `obs_filtrees`, `contour_final`) pour faciliter la maintenance.
+
+---
+
+## Exercice : automatiser le flux Biodiv
+
+### Contexte
+
+Dans le module précédent, vous avez exécuté manuellement le flux :
+
+1. Filtrer les observations d'une espèce,
+2. Calculer un raster de densité (KDE),
+3. Extraire des statistiques,
+4. Générer un contour de zone probable,
+5. Nettoyer et exporter la sortie.
+
+Ici, l'objectif est de créer un **modèle QGIS unique** qui réalise ces étapes en une exécution.
+
+### Paramètres attendus du modèle
+
+Votre modèle doit au minimum exposer :
+
+* **Couche d'observations** (points),
+* **Champ espèce** (ex: `id_espece`),
+* **Valeur espèce cible** (ex: `2` pour Lynx),
+* **Rayon KDE** (mètres),
+* **Taille pixel**,
+* **Sortie contour final**.
+
+### Chaîne de traitement recommandée
+
+1. **Extract by expression** : filtrer l'espèce cible.
+2. **Kernel density estimation** : produire le raster de densité.
+3. **Basic statistics for fields** (sur les valeurs utiles) : récupérer l'indicateur servant au seuil.
+4. **Contour** : générer les isolignes/isopolygones au seuil retenu.
+5. **Post-traitement** : simplification, dissolution, renommage de champs si nécessaire.
+
+### Critères de réussite
+
+Le modèle est considéré correct si :
+
+* il s'exécute sans modifier manuellement les étapes intermédiaires,
+* la sortie finale est un contour exploitable,
+* vous pouvez relancer le modèle avec une autre espèce en ne changeant que les paramètres.
+
+---
+
+## Fichiers de solution
+
+Deux modèles de solution sont fournis dans les ressources :
+
+* [01_compute_stats.model3](../ressources/fichiers/geotraitements/01_compute_stats.model3){download="01_compute_stats.model3"}
+* [02_contours.model3](../ressources/fichiers/geotraitements/02_contours.model3){download="02_contours.model3"}
+
+Vous pouvez les importer dans QGIS via **Modeleur graphique > Ouvrir un modèle existant**.
+
+---
+
+## Conseils pratiques
+
+* Testez d'abord le modèle sur un petit sous-ensemble de données.
+* Conservez les sorties intermédiaires uniquement pendant le debug.
+* Ajoutez une description claire du modèle et des paramètres pour faciliter sa réutilisation.
+
+---
+
+## Documentation
+
+* [Le modeleur graphique dans QGIS](https://docs.qgis.org/latest/fr/docs/user_manual/processing/modeler.html)
+* [Processing Framework](https://docs.qgis.org/latest/fr/docs/user_manual/processing/index.html)
