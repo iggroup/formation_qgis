@@ -28,17 +28,6 @@ Elles sont rapides à mettre en place et très utiles pour améliorer l'ergonomi
 
 ---
 
-## Types d'actions dans QGIS
-
-QGIS distingue notamment :
-
-* **Action de couche/entité** : configurée dans les propriétés de couche, exécutable depuis la table, l'identification et le formulaire.
-
-
-Dans ce chapitre, on se concentre sur les **actions de couche**.
-
----
-
 ## Mise en place pas à pas
 
 1. Ouvrir la console Python pour afficher les messages d'erreur éventuels.

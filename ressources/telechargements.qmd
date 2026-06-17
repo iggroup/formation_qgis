@@ -4,6 +4,18 @@ title: "Téléchargements"
 
 Cette page regroupe les fichiers utiles par module.
 
+## Navigation par dossiers ressources
+
+Vous pouvez naviguer par dossiers depuis ces liens :
+
+- [Dossier Introduction QGIS](fichiers/introduction-qgis/)
+- [Dossier Base de données](fichiers/base-de-donnees/)
+- [Dossier Géotraitements](fichiers/geotraitements/)
+- [Dossier Numérisation avancée](fichiers/numerisation-avancee/)
+
+> Selon l'hébergement, l'affichage direct du contenu d'un dossier peut être limité.
+> Dans ce cas, utilisez les liens de fichiers ci-dessous.
+
 ## Introduction à QGIS
 
 - [Diaporama de la formation](fichiers/introduction-qgis/formation_qgis.pptx){download="formation_qgis.pptx"}
@@ -21,16 +33,14 @@ Cette page regroupe les fichiers utiles par module.
 - [Tables biodiversité sans attributs pour ajout via SQL](fichiers/base-de-donnees/biodiversite_tables_vides.gpkg){download="biodiversite_tables_vides.gpkg"}
 - [Tables biodiversité avec attributs](fichiers/base-de-donnees/biodiversite_tables_et_attributs.gpkg){download="biodiversite_tables_et_attributs.gpkg"}
 - [GPKG biodiversité avec données](fichiers/base-de-donnees/biodiversite_data.gpkg){download="biodiversite_data.gpkg"}
-- [Script SQL d'enrichissement des données biodiversité](fichiers/base-de-donnees/donnees_biodiv_enrichies.sql){download="donnees_biodiv_enrichies.sql"}
+- [Projet QGIS biodiversité (QGS)](fichiers/base-de-donnees/biodiversite.qgs){download="biodiversite.qgs"}
+- [Script SQL non spatial (DB Browser)](fichiers/base-de-donnees/01_donnees_biodiv_enrichies_non_spatial_dbbrowser.sql){download="01_donnees_biodiv_enrichies_non_spatial_dbbrowser.sql"}
+- [Script SQL spatial (QGIS)](fichiers/base-de-donnees/02_donnees_biodiv_enrichies_spatial_qgis.sql){download="02_donnees_biodiv_enrichies_spatial_qgis.sql"}
 - [Modèle interlis KbS](fichiers/base-de-donnees/KbS_V1_5.ili){download="KbS_V1_5.ili"}
 
 ## QField
 
-- [GeoPackage Biodiv pour QFieldSync](fichiers/qfield/qfieldsync-biodiv/biodiv.gpkg){download="biodiv.gpkg"}
-- [Projet QGIS préconfiguré (QGS)](fichiers/qfield/qfieldsync-biodiv/biodiv_qfieldsync.qgs){download="biodiv_qfieldsync.qgs"}
-- [Projet QGIS préconfiguré (QGZ)](fichiers/qfield/qfieldsync-biodiv/biodiv_qfieldsync.qgz){download="biodiv_qfieldsync.qgz"}
-- [Script SQL ajout table photos](fichiers/qfield/qfieldsync-biodiv/ajout_table_photos.sql){download="ajout_table_photos.sql"}
-- [README exercice QFieldSync](fichiers/qfield/qfieldsync-biodiv/README.md){download="README_qfieldsync-biodiv.md"}
+Pas de fichiers.
 
 ## Advanced QGIS
 

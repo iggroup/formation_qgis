@@ -43,10 +43,10 @@ website:
             text: "Introduction à Interlis"
       - section: "QField"
         contents:
-          - href: qfield/export-projet-qfieldcloud.qmd
-            text: "Export d’un projet QGIS pour QFieldSync"
           - href: qfield/leve-et-edition-qfield.qmd
             text: "Levé et édition QField"
+          - href: qfield/export-projet-qfieldcloud.qmd
+            text: "Export d’un projet QGIS pour QFieldSync"
       - section: "Advanced QGIS"
         contents:
           - section: "Édition avancée"

@@ -65,29 +65,6 @@ Le plugin ajoute une couche produit :
 
 ---
 
-## Introduction aux plugins Python
-
-Avant de coder un plugin complet, il faut comprendre 2 éléments :
-
-1. le rôle d'un plugin Python dans QGIS,
-2. l'architecture minimale d'un plugin généré automatiquement.
-
-### Pourquoi un plugin ?
-
-Un plugin sert à intégrer une logique métier directement dans QGIS :
-
-* automatiser des tâches répétitives,
-
-### Architecture minimale d'un plugin
-
-Dans un plugin généré (EasyPlugin / Plugin Builder), identifier :
-
-* `metadata.txt` : métadonnées et compatibilité,
-* `__init__.py` : point d'entrée (`classFactory`),
-* fichier principal du plugin : `initGui()`, `unload()`, `run()`,
-* ressources UI (`.ui`, icônes, traductions).
-
----
 
 ## Où trouver la pratique détaillée
 
