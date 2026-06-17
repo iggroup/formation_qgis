@@ -245,7 +245,7 @@ Après le terrain, revenir sur le poste bureau et :
 
 > **Attention :** avec cette architecture, il faut synchroniser de manière disciplinée. Si l’on repart en terrain avec un paquet déjà modifié sans repartir d’une base propre, on augmente les risques de doublons ou d’écrasement.
 
----
+
 <!-- 
 ## Exercice complet proposé
 
@@ -275,7 +275,7 @@ Après le terrain, revenir sur le poste bureau et :
 3. contrôler le résultat dans la table attributaire ;
 4. afficher la couche sur la carte.
 
---- -->
+-->
 
 ## Points clés
 
