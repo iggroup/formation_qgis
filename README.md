@@ -1,23 +1,22 @@
 # formation_qgis
 
-Structure Quarto pour une formation QGIS, organisée par thématiques et prête à être publiée sur GitHub Pages.
+##  TO DO
 
-## Aperçu
+### QField
+Vérifier les paramètres de copie et mettre à jour la documentation
 
-Le site comprend les sections suivantes :
+Vérifer les paramètre base map et utilité
 
-- Base de données
-- QField
-- Advanced QGIS
+### Geotraitement
 
-## Développement local
+OK, éventuellement voir si deux flux peuvent être fusionnés. L'existence de la couche stats semble bloquer l'exécution.
 
-Le projet utilise [Quarto](https://quarto.org/).
+### Developpement
+Repasser complètement dessus en divisant les étapes
 
-```bash
-quarto preview
-```
-
-## Publication
-
-La publication sur GitHub Pages est automatisée via le workflow `.github/workflows/publish.yml`.
+Traitement vide avec que les paramètres du géotraitement
+Exporter le géotraitement et insérer dans le script
+Structure de plugin vide
+Théorie : expliquer que plugin permet de créer interface
+Outils d'interface
+Créer seulement interface kde (sans script)
