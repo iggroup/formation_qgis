@@ -19,7 +19,7 @@
       <Option type="QString" value="Statistiques basiques pour les champs" name="component_description"/>
       <Option type="double" value="30" name="component_height"/>
       <Option type="double" value="1026" name="component_pos_x"/>
-      <Option type="double" value="262" name="component_pos_y"/>
+      <Option type="double" value="246" name="component_pos_y"/>
       <Option type="double" value="200" name="component_width"/>
       <Option name="dependencies"/>
       <Option type="QString" value="native:basicstatisticsforfields_1" name="id"/>
@@ -39,8 +39,8 @@
           </Option>
           <Option type="QString" value="stats" name="component_description"/>
           <Option type="double" value="30" name="component_height"/>
-          <Option type="double" value="1244" name="component_pos_x"/>
-          <Option type="double" value="453" name="component_pos_y"/>
+          <Option type="double" value="1221.1555268661127" name="component_pos_x"/>
+          <Option type="double" value="430.3032644786707" name="component_pos_y"/>
           <Option type="double" value="200" name="component_width"/>
           <Option type="invalid" name="default_value"/>
           <Option type="bool" value="false" name="mandatory"/>
@@ -73,7 +73,7 @@
       <Option type="Map" name="alg_config">
         <Option type="List" name="outputs">
           <Option type="Map">
-            <Option type="QString" value="&quot;id_espece&quot; = 2" name="expression"/>
+            <Option type="QString" value="&quot;id_espece&quot; =  @id_espece " name="expression"/>
             <Option type="bool" value="true" name="isModelOutput"/>
             <Option type="QString" value="selected" name="name"/>
           </Option>
@@ -114,8 +114,8 @@
           </Option>
           <Option type="QString" value="OUTPUT_selected" name="component_description"/>
           <Option type="double" value="30" name="component_height"/>
-          <Option type="double" value="117" name="component_pos_x"/>
-          <Option type="double" value="453" name="component_pos_y"/>
+          <Option type="double" value="134" name="component_pos_x"/>
+          <Option type="double" value="436" name="component_pos_y"/>
           <Option type="double" value="200" name="component_width"/>
           <Option type="invalid" name="default_value"/>
           <Option type="bool" value="false" name="mandatory"/>
@@ -153,8 +153,8 @@
       </Option>
       <Option type="QString" value="Prélèvement des valeurs rasters vers ponctuels " name="component_description"/>
       <Option type="double" value="30" name="component_height"/>
-      <Option type="double" value="700" name="component_pos_x"/>
-      <Option type="double" value="259" name="component_pos_y"/>
+      <Option type="double" value="704" name="component_pos_x"/>
+      <Option type="double" value="258" name="component_pos_y"/>
       <Option type="double" value="200" name="component_width"/>
       <Option name="dependencies"/>
       <Option type="QString" value="native:rastersampling_1" name="id"/>
@@ -174,8 +174,8 @@
           </Option>
           <Option type="QString" value="observations_densite" name="component_description"/>
           <Option type="double" value="30" name="component_height"/>
-          <Option type="double" value="870" name="component_pos_x"/>
-          <Option type="double" value="457" name="component_pos_y"/>
+          <Option type="double" value="876" name="component_pos_x"/>
+          <Option type="double" value="433" name="component_pos_y"/>
           <Option type="double" value="200" name="component_width"/>
           <Option type="invalid" name="default_value"/>
           <Option type="bool" value="false" name="mandatory"/>
@@ -196,8 +196,9 @@
         </Option>
         <Option type="List" name="INPUT">
           <Option type="Map">
-            <Option type="QString" value="observations" name="parameter_name"/>
-            <Option type="int" value="0" name="source"/>
+            <Option type="QString" value="native:filter_1" name="child_id"/>
+            <Option type="QString" value="OUTPUT_selected" name="output_name"/>
+            <Option type="int" value="1" name="source"/>
           </Option>
         </Option>
         <Option type="List" name="RASTERCOPY">
@@ -247,8 +248,8 @@
           </Option>
           <Option type="QString" value="densite" name="component_description"/>
           <Option type="double" value="30" name="component_height"/>
-          <Option type="double" value="390" name="component_pos_x"/>
-          <Option type="double" value="453" name="component_pos_y"/>
+          <Option type="double" value="417" name="component_pos_x"/>
+          <Option type="double" value="440" name="component_pos_y"/>
           <Option type="double" value="200" name="component_width"/>
           <Option type="invalid" name="default_value"/>
           <Option type="bool" value="false" name="mandatory"/>
@@ -326,7 +327,20 @@
         </Option>
       </Option>
     </Option>
-    <Option type="QString" value="observations_0532257e_f229_4983_8f0b_0efece058676" name="observations"/>
+    <Option type="int" value="2" name="id_espece"/>
+    <Option type="QgsProcessingOutputLayerDefinition" name="niveaux">
+      <Option type="Map">
+        <Option type="Map" name="create_options">
+          <Option type="QString" value="windows-1252" name="fileEncoding"/>
+        </Option>
+        <Option type="Map" name="sink">
+          <Option type="bool" value="true" name="active"/>
+          <Option type="int" value="1" name="type"/>
+          <Option type="QString" value="TEMPORARY_OUTPUT" name="val"/>
+        </Option>
+      </Option>
+    </Option>
+    <Option type="QString" value="observations_1" name="observations"/>
     <Option type="QgsProcessingOutputLayerDefinition" name="observations_densite">
       <Option type="Map">
         <Option type="Map" name="create_options">
@@ -340,6 +354,18 @@
       </Option>
     </Option>
     <Option type="QgsProcessingOutputLayerDefinition" name="output_selected">
+      <Option type="Map">
+        <Option type="Map" name="create_options">
+          <Option type="QString" value="windows-1252" name="fileEncoding"/>
+        </Option>
+        <Option type="Map" name="sink">
+          <Option type="bool" value="true" name="active"/>
+          <Option type="int" value="1" name="type"/>
+          <Option type="QString" value="TEMPORARY_OUTPUT" name="val"/>
+        </Option>
+      </Option>
+    </Option>
+    <Option type="QgsProcessingOutputLayerDefinition" name="output_selected_polygon">
       <Option type="Map">
         <Option type="Map" name="create_options">
           <Option type="QString" value="windows-1252" name="fileEncoding"/>
@@ -400,6 +426,19 @@
       <Option name="metadata"/>
       <Option type="double" value="0" name="min"/>
       <Option type="QString" value="distance_densite" name="name"/>
+      <Option type="QString" value="number" name="parameter_type"/>
+    </Option>
+    <Option type="Map" name="id_espece">
+      <Option type="int" value="0" name="data_type"/>
+      <Option type="invalid" name="default"/>
+      <Option type="invalid" name="defaultGui"/>
+      <Option type="QString" value="id_espece" name="description"/>
+      <Option type="int" value="0" name="flags"/>
+      <Option type="QString" value="" name="help"/>
+      <Option type="double" value="1.7976931348623157e+308" name="max"/>
+      <Option name="metadata"/>
+      <Option type="double" value="-1.7976931348623157e+308" name="min"/>
+      <Option type="QString" value="id_espece" name="name"/>
       <Option type="QString" value="number" name="parameter_type"/>
     </Option>
     <Option type="Map" name="observations">
@@ -486,10 +525,31 @@
       </Option>
       <Option type="QString" value="distance_densite" name="component_description"/>
       <Option type="double" value="30" name="component_height"/>
-      <Option type="double" value="536" name="component_pos_x"/>
-      <Option type="double" value="91" name="component_pos_y"/>
+      <Option type="double" value="227.94999999999987" name="component_pos_x"/>
+      <Option type="double" value="91.55000000000001" name="component_pos_y"/>
       <Option type="double" value="200" name="component_width"/>
       <Option type="QString" value="distance_densite" name="name"/>
+      <Option type="bool" value="true" name="outputs_collapsed"/>
+      <Option type="bool" value="true" name="parameters_collapsed"/>
+    </Option>
+    <Option type="Map" name="id_espece">
+      <Option type="QString" value="" name="color"/>
+      <Option type="Map" name="comment">
+        <Option type="QString" value="" name="color"/>
+        <Option type="QString" value="" name="component_description"/>
+        <Option type="double" value="60" name="component_height"/>
+        <Option type="double" value="647.9499999999998" name="component_pos_x"/>
+        <Option type="double" value="15" name="component_pos_y"/>
+        <Option type="double" value="100" name="component_width"/>
+        <Option type="bool" value="true" name="outputs_collapsed"/>
+        <Option type="bool" value="true" name="parameters_collapsed"/>
+      </Option>
+      <Option type="QString" value="id_espece" name="component_description"/>
+      <Option type="double" value="30" name="component_height"/>
+      <Option type="double" value="455.29999999999984" name="component_pos_x"/>
+      <Option type="double" value="87.30000000000001" name="component_pos_y"/>
+      <Option type="double" value="200" name="component_width"/>
+      <Option type="QString" value="id_espece" name="name"/>
       <Option type="bool" value="true" name="outputs_collapsed"/>
       <Option type="bool" value="true" name="parameters_collapsed"/>
     </Option>
@@ -507,8 +567,8 @@
       </Option>
       <Option type="QString" value="observations" name="component_description"/>
       <Option type="double" value="30" name="component_height"/>
-      <Option type="double" value="232" name="component_pos_x"/>
-      <Option type="double" value="81" name="component_pos_y"/>
+      <Option type="double" value="-34.700000000000045" name="component_pos_x"/>
+      <Option type="double" value="91.5" name="component_pos_y"/>
       <Option type="double" value="200" name="component_width"/>
       <Option type="QString" value="observations" name="name"/>
       <Option type="bool" value="true" name="outputs_collapsed"/>
