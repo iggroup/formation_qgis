@@ -5,8 +5,7 @@ title: "Formation QGIS"
 ## Une formation proposée par IG group
 
 [IG group SA](https://www.ig-group.ch/geoinformation/) accompagne ses clients dans la
-**création, la gestion et la diffusion de données à référence géographique**, avec un
-objectif : optimiser leurs flux de données géographiques et environnementales.
+**création, la gestion, l'analyse et la diffusion de données à référence géographique**.
 
 Fort de plus de 20 ans d'expérience dans la conception de bases de données
 géographiques et environnementales, IG group intervient sur l'ensemble de la chaîne :
@@ -19,7 +18,5 @@ géographiques et environnementales, IG group intervient sur l'ensemble de la ch
   SIG web 2D/3D et solutions mobiles, notamment avec QField.
 - **Analyse de données** : Valorisation de la données par des analyses spatiales et des méthodes avancées.
 
-Cette formation transmet cette expérience de terrain : des bases de QGIS jusqu'à la
-gestion de bases de données, la saisie mobile avec QField, l'automatisation des
-géotraitements et le développement de plugins.
+Cette formation transmet cette expérience de terrain sur l'outils QGIS: de l'utilisation basique de QGIS jusqu'à la gestion et implémentation de bases de données, l'automatisation des géotraitements, la saisie mobile avec QField, et le développement de plugins.
 
