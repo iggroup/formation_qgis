@@ -1,0 +1,309 @@
+---
+title: "Exercice : passerelles ArcGIS – MO et PAZ en Valais"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+---
+
+## Introduction
+
+Cet exercice fait découvrir QGIS sur la base de données spécifiques au Valais et au domaine de la Mensuration Officielle.
+
+Le document comporte deux parties :
+
+- **[Partie 1 – Consignes](#partie-1)** : ce qu'il faut réaliser, étape par étape, avec les sources de données.
+- **[Partie 2 – Proposition de méthodes de résolution](#partie-2)** : le pas-à-pas dans QGIS pour chaque tâche, à consulter en cas de blocage.
+
+### Données fournies
+
+| Donnée | Format | Contenu |
+|---|---|---|
+| `badoc.gdb` | File Geodatabase ESRI | Extraction de la MO (biens-fonds, couverture du sol, etc.) |
+| `PAZ_PROD.gdb` | File Geodatabase ESRI | Plan d'affectation des zones (affectation primaire, etc.) |
+| Géoservices cantonaux | ArcGIS Online : <https://services1.arcgis.com/rMlsWo8szOzlrpCq/arcgis/rest/services/><br>ArcGIS Server (WMS ou WFS) : <https://sit.vs.ch/arcgis/rest/services/> | Communes, MO, plans d'aménagement |
+| Géoservices geodienste.ch | WMS / WFS : <https://geodienste.ch/db/av/fra><br>Pour d'autres données, voir les liens sur <https://www.geodienste.ch/> | MO harmonisée au niveau suisse |
+| Géoservices swisstopo | WMTS / tuiles vectorielles<br>Passer par le plugin *swisslocator* pour les afficher<br>Passer par le plugin *swissgeodownloader* pour les télécharger | Cartes nationales, SWISSIMAGE, fond de plan léger |
+
+### Dictionnaire ArcGIS – QGIS
+
+Les mêmes notions portent souvent un autre nom dans les deux logiciels. Ce tableau sert de repère pendant tout l'exercice.
+
+| Thème | ArcGIS Pro / ArcGIS Online | QGIS |
+|---|---|---|
+| Projet | Projet `.aprx` | Projet `.qgz` / `.qgs` |
+| Projet | Modèle de projet `.aptx` | Modèle de projet (dossier des modèles) |
+| Interface | Contents pane | Panneau Couches |
+| Interface | Catalog pane | Panneau Navigateur |
+| Interface | Bookmarks | Signets spatiaux |
+| Données | File Geodatabase | GeoPackage (format ouvert équivalent) ; FGDB lue et écrite via GDAL |
+| Données | Feature class | Couche vecteur |
+| Données | Feature dataset | Pas d'équivalent ; la GDB apparaît comme un conteneur |
+| Données | Domaines | Widgets « Liste de valeurs » et « Relation de valeur » |
+| Données | Relationship class | Relations du projet |
+| Données | Attribute rules | Valeurs par défaut et contraintes des champs |
+| Données | Add Join | Jointures (propriétés de la couche) |
+| Services | Feature Layer (FeatureServer) | Couche ArcGIS REST chargée en vecteur |
+| Services | Map Image Layer (MapServer) | Couche ArcGIS REST chargée en image |
+| Services | Vector Tile Layer | Couche de tuiles vectorielles |
+| Services | Basemap | Groupe de fonds de plan (WMTS, XYZ, tuiles vectorielles) |
+| Symbologie | Fichier de couche `.lyrx` | Style `.qml`, définition de couche `.qlr`, ou SLD pour l'échange |
+| Symbologie | Reference scale | Échelle de référence (Symbologie > Rendu de la couche) |
+| Symbologie | Apply Symbology From Layer | Copier le style / Coller le style |
+| Sélection | Definition Query | Filtre de couche |
+| Sélection | Select By Attributes | Sélectionner des entités avec une expression |
+| Sélection | Select By Location | Sélection par localisation |
+| Calcul | Arcade (`$feature.CHAMP`) | Expressions QGIS (`"CHAMP"`) |
+| Calcul | Calculate Field | Calculatrice de champs |
+| Calcul | Calculate Geometry Attributes | `area($geometry)`, `$area`, `$length` |
+| Traitements | Geoprocessing toolbox | Boîte à outils de traitements |
+| Traitements | ModelBuilder | Modeleur graphique (`.model3`) |
+| Traitements | ArcPy | PyQGIS |
+| Traitements | Summary Statistics (Case field) | Statistiques par catégories |
+| Mise en page | Layout | Mise en page |
+| Mise en page | Fichier de mise en page `.pagx` | Modèle de mise en page `.qpt` |
+| Mise en page | Dynamic Text | Étiquette avec expression `[% … %]` |
+| Mise en page | Map Series | Atlas |
+| Mise en page | Page Query | Règle de style utilisant `@atlas_feature` |
+| Terrain | Field Maps | QField, Mergin Maps |
+| Échange | Data Interoperability (INTERLIS) | Plugin Model Baker |
+
+## Partie 1 – Consignes d'exercice {#partie-1}
+
+Vous préparez un projet QGIS modèle pour l'équipe de mensuration officielle, puis vous l'utilisez pour analyser le parcellaire et le PAZ de Sion. Chaque étape s'appuie sur la précédente : enregistrez votre projet régulièrement.
+
+### Étape 1 – Préparation du projet modèle {#etape-1}
+
+**Contexte** : l'équipe MO a besoin d'un projet QGIS de départ, identique pour tous, qui rassemble les sources de référence du Valais.
+
+**Tâches**
+
+1. Créez un nouveau projet et réglez son système de coordonnées sur MN95 (EPSG:2056). Faites en sorte que tout nouveau projet démarre aussi en MN95.
+2. Ajoutez la couche des communes du Valais depuis le service AGOL. Vérifiez si la symbologie publiée est reprise, puis ouvrez la table attributaire. Quel est le système de coordonnées utilisé ?
+3. Ajoutez le service MO cantonal sous forme image et vecteur. Zoomez sur Sion et déterminez à partir de quelle échelle les couches s'affichent. Essayez de modifier la couleur des biens-fonds : que constatez-vous ?
+4. Dans le service MO, ajoutez la sous-couche « Lots de mensuration » (identifiant 999) comme couche vecteur. Reproduisez le filtre et l'étiquetage de la webmap de référence : seuls les lots dont le libellé n'est pas vide, étiquetés par leur libellé.
+5. Ajoutez la couche « Affectations primaires » du service cantonal des plans d'aménagement (PAZ) comme couche vecteur, puis observez sa symbologie et ses champs.
+6. Ajoutez toutes les couches de `badoc.gdb` et de `PAZ_PROD.gdb`. Notez ce que QGIS lit (couches, alias, domaines) et ce qu'il ne montre pas.
+7. Ajoutez la MO de geodienste.ch, une fois en WMS et une fois en WFS. Vérifiez si la commune de Sion est couverte.
+8. Créez un groupe « Carte de base » contenant la carte nationale couleur, la carte nationale grise, SWISSIMAGE et le fond de plan léger (light base map) de swisstopo.
+9. Organisez la légende en groupes par source et format : services cantonaux ArcGIS, géoservices geodienste (OGC), données fichiers (GDB), carte de base.
+10. Enregistrez le projet comme modèle disponible pour toute l'équipe.
+
+[→ Méthode de résolution](#resolution-1)
+
+### Étape 2 – Filtrer et styler {#etape-2}
+
+**Contexte** : le projet ne doit montrer que la commune de Sion, avec un rendu proche des plans officiels.
+
+1. Filtrez les couches de la badoc et du PAZ pour ne garder que les objets de Sion.
+2. Donnez à la couche des biens-fonds un style proche du style officiel du plan du registre foncier : étiquetez les numéros, et n'affichez les numéros qu'à grande échelle.
+3. Donnez à la couche d'affectation primaire un style proche du style officiel. Indice : le style officiel existe peut-être déjà quelque part dans votre projet.
+4. Enregistrez ces deux styles dans un format réutilisable par QGIS et dans un format d'échange. Lequel des deux pourriez-vous ouvrir dans ArcGIS Pro ?
+
+[→ Méthode de résolution](#resolution-2)
+
+### Étape 3 – Créer un GeoPackage et digitaliser des emprises de plans {#etape-3}
+
+**Contexte** : l'équipe veut pouvoir imprimer des plans en série sur des secteurs choisis librement. Il faut pour cela une couche dédiée pour l'atlas, dont chaque polygone définit l'emprise d'un plan, stockée dans un format ouvert et partageable.
+
+1. Créez un GeoPackage `plans_sion.gpkg` contenant une couche de polygones `secteur` en MN95 (EPSG:2056), avec les champs suivants : `nom_plan` (texte), `echelle` (entier), `auteur` (texte) et `date_saisie` (date).
+2. Configurez le formulaire de saisie : `nom_plan` obligatoire, `echelle` choisie dans une liste (500, 1000, 2000), `auteur` et `date_saisie` remplis automatiquement.
+3. Digitalisez au moins quatre polygones libres couvrant des secteurs de Sion. Renseignez les attributs de chaque emprise.
+4. Digitalisez une emprise rectangulaire.
+5. Modifiez une emprise existante (déplacer, ajouter et supprimer un sommet).
+
+[→ Méthode de résolution](#resolution-3)
+
+### Étape 4 – Mise en page et cartes par secteur {#etape-4}
+
+**Contexte** : l'équipe veut une série de plans au format A4, un plan par secteur de Sion, avec un cartouche standard.
+
+1. Créez une mise en page A4 contenant une carte et un cartouche. Le cartouche comprend : un titre, le logo de l'entreprise, la date du jour, l'échelle numérique et graphique, la flèche du nord, la légende et les sources.
+2. Enregistrez le cartouche comme modèle réutilisable.
+3. Transformez la mise en page en série de cartes : une page par secteur. Le titre de chaque page indique le `nom_plan`.
+4. Sur chaque page, mettez en évidence la zone concernée et atténuez les autres.
+5. Faites en sorte que la légende ne montre que les éléments visibles sur la page.
+6. Exportez la série en un seul PDF.
+
+[→ Méthode de résolution](#resolution-4)
+
+### Étape 5 – Relations et listes de valeurs dans PAZ_PROD {#etape-5}
+
+**Contexte** : dans ArcGIS, `PAZ_PROD.gdb` s'appuie sur des classes de relation et des domaines. QGIS ne les applique pas tous automatiquement : il faut recréer ces règles dans le projet pour retrouver des formulaires de saisie complets.
+
+1. Dans `PAZ_PROD.gdb`, repérez les couches `document`, `dossier_juridique`, `perimetre` et `affectation_primaire`, ainsi que les champs qui les relient entre elles.
+2. Recréez la relation entre document et dossier juridique : le formulaire d'un dossier juridique doit afficher la liste de ses documents, et le formulaire d'un document doit permettre de choisir son dossier.
+3. Recréez la relation entre périmètre et dossier juridique sur le même principe.
+4. Configurez le champ `type_comm` de la couche `affectation_primaire` comme liste de valeurs : les codes sont stockés, les libellés sont affichés.
+5. Testez le résultat : ouvrez le formulaire d'un dossier juridique, vérifiez les documents et périmètres liés, puis modifiez la valeur `type_comm` d'une zone. Où ces réglages sont-ils enregistrés : dans la donnée ou dans le projet ?
+
+[→ Méthode de résolution](#resolution-5)
+
+### Étape 6 – Attributs, sélections et contrôle qualité {#etape-6}
+
+**Contexte** : avant d'analyser les données, l'équipe veut vérifier la cohérence du parcellaire de Sion.
+
+1. Sélectionnez tous les biens-fonds de Sion. Combien y en a-t-il ?
+2. Sélectionnez les biens-fonds dont la surface officielle dépasse 10 000 m². Affichez uniquement ces objets dans la table attributaire.
+3. Ajoutez à la couche des biens-fonds un champ contenant la surface calculée à partir de la géométrie. Ajoutez un second champ contenant l'écart avec la surface officielle.
+4. Sélectionnez les biens-fonds dont l'écart dépasse 1 m². Proposez une explication à ces écarts.
+
+[→ Méthode de résolution](#resolution-6)
+
+### Étape 7 – Analyse : affectation par parcelle {#etape-7}
+
+**Contexte** : un client demande, pour chaque parcelle de Sion, dans quelle(s) zone(s) d'affectation elle se trouve et quelle part de sa surface chaque zone occupe.
+
+1. Choisissez un type d'affectation, par exemple une zone d'habitation. Sélectionnez les biens-fonds qui se trouvent dans ce type de zone.
+2. Comparez deux critères de sélection spatiale : « intersecte » et « est contenu dans ». Expliquez la différence de résultat.
+3. Pour l'ensemble des biens-fonds de Sion, créez une couche qui découpe chaque parcelle selon les zones d'affectation et conserve les attributs des deux couches.
+4. Dans cette nouvelle couche, calculez la surface de chaque morceau et son pourcentage par rapport à la surface de la parcelle.
+5. Produisez un tableau récapitulatif : surface totale de biens-fonds par type d'affectation.
+6. Enchaînez les opérations 3 et 4 dans un modèle de traitement réutilisable pour une autre commune.
+
+[→ Méthode de résolution](#resolution-7)
+
+## Partie 2 – Méthodes de résolution {#partie-2}
+
+Chaque tâche reprend la numérotation de la Partie 1. Les chemins de menus correspondent à QGIS en français ; le panneau Navigateur et le Gestionnaire des sources de données (Ctrl+L) mènent souvent au même résultat.
+
+### Résolution de l'étape 1 {#resolution-1}
+
+1. **SCR du projet** : Projet > Propriétés > SCR, rechercher 2056 et choisir « CH1903+ / LV95 ». Pour les nouveaux projets : Préférences > Options > SCR et transformations > « Utiliser un SCR par défaut » = EPSG:2056. Si une couche arrive en MN03 (EPSG:21781), QGIS la reprojette à la volée et propose une transformation ; choisir celle qui utilise la grille CHENyx06.
+   - *Lien ArcGIS* : Map Properties > Coordinate Systems, et Options > Map and Layout > Spatial Reference.
+2. **Communes (AGOL)** : dans le Navigateur, clic droit sur « ArcGIS REST Servers » > Nouvelle connexion. Nom : « VS AGOL » ; URL : `https://services1.arcgis.com/rMlsWo8szOzlrpCq/arcgis/rest/services`. Déplier Communes > FeatureServer, puis double-cliquer sur la couche. QGIS convertit le rendu publié (contour orange) et la table attributaire est disponible.
+   - *Lien ArcGIS* : ajouter un Feature Layer depuis le portail ou par URL.
+3. **MO cantonale (MapServer)** : nouvelle connexion ArcGIS REST avec l'URL `https://sit.vs.ch/arcgis/rest/services`, puis déplier MO > MapServer et ajouter le service. Les couches ne s'affichent qu'en dessous du 1:5000 : l'échelle de visibilité est définie sur le serveur. Le service renvoie une image : on ne peut régler que l'opacité, la luminosité ou le contraste, pas la couleur des biens-fonds. L'outil Identifier fonctionne.
+4. **Lots de mensuration** : sous MO > MapServer, la sous-couche 999 peut être ajoutée seule ; QGIS la charge alors comme couche vecteur. Filtre : clic droit > Filtrer…, expression `"LIBELLE" <> 'NULL'` (reprise de la webmap : la valeur vide y est stockée sous forme de texte, à vérifier dans la table). Étiquettes : Propriétés > Étiquettes > Étiquettes simples, valeur = `LIBELLE`.
+   - *Lien ArcGIS* : Definition Query, et l'expression Arcade `$feature["LIBELLE"]` qui devient `"LIBELLE"` en expression QGIS.
+5. **Plans d'aménagement** : le service PAZ (`https://sit.vs.ch/arcgis/rest/services/PAZ/MapServer`) est un MapServer, accessible par la connexion créée à la tâche 3. Ajouté en entier, il s'affiche comme une image. Ajoutée seule, la sous-couche « Affectations primaires » (identifiant 4) est chargée comme couche vecteur, car le serveur autorise les requêtes ; QGIS convertit alors son rendu officiel, une catégorie par code `CODE_TYPE_VS` (111 Zone d'habitation, 121 Zone artisanale, 211 Zone agricole 1, etc.). Champs utiles : `COMMUNE`, `CODE_TYPE_VS`, `TYPE_VS_FR`. La couche n'est visible qu'en dessous du 1:130 000 ; le serveur renvoie 2 000 entités par requête et QGIS enchaîne les requêtes automatiquement.
+6. **File Geodatabases** : dans le Navigateur, les dossiers `.gdb` apparaissent comme des conteneurs ; les déplier et glisser les couches dans le projet (ou Couche > Ajouter une couche vecteur > Répertoire > OpenFileGDB). QGIS lit les classes d'entités, les tables, les alias et les domaines (visibles dans le Navigateur sous « Domaines de champs », et appliqués comme listes de valeurs dans les formulaires). Les classes de relation peuvent être découvertes dans Projet > Propriétés > Relations > « Découvrir les relations ». Les topologies, règles attributaires, annotations et réseaux ne sont pas lus.
+   - *Lien ArcGIS* : feature class, feature dataset, domaines, relationship class.
+7. **geodienste.ch** : sur [geodienste.ch – MO](https://geodienste.ch/services/av?locale=fr), le bouton « Obtenir le service » donne les URL WMS et WFS (la procédure cantonale de 2019 indiquait `https://geodienste.ch/db/av/fra`, à vérifier). WMS : Couche > Ajouter une couche > Ajouter une couche WMS/WMTS > Nouveau. WFS : Couche > Ajouter une couche > Ajouter une couche WFS / OGC API – Entités > Nouveau. La MO valaisanne y est marquée incomplète et mise à jour annuellement ; la liste des communes publiées figure dans [ce PDF cantonal](https://www.vs.ch/documents/17311/3268979/Communes_sur_GEODIENSTE-Auf_GEODIENSTE_Gemeinde.pdf).
+8. **Carte de base** : clic droit dans la légende > Ajouter un groupe, nommé « Carte de base ». Créer une connexion WMS/WMTS avec `https://wmts.geo.admin.ch/EPSG/2056/1.0.0/WMTSCapabilities.xml`, puis, dans l'onglet Tuiles, ajouter `ch.swisstopo.pixelkarte-farbe`, `ch.swisstopo.pixelkarte-grau` et `ch.swisstopo.swissimage`. Fond léger : Couche > Ajouter une couche > Ajouter une couche de tuiles vectorielles > Nouvelle connexion générique, URL du style `https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json` (URL des tuiles si demandée : `https://vectortiles.geo.admin.ch/tiles/ch.swisstopo.base.vt/v1.0.0/{z}/{x}/{y}.pbf`). Ce fond est en Web Mercator et est reprojeté à la volée.
+   - *Lien ArcGIS* : la webmap utilise aussi un fond vectoriel AGOL (« Canton_style_LV95 »), qu'on peut charger dans QGIS comme service de tuiles vectorielles Esri.
+9. **Organisation** : créer quatre groupes (Services cantonaux ArcGIS, geodienste OGC, Données GDB, Carte de base) et y glisser les couches. Mettre la carte de base en bas et cocher « Groupe mutuellement exclusif » pour n'afficher qu'un fond à la fois.
+10. **Modèle de projet** : Préférences > Options > Général > « Modèles de projet » indique le dossier des modèles (un dossier réseau partagé est possible). Enregistrer le projet `.qgz` dans ce dossier : il apparaît dans Projet > Nouveau à partir d'un modèle. Utiliser des chemins relatifs (Projet > Propriétés > Général) si les GDB sont livrées avec le projet.
+    - *Lien ArcGIS* : modèle de projet `.aptx`.
+
+**Corrigé de la synthèse**
+
+| Critère | MapServer cantonal | geodienste WMS / WFS | badoc.gdb |
+|---|---|---|---|
+| Changer le style | Non (image) | WMS non, WFS oui | Oui |
+| Filtrer les objets | Non, sauf sous-couche chargée en vecteur | WMS non, WFS oui | Oui |
+| Table attributaire | Non (Identifier seulement) | WMS non, WFS oui | Oui |
+| Hors connexion | Non | Non | Oui |
+| Actualité | Base cantonale de production | Publication cantonale (annuelle pour VS) | Date de l'extraction |
+
+### Résolution de l'étape 2 {#resolution-2}
+
+1. **Filtrer sur Sion**
+   - Par attribut : clic droit sur la couche > Filtrer…, puis par exemple `"OFS" = 6266` (numéro OFS de Sion) ou `"COMMUNE" = 'Sion'`, champs présents dans le service MO cantonal, à vérifier dans la badoc ; même principe pour le PAZ champ `COMMUNE`, à vérifier dans `PAZ_PROD.gdb`. Sur une FGDB, le filtre est transmis au pilote GDAL : c'est la syntaxe OGR SQL qui s'applique, pas celle des expressions QGIS. Une icône d'entonnoir signale la couche filtrée.
+   - Par position : filtrer la couche Communes sur `"NOM" = 'Sion'`, puis Vecteur > Outils de recherche > Sélection par localisation (entités de la badoc, prédicat « sont à l'intérieur » ou « intersectent », couche de comparaison Communes). Exporter ensuite la sélection : clic droit > Exporter > Sauvegarder les entités sélectionnées sous… au format GeoPackage. Variante en une étape : Boîte à outils de traitements > « Extraire par localisation ».
+   - Différence : le filtre garde le lien vers la GDB, l'extraction crée une copie indépendante.
+   - *Lien ArcGIS* : Definition Query, et Select By Location suivi de Export Features.
+2. **Style des biens-fonds** : Propriétés > Symbologie > Catégorisé, valeur `GENRE` (si les DDP sont dans une couche séparée, comme dans le service cantonal, styler les deux couches), bouton Classer.
+   - Bien-fonds : remplissage « Pas de remplissage », contour noir continu ; le service cantonal utilise un noir à 80 % d'opacité de 1,13 pt (environ 0,4 mm), défini pour une échelle de référence de 1:1 000.
+   - DDP : pas de remplissage, contour noir tireté.
+   - Étiquettes : Propriétés > Étiquettes > Étiquettes basées sur des règles, une règle par genre. Valeur `NUMERO`, police Cadastra 8 pt grasse noire comme dans le service cantonal (police officielle des plans cadastraux suisses, à installer au préalable ; à défaut Arial) ; italique pour les DDP. Placement « Horizontal » et « Uniquement à l'intérieur du polygone ». Dans chaque règle, cocher la visibilité dépendante de l'échelle, jusqu'au 1:2 000 comme dans le service cantonal.
+   - Contrôle : afficher le MapServer cantonal juste en dessous pour comparer le rendu. Raccourci : la sous-couche Bien-fonds (identifiant 80) du service MO, ajoutée seule, arrive avec le style officiel converti ; on peut le copier-coller comme pour le PAZ. L'échelle de référence se règle dans Propriétés > Symbologie > Rendu de la couche.
+3. **Style de l'affectation primaire** : la sous-couche « Affectations primaires » du service PAZ (étape 1, tâche 5) arrive avec le rendu officiel converti, une catégorie par code `CODE_TYPE_VS`. Clic droit sur la couche du service > Styles > Copier le style, puis clic droit sur la couche de `PAZ_PROD.gdb` > Styles > Coller le style. Cela fonctionne si `PAZ_PROD.gdb` contient le champ `CODE_TYPE_VS` avec les mêmes codes. Contrôler les hachures ESRI (zone de maintien du bâti, zones mixtes, etc.), converties en motifs de lignes. Sinon : style Catégorisé sur `CODE_TYPE_VS` avec les couleurs officielles, ou conversion d'un `.lyrx` existant avec le plugin SLYR (version sous licence uniquement ; la version gratuite ne lit que les `.lyr` d'ArcMap).
+   - *Lien ArcGIS* : outil Apply Symbology From Layer.
+4. **Enregistrer les styles** : Propriétés > Symbologie > menu Style (en bas) > Enregistrer le style…, une fois au format QML (fichier de style QGIS, complet), une fois au format SLD (norme OGC, partiel : certaines options d'étiquetage et effets sont perdus). ArcGIS Pro n'ouvre directement ni l'un ni l'autre : il faut une conversion, par exemple l'export `.lyrx` de la version complète de SLYR. C'est une différence importante : le style est un fichier du logiciel, pas une propriété de la donnée.
+   - *Lien ArcGIS* : fichier de couche `.lyrx`.
+
+### Résolution de l'étape 3 {#resolution-3}
+
+1. **Création du GeoPackage** : Couche > Créer une couche > Nouvelle couche GeoPackage… (Ctrl+Maj+N). Base de données : bouton « … » pour choisir le dossier et le nom `plans_sion.gpkg` ; Nom de la table : `secteur` ; Type de géométrie : Polygone ; SCR : EPSG:2056. Ajouter les champs un par un avec « Ajouter à la liste des champs » : `nom_plan` (Donnée texte), `echelle` (Nombre entier), `auteur` (Donnée texte), `date_saisie` (Date). La clé primaire `fid` est créée automatiquement. Pour ajouter plus tard une autre couche au même fichier, choisir le GeoPackage existant et répondre « Ajouter une nouvelle couche » (et non « Écraser »).
+   - *Lien ArcGIS* : Create File Geodatabase puis Create Feature Class. Le GeoPackage est un fichier unique (base SQLite, norme OGC) qui contient couches, tables et styles.
+2. **Formulaire de saisie** : Propriétés de la couche > Formulaire d'attributs, puis sélectionner chaque champ :
+   - `nom_plan` : Contraintes > cocher « Non nul » et « Imposer la contrainte non nulle ».
+   - `echelle` : Type d'outil « Liste de valeurs », valeurs 500, 1000 et 2000.
+   - `auteur` : Défauts > expression `@user_full_name` ; `date_saisie` : Défauts > expression `now()`, Type d'outil « Date/Heure ».
+   - *Lien ArcGIS* : domaines à valeurs codées, valeurs par défaut des champs et Attribute rules.
+3. **Digitalisation libre** : sélectionner la couche `secteur`, basculer en mode édition (icône crayon), puis outil « Ajouter une entité polygone » (Ctrl+.). Clic gauche pour chaque sommet, clic droit pour terminer, puis remplir le formulaire. Retour arrière efface le dernier sommet, Échap annule le polygone en cours. Pour s'appuyer sur le parcellaire, activer l'accrochage (barre d'outils Accrochage, icône de l'aimant, « Configuration avancée » sur la couche des biens-fonds, sommets et segments).
+   - *Lien ArcGIS* : Edit > Create Features et Snapping.
+4. **Emprise rectangulaire** : barre d'outils Numérisation de forme > « Rectangle à partir de 3 points (distance) » ou « Rectangle à partir de l'étendue ». Pour des dimensions exactes, ouvrir le panneau Numérisation avancée (Vue > Panneaux) et saisir la longueur (d) et l'angle (a) de chaque côté. Astuce : donner au rectangle les proportions du cadre de carte de la mise en page (par exemple 360 m × 520 m pour un cadre de 18 × 26 cm au 1:2 000).
+5. **Modification** : « Outil de nœud » de la barre Numérisation. Glisser un sommet pour le déplacer, double-cliquer sur un segment pour ajouter un sommet, sélectionner un sommet et appuyer sur Suppr pour le supprimer. « Déplacer l'entité » déplace le polygone entier. Enregistrer les modifications (icône disquette), puis quitter le mode édition.
+   - *Lien ArcGIS* : Edit Vertices, Move et Save Edits.
+
+### Résolution de l'étape 4 {#resolution-4}
+
+1. **Mise en page et cartouche** : Projet > Nouvelle mise en page, nom « Plan secteur ». Clic droit sur la page > Propriétés de la page : A4, orientation au choix. Puis, via le menu Ajouter un élément :
+   - Carte : dessiner le cadre sur la zone de la carte.
+   - Titre : étiquette, provisoirement « Plan – Sion ».
+   - Logo : image, en pointant vers le fichier du logo de l'entreprise.
+   - Date : étiquette avec l'expression `[% format_date(now(), 'dd.MM.yyyy') %]`.
+   - Échelle : une barre d'échelle de style « Numérique » et une seconde de style graphique, toutes deux liées à la carte.
+   - Flèche du nord, légende (décocher « Mise à jour automatique » pour la personnaliser) et une étiquette de sources, par exemple « Sources : MO et PAZ © Canton du Valais ; fond de plan © swisstopo ».
+   - *Lien ArcGIS* : Layout, avec les éléments Dynamic Text pour la date.
+2. **Cartouche réutilisable** : sélectionner les éléments du cartouche, clic droit > Grouper. Mise en page > Enregistrer comme modèle… (fichier `.qpt`, à placer dans le dossier des modèles de mise en page défini dans Préférences > Options > Mise en page). Pour le réutiliser : Mise en page > Ajouter des éléments depuis un modèle, ou Nouvelle mise en page à partir du modèle dans le Gestionnaire de mises en page.
+   - *Lien ArcGIS* : fichier de mise en page `.pagx` et Import Layout.
+3. **Une page par secteur** : la couche `secteur` de l'étape 3 sert de couche de couverture (une entité = une page). Atlas > Paramètres de l'atlas, cocher « Générer un atlas », couche de couverture = `secteur`, nom de page = `nom_plan`, tri par `nom_plan`. Sur la carte : Propriétés de l'élément > « Contrôlé par l'atlas », marge de 10 %. Pour respecter l'échelle saisie, choisir plutôt « Fixe » et définir l'échelle de la carte par les données (bouton de surcharge à côté d'Échelle, champ `echelle`). Titre : étiquette `[% @atlas_pagename %]`. Prévisualiser avec la barre d'outils Atlas.
+   - *Lien ArcGIS* : Map Series spatiale, avec une couche d'index, un nom de page et un champ d'échelle.
+4. **Mettre en évidence le secteur** : sur la couche `secteur`, Symbologie > Ensemble de règles :
+   - Règle « secteur courant » : `@id = @atlas_featureid`, sans remplissage, contour rouge épais.
+   - Règle « Sinon » : remplissage blanc à 60 % d'opacité, pour atténuer les autres secteurs.
+   - Pour atténuer aussi tout ce qui est hors des secteurs : symbologie « Polygones inversés » avec la même règle, remplissage blanc semi-transparent.
+   - Laisser décochée l'option « Masquer la couche de couverture », puisque le secteur doit apparaître sur le plan.
+   - *Lien ArcGIS* : Page Query d'une Map Series (« Match » et « Don't match »).
+5. **Légende filtrée** : propriétés de la légende, cocher « Filtrer la légende par le contenu de la carte » et « Uniquement à l'intérieur de l'entité d'atlas courante ».
+6. **Export PDF** : barre d'outils Atlas > Exporter l'atlas en PDF, puis cocher « Exporter en un seul fichier (si possible) ». Résultat : un PDF avec une page par secteur.
+   - *Lien ArcGIS* : Export Layout avec l'option « All pages » de la Map Series dans un seul PDF.
+
+### Résolution de l'étape 5 {#resolution-5}
+
+1. **Repérer les liens** : dans le Navigateur, déplier `PAZ_PROD.gdb` et ouvrir la table attributaire de chaque couche. Noter la clé du dossier juridique (par exemple un identifiant ou un GlobalID) et le champ qui la reprend dans `document` et dans `perimetre` [noms de champs à vérifier dans la GDB]. Raccourci : Projet > Propriétés > Relations > « Découvrir les relations » lit les classes de relation de la GDB ; l'utiliser pour contrôler le résultat, pas pour faire l'exercice.
+   - *Lien ArcGIS* : propriétés d'une relationship class (table d'origine, table de destination, clé primaire, clé étrangère).
+2. **Relation document – dossier juridique** : Projet > Propriétés > Relations > Ajouter une relation.
+   - Nom : `dossier_documents` ; couche référencée (parent) : `dossier_juridique`, champ = clé du dossier ; couche de référence (enfant) : `document`, champ = clé étrangère.
+   - Force de la relation : « Association » (les documents restent si le dossier est supprimé) ou « Composition » (les documents sont copiés et supprimés avec le dossier).
+   - Formulaire du parent : Propriétés de `dossier_juridique` > Formulaire d'attributs, mode « Conception par glisser-déposer », puis glisser la relation dans le formulaire pour afficher les documents liés.
+   - Formulaire de l'enfant : Propriétés de `document` > Formulaire d'attributs > champ clé étrangère, Type d'outil « Référence de relation », pour choisir le dossier dans une liste déroulante.
+   - *Lien ArcGIS* : relationship class 1-n ; Simple correspond à « Association », Composite à « Composition ».
+3. **Relation périmètre – dossier juridique** : même procédure, avec `dossier_juridique` comme parent et `perimetre` comme enfant. Si la GDB passe par une table intermédiaire (relation n-m), créer une relation de chaque couche vers cette table, puis choisir la cardinalité « plusieurs à plusieurs » dans le widget de relation du formulaire.
+4. **Liste de valeurs `type_comm`** : Propriétés de `affectation_primaire` > Formulaire d'attributs > `type_comm`, Type d'outil « Liste de valeurs ». Saisir une ligne par code (Valeur = code stocké, Description = libellé affiché), ou utiliser « Charger les données depuis une couche ». Si les codes figurent dans une table de `PAZ_PROD`, préférer « Relation de valeur » (couche = table des codes, colonne clé = code, colonne valeur = libellé). Si la GDB contient un domaine sur ce champ, comparer avec la liste que QGIS applique automatiquement (étape 1, tâche 6).
+   - *Lien ArcGIS* : domaine à valeurs codées (coded value domain).
+5. **Test** : outil Identifier sur un dossier juridique, ou table attributaire en vue formulaire (icône en bas à droite). Les documents et périmètres liés apparaissent dans le formulaire. Pour modifier `type_comm`, basculer en mode édition ; l'écriture dans une File Geodatabase demande GDAL 3.6 ou plus récent : travailler sur une copie de `PAZ_PROD.gdb`. Les relations et les widgets sont enregistrés dans le projet (`.qgz`), pas dans la donnée : pour les réutiliser, enregistrer le projet comme modèle (étape 1) ou exporter le style de la couche en QML avec la catégorie « Formulaire ».
+   - *Lien ArcGIS* : volet Attributes et enregistrements liés (related records).
+
+### Résolution de l'étape 6 {#resolution-6}
+
+1. **Biens-fonds de Sion** : la couche étant filtrée sur Sion à l'étape 2, il suffit de tout sélectionner (Ctrl+A) ou d'activer clic droit > Afficher le nombre d'entités. Sans filtre : Éditer > Sélectionner > Sélectionner des entités avec une expression, puis `"COMMUNE" = 'Sion'` [champ à vérifier dans la table]. Le nombre d'entités sélectionnées s'affiche dans la barre d'état et dans le titre de la table attributaire.
+   - *Lien ArcGIS* : Select By Attributes.
+2. **Grandes parcelles** : même outil avec `to_real("SUPERFICIE") > 10000`. Piège : dans le service cantonal, `SUPERFICIE` est un champ texte ; sans `to_real()`, la comparaison est alphabétique (« 9000 » passe après « 10000 »). Vérifier le type dans la badoc. Dans la table attributaire, le menu de filtre en bas à gauche propose « Afficher les entités sélectionnées ».
+3. **Surface calculée et écart** : travailler sur la copie GeoPackage créée à l'étape 2, ou utiliser des champs virtuels qui ne modifient pas la GDB. Ouvrir la Calculatrice de champs (icône du boulier dans la table attributaire) :
+   - Nouveau champ `surf_calc`, type décimal, expression `area($geometry)` (surface planimétrique, comme le Shape_Area d'ArcGIS).
+   - Nouveau champ `ecart`, expression `"surf_calc" - to_real("SUPERFICIE")`.
+   - Attention : `$area` dépend de l'ellipsoïde défini dans Projet > Propriétés > Général > Mesures. Avec un ellipsoïde, la surface diffère légèrement de la surface planimétrique : c'est une bonne source de discussion.
+   - *Lien ArcGIS* : Calculate Field et Calculate Geometry Attributes ; Arcade `$feature.SUPERFICIE` correspond à `"SUPERFICIE"`.
+4. **Écarts supérieurs à 1 m²** : sélection par expression `abs("ecart") > 1`. Explications possibles : la surface officielle est arrondie au m² et inscrite au registre foncier, elle peut provenir d'une ancienne mensuration ou d'un calcul antérieur à une retouche géométrique ; enfin, l'utilisation de `$area` avec un ellipsoïde fausse la comparaison.
+
+### Résolution de l'étape 7 {#resolution-7}
+
+1. **Biens-fonds dans un type de zone** : sur la couche d'affectation primaire, sélectionner par expression `"CODE_TYPE_VS" = 111` (111 = zone d'habitation). Puis Vecteur > Outils de recherche > Sélection par localisation : entités des biens-fonds, prédicat « intersectent », comparaison avec l'affectation primaire, case « Entités sélectionnées uniquement » cochée.
+   - *Lien ArcGIS* : Select By Location avec une sélection active sur la couche de comparaison.
+2. **« Intersecte » ou « est contenu dans »** : « intersectent » retient aussi les parcelles qui ne font que toucher la zone par une limite commune, ainsi que celles à cheval sur plusieurs zones. « Sont à l'intérieur » ne retient que les parcelles entièrement dans la zone et exclut donc les parcelles à cheval. Pour écarter les simples contacts de limite, le prédicat « chevauchent » ou une petite marge négative est plus adapté.
+3. **Intersection** : Vecteur > Outils de géotraitement > Intersection. Couche source : biens-fonds de Sion ; couche de superposition : affectation primaire de Sion ; laisser vides les listes de champs pour tout conserver ; sortie en GeoPackage, par exemple `bf_paz.gpkg`. En cas d'erreur de géométrie, réparer les couches d'abord (Boîte à outils > « Réparer les géométries ») ou régler Traitement > Options > « Filtrage des entités invalides ».
+   - *Lien ArcGIS* : Pairwise Intersect ou Intersect.
+4. **Surface et pourcentage** : Calculatrice de champs sur `bf_paz` :
+   - `surf_part = area($geometry)`
+   - `pct = round(100 * "surf_part" / to_real("SUPERFICIE"), 1)`, ou rapporté à `surf_calc` si ce champ a été créé à l'étape 6, pour que les pourcentages d'une parcelle totalisent 100 %.
+   - Supprimer les éclats : sélectionner `"surf_part" < 1` et examiner ces morceaux avant de les effacer. Ils viennent du fait que les limites du PAZ et de la MO ne coïncident pas exactement.
+5. **Tableau récapitulatif** : Boîte à outils > « Statistiques par catégories », champ de catégorie = `TYPE_VS_FR`, champ à résumer = `surf_part`. Le résultat est une table sans géométrie, à ouvrir ou à exporter en CSV / XLSX.
+   - *Lien ArcGIS* : Summary Statistics avec un Case field.
+6. **Modèle réutilisable** : Traitement > Modeleur graphique.
+   - Entrées : deux paramètres « Couche vecteur » (Biens-fonds, Affectation).
+   - Algorithmes enchaînés : Intersection, puis Calculatrice de champ (`surf_part`), puis Calculatrice de champ (`pct`), puis Statistiques par catégories.
+   - Sorties : la couche `bf_paz` et la table récapitulative.
+   - Enregistrer le modèle (`.model3`) dans le projet ou dans les modèles utilisateur ; il apparaît dans la Boîte à outils et peut être lancé en mode lot sur plusieurs communes. Le modèle peut aussi être exporté en script Python.
+   - *Lien ArcGIS* : ModelBuilder, et l'export d'un modèle en script Python.
+
+## Sources
+
+- [Webmap MO du Canton du Valais (définition JSON)](https://www.arcgis.com/sharing/rest/content/items/b3b8e651c5a54c0eb56e708c9b21b2e3/data?f=json)
+- [geodienste.ch – Mensuration officielle](https://geodienste.ch/services/av?locale=fr)
+- [Procédure cantonale : visualisation des géoservices geodienste.ch (2019)](https://www.vs.ch/documents/17311/1697482/geodienste_visualisation_fr/1a929aaf-96f5-4412-a2a8-3e652a461e01)
+- [Communes valaisannes publiées sur geodienste.ch](https://www.vs.ch/documents/17311/3268979/Communes_sur_GEODIENSTE-Auf_GEODIENSTE_Gemeinde.pdf)

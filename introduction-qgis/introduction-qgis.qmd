@@ -58,3 +58,5 @@ Le module est découpé en 5 chapitres :
 8. Configurer un formulaire d'édition simple.
 9. Créer des signets et une vue 3D de base.
 
+Pour mettre ces notions en pratique sur des données valaisannes (MO et PAZ), en faisant le lien avec ArcGIS : [Exercice : passerelles ArcGIS – MO et PAZ en Valais](exercice-passerelles-arcgis.qmd).
+
