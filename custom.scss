@@ -1,0 +1,37 @@
+/*-- scss:defaults --*/
+
+// Couleurs IG group (tirées du logo)
+$ig-red: #e2231a;
+$ig-gray: #5b5b5d;
+
+$primary: $ig-red;
+$link-color: darken($ig-red, 8%);
+$headings-color: $ig-gray;
+
+/*-- scss:rules --*/
+
+// Pied de page fixé en bas de l'écran, toujours visible
+$footer-height: 3.5em;
+
+footer.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+}
+
+// Réserve la place du pied de page pour ne pas masquer la fin du contenu
+body {
+  padding-bottom: $footer-height;
+}
+
+#quarto-sidebar,
+#quarto-margin-sidebar {
+  padding-bottom: $footer-height;
+}
+
+.sidebar-navigation .sidebar-item-container .active,
+.sidebar nav[role="doc-toc"] ul > li > a.active {
+  color: $ig-red !important;
+}

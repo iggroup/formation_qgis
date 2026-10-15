@@ -5,9 +5,19 @@ project:
 website:
   title: "Formation QGIS"
   page-navigation: true
+  page-footer:
+    left: "© IG group SA"
+    center: "[![](/assets/IG_horizontal_seul.png){height=28px fig-alt=\"IG group\"}](https://www.ig-group.ch/geoinformation/)"
+    right:
+      - text: "www.ig-group.ch"
+        href: https://www.ig-group.ch/geoinformation/
   sidebar:
     style: docked
     search: true
+    collapse-level: 1
+    logo: assets/IG_horizontal_seul.png
+    logo-href: https://www.ig-group.ch/geoinformation/
+    logo-alt: "IG group – site web"
     contents:
       - href: index.qmd
         text: Accueil
@@ -27,6 +37,8 @@ website:
             text: "Édition, export et mise en page"
           - href: introduction-qgis/formulaires-signets-3d.qmd
             text: "Formulaires, signets et introduction 3D"
+          - href: introduction-qgis/exercice-passerelles-arcgis.qmd
+            text: "Exercice : passerelles ArcGIS (MO et PAZ)"
       - section: "Base de données et projet QGIS"
         contents:
           - href: base-de-donnees/prerequis-logiciels-bd.qmd
@@ -80,7 +92,9 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme:
+      - cosmo
+      - custom.scss
     toc: true
     mermaid:
       theme: neutral
