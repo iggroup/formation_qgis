@@ -160,7 +160,7 @@ Vous préparez un projet QGIS modèle pour l'équipe de mensuration officielle, 
 3. Pour l'ensemble des biens-fonds de Sion, créez une couche qui découpe chaque parcelle selon les zones d'affectation et conserve les attributs des deux couches.
 4. Dans cette nouvelle couche, calculez la surface de chaque morceau et son pourcentage par rapport à la surface de la parcelle.
 5. Produisez un tableau récapitulatif : surface totale de biens-fonds par type d'affectation.
-6. Enchaînez les opérations 3 et 4 dans un modèle de traitement réutilisable pour une autre commune.
+
 
 [→ Méthode de résolution](#resolution-7)
 
@@ -178,24 +178,13 @@ Chaque tâche reprend la numérotation de la Partie 1. Les chemins de menus corr
 4. **Lots de mensuration** : sous MO > MapServer, la sous-couche 999 peut être ajoutée seule ; QGIS la charge alors comme couche vecteur. Filtre : clic droit > Filtrer…, expression `"LIBELLE" <> 'NULL'` (reprise de la webmap : la valeur vide y est stockée sous forme de texte, à vérifier dans la table). Étiquettes : Propriétés > Étiquettes > Étiquettes simples, valeur = `LIBELLE`.
    - *Lien ArcGIS* : Definition Query, et l'expression Arcade `$feature["LIBELLE"]` qui devient `"LIBELLE"` en expression QGIS.
 5. **Plans d'aménagement** : le service PAZ (`https://sit.vs.ch/arcgis/rest/services/PAZ/MapServer`) est un MapServer, accessible par la connexion créée à la tâche 3. Ajouté en entier, il s'affiche comme une image. Ajoutée seule, la sous-couche « Affectations primaires » (identifiant 4) est chargée comme couche vecteur, car le serveur autorise les requêtes ; QGIS convertit alors son rendu officiel, une catégorie par code `CODE_TYPE_VS` (111 Zone d'habitation, 121 Zone artisanale, 211 Zone agricole 1, etc.). Champs utiles : `COMMUNE`, `CODE_TYPE_VS`, `TYPE_VS_FR`. La couche n'est visible qu'en dessous du 1:130 000 ; le serveur renvoie 2 000 entités par requête et QGIS enchaîne les requêtes automatiquement.
-6. **File Geodatabases** : dans le Navigateur, les dossiers `.gdb` apparaissent comme des conteneurs ; les déplier et glisser les couches dans le projet (ou Couche > Ajouter une couche vecteur > Répertoire > OpenFileGDB). QGIS lit les classes d'entités, les tables, les alias et les domaines (visibles dans le Navigateur sous « Domaines de champs », et appliqués comme listes de valeurs dans les formulaires). Les classes de relation peuvent être découvertes dans Projet > Propriétés > Relations > « Découvrir les relations ». Les topologies, règles attributaires, annotations et réseaux ne sont pas lus.
-   - *Lien ArcGIS* : feature class, feature dataset, domaines, relationship class.
+6. **File Geodatabases** : dans le Navigateur, les dossiers `.gdb` apparaissent comme des conteneurs ; les déplier et glisser les couches dans le projet (ou Couche > Ajouter une couche vecteur > Répertoire > OpenFileGDB). QGIS lit les classes d'entités, les tables, les alias et les domaines (visibles dans le Navigateur sous « Domaines de champs »)
 7. **geodienste.ch** : sur [geodienste.ch – MO](https://geodienste.ch/services/av?locale=fr), le bouton « Obtenir le service » donne les URL WMS et WFS (la procédure cantonale de 2019 indiquait `https://geodienste.ch/db/av/fra`, à vérifier). WMS : Couche > Ajouter une couche > Ajouter une couche WMS/WMTS > Nouveau. WFS : Couche > Ajouter une couche > Ajouter une couche WFS / OGC API – Entités > Nouveau. La MO valaisanne y est marquée incomplète et mise à jour annuellement ; la liste des communes publiées figure dans [ce PDF cantonal](https://www.vs.ch/documents/17311/3268979/Communes_sur_GEODIENSTE-Auf_GEODIENSTE_Gemeinde.pdf).
-8. **Carte de base** : clic droit dans la légende > Ajouter un groupe, nommé « Carte de base ». Créer une connexion WMS/WMTS avec `https://wmts.geo.admin.ch/EPSG/2056/1.0.0/WMTSCapabilities.xml`, puis, dans l'onglet Tuiles, ajouter `ch.swisstopo.pixelkarte-farbe`, `ch.swisstopo.pixelkarte-grau` et `ch.swisstopo.swissimage`. Fond léger : Couche > Ajouter une couche > Ajouter une couche de tuiles vectorielles > Nouvelle connexion générique, URL du style `https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json` (URL des tuiles si demandée : `https://vectortiles.geo.admin.ch/tiles/ch.swisstopo.base.vt/v1.0.0/{z}/{x}/{y}.pbf`). Ce fond est en Web Mercator et est reprojeté à la volée.
-   - *Lien ArcGIS* : la webmap utilise aussi un fond vectoriel AGOL (« Canton_style_LV95 »), qu'on peut charger dans QGIS comme service de tuiles vectorielles Esri.
-9. **Organisation** : créer quatre groupes (Services cantonaux ArcGIS, geodienste OGC, Données GDB, Carte de base) et y glisser les couches. Mettre la carte de base en bas et cocher « Groupe mutuellement exclusif » pour n'afficher qu'un fond à la fois.
+8. **Carte de base** : clic droit dans la légende > Ajouter un groupe, nommé « Carte de base ». Chercher les couches dans la barre de recherche en bas à gauche grâce au plugin `swisslocator`
+   - Alternativement, Créer une connexion WMS/WMTS avec `https://wmts.geo.admin.ch/EPSG/2056/1.0.0/WMTSCapabilities.xml`, puis, dans l'onglet Tuiles, ajouter `ch.swisstopo.pixelkarte-farbe`, `ch.swisstopo.pixelkarte-grau` et `ch.swisstopo.swissimage`. Fond léger : Couche > Ajouter une couche > Ajouter une couche de tuiles vectorielles > Nouvelle connexion générique, URL du style `https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json` 
+9.  **Organisation** : créer quatre groupes (Services cantonaux ArcGIS, geodienste OGC, Données GDB, Carte de base) et y glisser les couches. Mettre la carte de base en bas et cocher « Groupe mutuellement exclusif » pour n'afficher qu'un fond à la fois.
 10. **Modèle de projet** : Préférences > Options > Général > « Modèles de projet » indique le dossier des modèles (un dossier réseau partagé est possible). Enregistrer le projet `.qgz` dans ce dossier : il apparaît dans Projet > Nouveau à partir d'un modèle. Utiliser des chemins relatifs (Projet > Propriétés > Général) si les GDB sont livrées avec le projet.
     - *Lien ArcGIS* : modèle de projet `.aptx`.
-
-**Corrigé de la synthèse**
-
-| Critère | MapServer cantonal | geodienste WMS / WFS | badoc.gdb |
-|---|---|---|---|
-| Changer le style | Non (image) | WMS non, WFS oui | Oui |
-| Filtrer les objets | Non, sauf sous-couche chargée en vecteur | WMS non, WFS oui | Oui |
-| Table attributaire | Non (Identifier seulement) | WMS non, WFS oui | Oui |
-| Hors connexion | Non | Non | Oui |
-| Actualité | Base cantonale de production | Publication cantonale (annuelle pour VS) | Date de l'extraction |
 
 ### Résolution de l'étape 2 {#resolution-2}
 
@@ -225,7 +214,7 @@ Chaque tâche reprend la numérotation de la Partie 1. Les chemins de menus corr
    - *Lien ArcGIS* : domaines à valeurs codées, valeurs par défaut des champs et Attribute rules.
 3. **Digitalisation libre** : sélectionner la couche `secteur`, basculer en mode édition (icône crayon), puis outil « Ajouter une entité polygone » (Ctrl+.). Clic gauche pour chaque sommet, clic droit pour terminer, puis remplir le formulaire. Retour arrière efface le dernier sommet, Échap annule le polygone en cours. Pour s'appuyer sur le parcellaire, activer l'accrochage (barre d'outils Accrochage, icône de l'aimant, « Configuration avancée » sur la couche des biens-fonds, sommets et segments).
    - *Lien ArcGIS* : Edit > Create Features et Snapping.
-4. **Emprise rectangulaire** : barre d'outils Numérisation de forme > « Rectangle à partir de 3 points (distance) » ou « Rectangle à partir de l'étendue ». Pour des dimensions exactes, ouvrir le panneau Numérisation avancée (Vue > Panneaux) et saisir la longueur (d) et l'angle (a) de chaque côté. Astuce : donner au rectangle les proportions du cadre de carte de la mise en page (par exemple 360 m × 520 m pour un cadre de 18 × 26 cm au 1:2 000).
+4. **Emprise rectangulaire** : barre d'outils Numérisation de forme > « Rectangle à partir de 3 points (distance) » ou « Rectangle à partir de l'étendue ».
 5. **Modification** : « Outil de nœud » de la barre Numérisation. Glisser un sommet pour le déplacer, double-cliquer sur un segment pour ajouter un sommet, sélectionner un sommet et appuyer sur Suppr pour le supprimer. « Déplacer l'entité » déplace le polygone entier. Enregistrer les modifications (icône disquette), puis quitter le mode édition.
    - *Lien ArcGIS* : Edit Vertices, Move et Save Edits.
 
@@ -294,12 +283,7 @@ Chaque tâche reprend la numérotation de la Partie 1. Les chemins de menus corr
    - Supprimer les éclats : sélectionner `"surf_part" < 1` et examiner ces morceaux avant de les effacer. Ils viennent du fait que les limites du PAZ et de la MO ne coïncident pas exactement.
 5. **Tableau récapitulatif** : Boîte à outils > « Statistiques par catégories », champ de catégorie = `TYPE_VS_FR`, champ à résumer = `surf_part`. Le résultat est une table sans géométrie, à ouvrir ou à exporter en CSV / XLSX.
    - *Lien ArcGIS* : Summary Statistics avec un Case field.
-6. **Modèle réutilisable** : Traitement > Modeleur graphique.
-   - Entrées : deux paramètres « Couche vecteur » (Biens-fonds, Affectation).
-   - Algorithmes enchaînés : Intersection, puis Calculatrice de champ (`surf_part`), puis Calculatrice de champ (`pct`), puis Statistiques par catégories.
-   - Sorties : la couche `bf_paz` et la table récapitulative.
-   - Enregistrer le modèle (`.model3`) dans le projet ou dans les modèles utilisateur ; il apparaît dans la Boîte à outils et peut être lancé en mode lot sur plusieurs communes. Le modèle peut aussi être exporté en script Python.
-   - *Lien ArcGIS* : ModelBuilder, et l'export d'un modèle en script Python.
+
 
 ## Sources
 
