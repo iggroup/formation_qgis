@@ -11,12 +11,69 @@ format:
 
 Cet exercice fait découvrir QGIS sur la base de données spécifiques au Valais et au domaine de la Mensuration Officielle.
 
-Le document comporte deux parties :
+Le document comporte les chapitres suivants :
 
+- **[Dictionnaire ArcGIS – QGIS](#dictionnaire)** : les correspondances de vocabulaire entre les deux logiciels, outils courants puis outils avancés.
+- **[Données fournies](#donnees)** : les fichiers et géoservices utilisés dans l'exercice.
 - **[Partie 1 – Consignes](#partie-1)** : ce qu'il faut réaliser, étape par étape, avec les sources de données.
 - **[Partie 2 – Proposition de méthodes de résolution](#partie-2)** : le pas-à-pas dans QGIS pour chaque tâche, à consulter en cas de blocage.
+- **[Sources](#sources)** : les documents de référence utilisés pour préparer l'exercice.
 
-### Données fournies
+### Dictionnaire ArcGIS – QGIS {#dictionnaire}
+
+Les mêmes notions portent souvent un autre nom dans les deux logiciels. Ces tableaux servent de repère pendant tout l'exercice.
+
+#### Outils courants
+
+Les notions utilisées au quotidien, dès les premières étapes de l'exercice.
+
+| Thème | ArcGIS Pro / ArcGIS Online | QGIS |
+|---|---|---|
+| Projet | Projet `.aprx` | Projet `.qgz` / `.qgs` |
+| Interface | Contents pane | Panneau Couches |
+| Interface | Catalog pane | Panneau Navigateur |
+| Interface | Bookmarks | Signets spatiaux |
+| Données | File Geodatabase | GeoPackage (format ouvert équivalent) ; FGDB lue et écrite via GDAL |
+| Données | Feature class | Couche vecteur |
+| Données | Add Join | Jointures (propriétés de la couche) |
+| Services | Feature Layer (FeatureServer) | Couche ArcGIS REST chargée en vecteur |
+| Services | Map Image Layer (MapServer) | Couche ArcGIS REST chargée en image |
+| Services | Basemap | Groupe de fonds de plan (WMTS, XYZ, tuiles vectorielles) |
+| Symbologie | Fichier de couche `.lyrx` | Style `.qml`, définition de couche `.qlr`, ou SLD pour l'échange |
+| Symbologie | Apply Symbology From Layer | Copier le style / Coller le style |
+| Sélection | Definition Query | Filtre de couche |
+| Sélection | Select By Attributes | Sélectionner des entités avec une expression |
+| Sélection | Select By Location | Sélection par localisation |
+| Calcul | Calculate Field | Calculatrice de champs |
+| Calcul | Calculate Geometry Attributes | `area($geometry)`, `$area`, `$length` |
+| Traitements | Geoprocessing toolbox | Boîte à outils de traitements |
+| Mise en page | Layout | Mise en page |
+| Mise en page | Map Series | Atlas |
+| Terrain | Field Maps | QField, Mergin Maps |
+
+#### Outils avancés
+
+Les notions de modélisation, d'automatisation et de personnalisation, utilisées dans les dernières étapes.
+
+| Thème | ArcGIS Pro / ArcGIS Online | QGIS |
+|---|---|---|
+| Projet | Modèle de projet `.aptx` | Modèle de projet (dossier des modèles) |
+| Données | Feature dataset | Pas d'équivalent ; la GDB apparaît comme un conteneur |
+| Données | Domaines | Widgets « Liste de valeurs » et « Relation de valeur » |
+| Données | Relationship class | Relations du projet |
+| Données | Attribute rules | Valeurs par défaut et contraintes des champs |
+| Services | Vector Tile Layer | Couche de tuiles vectorielles |
+| Symbologie | Reference scale | Échelle de référence (Symbologie > Rendu de la couche) |
+| Calcul | Arcade (`$feature.CHAMP`) | Expressions QGIS (`"CHAMP"`) |
+| Traitements | ModelBuilder | Modeleur graphique (`.model3`) |
+| Traitements | ArcPy | PyQGIS |
+| Traitements | Summary Statistics (Case field) | Statistiques par catégories |
+| Mise en page | Fichier de mise en page `.pagx` | Modèle de mise en page `.qpt` |
+| Mise en page | Dynamic Text | Étiquette avec expression `[% … %]` |
+| Mise en page | Page Query | Règle de style utilisant `@atlas_feature` |
+| Échange | Data Interoperability (INTERLIS) | Plugin Model Baker |
+
+## Données fournies
 
 | Donnée | Format | Contenu |
 |---|---|---|
@@ -25,49 +82,6 @@ Le document comporte deux parties :
 | Géoservices cantonaux | ArcGIS Online : <https://services1.arcgis.com/rMlsWo8szOzlrpCq/arcgis/rest/services/><br>ArcGIS Server (WMS ou WFS) : <https://sit.vs.ch/arcgis/rest/services/> | Communes, MO, plans d'aménagement |
 | Géoservices geodienste.ch | WMS / WFS : <https://geodienste.ch/db/av/fra><br>Pour d'autres données, voir les liens sur <https://www.geodienste.ch/> | MO harmonisée au niveau suisse |
 | Géoservices swisstopo | WMTS / tuiles vectorielles<br>Passer par le plugin *swisslocator* pour les afficher<br>Passer par le plugin *swissgeodownloader* pour les télécharger | Cartes nationales, SWISSIMAGE, fond de plan léger |
-
-### Dictionnaire ArcGIS – QGIS
-
-Les mêmes notions portent souvent un autre nom dans les deux logiciels. Ce tableau sert de repère pendant tout l'exercice.
-
-| Thème | ArcGIS Pro / ArcGIS Online | QGIS |
-|---|---|---|
-| Projet | Projet `.aprx` | Projet `.qgz` / `.qgs` |
-| Projet | Modèle de projet `.aptx` | Modèle de projet (dossier des modèles) |
-| Interface | Contents pane | Panneau Couches |
-| Interface | Catalog pane | Panneau Navigateur |
-| Interface | Bookmarks | Signets spatiaux |
-| Données | File Geodatabase | GeoPackage (format ouvert équivalent) ; FGDB lue et écrite via GDAL |
-| Données | Feature class | Couche vecteur |
-| Données | Feature dataset | Pas d'équivalent ; la GDB apparaît comme un conteneur |
-| Données | Domaines | Widgets « Liste de valeurs » et « Relation de valeur » |
-| Données | Relationship class | Relations du projet |
-| Données | Attribute rules | Valeurs par défaut et contraintes des champs |
-| Données | Add Join | Jointures (propriétés de la couche) |
-| Services | Feature Layer (FeatureServer) | Couche ArcGIS REST chargée en vecteur |
-| Services | Map Image Layer (MapServer) | Couche ArcGIS REST chargée en image |
-| Services | Vector Tile Layer | Couche de tuiles vectorielles |
-| Services | Basemap | Groupe de fonds de plan (WMTS, XYZ, tuiles vectorielles) |
-| Symbologie | Fichier de couche `.lyrx` | Style `.qml`, définition de couche `.qlr`, ou SLD pour l'échange |
-| Symbologie | Reference scale | Échelle de référence (Symbologie > Rendu de la couche) |
-| Symbologie | Apply Symbology From Layer | Copier le style / Coller le style |
-| Sélection | Definition Query | Filtre de couche |
-| Sélection | Select By Attributes | Sélectionner des entités avec une expression |
-| Sélection | Select By Location | Sélection par localisation |
-| Calcul | Arcade (`$feature.CHAMP`) | Expressions QGIS (`"CHAMP"`) |
-| Calcul | Calculate Field | Calculatrice de champs |
-| Calcul | Calculate Geometry Attributes | `area($geometry)`, `$area`, `$length` |
-| Traitements | Geoprocessing toolbox | Boîte à outils de traitements |
-| Traitements | ModelBuilder | Modeleur graphique (`.model3`) |
-| Traitements | ArcPy | PyQGIS |
-| Traitements | Summary Statistics (Case field) | Statistiques par catégories |
-| Mise en page | Layout | Mise en page |
-| Mise en page | Fichier de mise en page `.pagx` | Modèle de mise en page `.qpt` |
-| Mise en page | Dynamic Text | Étiquette avec expression `[% … %]` |
-| Mise en page | Map Series | Atlas |
-| Mise en page | Page Query | Règle de style utilisant `@atlas_feature` |
-| Terrain | Field Maps | QField, Mergin Maps |
-| Échange | Data Interoperability (INTERLIS) | Plugin Model Baker |
 
 ## Partie 1 – Consignes d'exercice {#partie-1}
 
