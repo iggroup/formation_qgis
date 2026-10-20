@@ -31,6 +31,20 @@ body {
   padding-bottom: $footer-height;
 }
 
+// À l'impression, un élément fixe est répété sur chaque page et masque le texte :
+// le pied de page reprend sa place normale, en fin de document
+@media print {
+  footer.footer {
+    position: static;
+  }
+
+  body,
+  #quarto-sidebar,
+  #quarto-margin-sidebar {
+    padding-bottom: 0;
+  }
+}
+
 .sidebar-navigation .sidebar-item-container .active,
 .sidebar nav[role="doc-toc"] ul > li > a.active {
   color: $ig-red !important;
