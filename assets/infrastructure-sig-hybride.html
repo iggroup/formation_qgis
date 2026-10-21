@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Infrastructure SIG hybride</title>
 <style>
-/* Layout: un schéma large en trois bandes (clients / serveurs / données), coupé ouvert | propriétaire, suivi du tableau de référence des liaisons */
+/* Layout: un schéma large en trois bandes (clients / serveurs / données), coupé ouvert | propriétaire ; le détail des liaisons s'affiche en infobulle */
 :root{
   --bg:#f3f5f4; --surface:#ffffff; --fg:#1b2228; --muted:#5a6670; --line:#d3d9dd;
   --edge:#56636e; --warn:#c27a06; --warn-bg:#fff4dc; --warn-ink:#7a4700; --warn-num:#ffffff;
@@ -43,6 +43,11 @@ button:focus-visible,.node:focus-visible,tr:focus-visible{outline:2px solid var(
 .detail{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px 16px;min-height:76px}
 .detail p{margin:4px 0 0;max-width:90ch}
 .detail .hint{color:var(--muted);margin:0}
+.tip{position:fixed;z-index:20;max-width:340px;background:var(--surface);color:var(--fg);
+  border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 20px rgba(20,30,40,.18);
+  padding:10px 12px;font-size:13.5px;line-height:1.45;pointer-events:none}
+.tip .tt{font-weight:600;margin-bottom:4px}
+.tip .tp{margin-top:6px}
 .d-num{font-family:var(--mono);font-weight:600;color:var(--muted);margin-right:4px}
 
 /* SVG */
@@ -79,22 +84,8 @@ button:focus-visible,.node:focus-visible,tr:focus-visible{outline:2px solid var(
 .node.is-dim{opacity:.35}
 .is-hidden{display:none}
 
-/* Tableau */
-.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
-th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
-thead th{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-tr.grp th{font-family:var(--sans);font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;background:var(--bg);color:var(--fg)}
-td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);width:2.5em}
-td.l{font-weight:600;white-space:nowrap}
-tbody tr.row{cursor:pointer;transition:background .12s,opacity .12s}
-tbody tr.row.is-hot{background:var(--bg)}
-tbody tr.row.row-dim{opacity:.4}
-
-.notes ul{margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:80ch}
-.sources{font-size:13px;color:var(--muted)}
-.sources ul{margin:4px 0 0;padding-left:1.2em}
-.sources a{color:var(--prop)}
+.badge:focus{outline:none}
+.badge:focus-visible circle{stroke-width:3}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 
@@ -124,16 +115,7 @@ tbody tr.row.row-dim{opacity:.4}
   </div>
 
   <div class="detail" id="detail" aria-live="polite"></div>
-
-  <section>
-    <h2>Les liaisons en détail</h2>
-    <div class="table-scroll">
-      <table>
-        <thead><tr><th>#</th><th>Liaison</th><th>Accès</th><th>Ce qu'il faut savoir</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-  </section>
+  <div class="tip" id="tip" role="tooltip" hidden></div>
 
 </main>
 
@@ -257,8 +239,7 @@ E.forEach(e=>{
   const d = pathOf(e);
   e.path = el('path',{d, class:'edge '+e.s+' '+e.r},gEdges);
   e.hit  = el('path',{d, class:'hit'},gEdges);
-  const b = e.badge = el('g',{class:'badge '+e.s},gBadges);
-  el('title',{},b, e.n+'. '+e.t+' ('+accessLabel(e)+')');
+  const b = e.badge = el('g',{class:'badge '+e.s, tabindex:0, role:'button', 'aria-label':'Liaison '+e.n+' : '+e.t},gBadges);
   el('circle',{cx:0,cy:0,r:10,class:'ok-c'},b);
   el('text',{x:0,y:3.6,'text-anchor':'middle',class:'num'},b,e.n);
 });
@@ -297,25 +278,10 @@ function placeBadges(){
 }
 placeBadges();
 
-// Tableau
-const rows = document.getElementById('rows');
-function grp(label){ const tr = document.createElement('tr'); tr.className='grp'; const th=document.createElement('th'); th.colSpan=4; th.textContent=label; tr.appendChild(th); rows.appendChild(tr); }
 function statusHTML(e){
   const acc = e.r==='ro' ? 'Lecture seule' : e.r==='cp' ? 'Copie vers le cloud' : 'Lecture-écriture';
   return `<span class="pill-ok">${acc}</span>` + (e.s==='warn' ? ' <span class="pill-warn">Limitée</span>' : '');
 }
-grp('Connexions directes : client ↔ données');
-E.forEach((e,i)=>{
-  if (i===10) grp('Via un serveur cartographique');
-  const tr = document.createElement('tr'); tr.className='row'; tr.tabIndex=0;
-  tr.innerHTML = `<td class="n">${e.n}</td><td class="l"></td><td>${statusHTML(e)}</td><td></td>`;
-  tr.children[1].textContent = e.t; tr.children[3].textContent = e.d;
-  rows.appendChild(tr); e.row = tr;
-  tr.addEventListener('mouseenter', ()=>{ state.hover=e; render(); });
-  tr.addEventListener('mouseleave', ()=>{ state.hover=null; render(); });
-  tr.addEventListener('click', ()=>{ state.pinned = state.pinned===e ? null : e; render(); });
-  tr.addEventListener('keydown', ev=>{ if (ev.key==='Enter'){ state.pinned = state.pinned===e ? null : e; render(); } });
-});
 
 // État et interactions
 const state = {filter:'all', node:null, pinned:null, hover:null};
@@ -338,19 +304,13 @@ function render(){
     e.path.classList.toggle('is-dim', dim);
     e.badge.classList.toggle('is-dim', dim);
     e.path.classList.toggle('is-hot', hot);
-    e.row.classList.toggle('is-hot', hot);
-    e.row.classList.toggle('row-dim', !vis || !on);
     if (vis && on){ linked.add(e.a); linked.add(e.b); }
   });
   Object.keys(N).forEach(k=>{
     N[k].g.classList.toggle('is-dim', !!state.node && !linked.has(k));
     N[k].g.classList.toggle('is-sel', state.node===k);
   });
-  if (active){
-    detail.innerHTML = `<div><span class="d-num">${active.n}.</span><strong></strong> ${statusHTML(active)}</div><p></p>`;
-    detail.querySelector('strong').textContent = active.t;
-    detail.querySelector('p').textContent = active.d;
-  } else if (state.node){
+  if (state.node){
     const n = N[state.node];
     const list = E.filter(e=>visible(e) && (e.a===state.node || e.b===state.node));
     const ro = list.filter(e=>e.r==='ro').length;
@@ -358,22 +318,55 @@ function render(){
     detail.querySelector('strong').textContent = n.t;
     detail.querySelector('p').textContent = `${list.length} liaison${list.length>1?'s':''} affichée${list.length>1?'s':''}, dont ${ro} en lecture seule. Survolez une liaison pour le détail, ou cliquez à nouveau sur la boîte pour tout réafficher.`;
   } else {
-    detail.innerHTML = '<p class="hint">Survolez ou touchez une liaison (ligne ou étiquette) pour lire ses limites. Cliquez sur une boîte pour isoler ses connexions.</p>';
+    detail.innerHTML = '<p class="hint">Survolez une liaison (ligne ou numéro) pour afficher son commentaire ; sur écran tactile, touchez-la. Cliquez sur une boîte pour isoler ses connexions.</p>';
   }
 }
 
+// Infobulle des liaisons : suit la souris, ou se fixe près du numéro au clic / toucher
+const tip = document.getElementById('tip');
+let tipEdge = null;
+function showTip(e, x, y){
+  if (tipEdge !== e){
+    tip.innerHTML = `<div class="tt"><span class="d-num">${e.n}.</span><span></span></div><div>${statusHTML(e)}</div><div class="tp"></div>`;
+    tip.querySelector('.tt span:last-child').textContent = e.t;
+    tip.querySelector('.tp').textContent = e.d;
+    tipEdge = e;
+  }
+  tip.hidden = false;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let l = x + 16, t = y + 16;
+  if (l + w > window.innerWidth - 8) l = Math.max(8, x - w - 16);
+  if (t + h > window.innerHeight - 8) t = Math.max(8, y - h - 16);
+  tip.style.left = l + 'px'; tip.style.top = t + 'px';
+}
+function showTipAtBadge(e){
+  const r = e.badge.getBoundingClientRect();
+  showTip(e, r.left + r.width/2, r.top + r.height/2);
+}
+function hideTip(){ tip.hidden = true; tipEdge = null; }
+
 E.forEach(e=>{
   [e.hit, e.badge].forEach(x=>{
-    x.addEventListener('mouseenter', ()=>{ state.hover=e; render(); });
-    x.addEventListener('mouseleave', ()=>{ state.hover=null; render(); });
-    x.addEventListener('click', ev=>{ ev.stopPropagation(); state.pinned = state.pinned===e ? null : e; render(); });
+    x.addEventListener('mouseenter', ev=>{ state.hover=e; render(); showTip(e, ev.clientX, ev.clientY); });
+    x.addEventListener('mousemove', ev=>{ showTip(e, ev.clientX, ev.clientY); });
+    x.addEventListener('mouseleave', ()=>{ state.hover=null; render(); if (state.pinned) showTipAtBadge(state.pinned); else hideTip(); });
+    x.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      state.pinned = state.pinned===e ? null : e; render();
+      if (state.pinned) showTipAtBadge(e); else hideTip();
+    });
   });
 });
-svg.addEventListener('click', ()=>{ state.pinned=null; state.node=null; render(); });
+E.forEach(e=>{
+  e.badge.addEventListener('focus', ()=>{ state.hover=e; render(); showTipAtBadge(e); });
+  e.badge.addEventListener('blur', ()=>{ state.hover=null; render(); if (state.pinned) showTipAtBadge(state.pinned); else hideTip(); });
+});
+svg.addEventListener('click', ()=>{ state.pinned=null; state.node=null; render(); hideTip(); });
+window.addEventListener('scroll', ()=>{ if (!state.hover) hideTip(); }, {passive:true});
 
 document.querySelectorAll('.filters button').forEach(b=>{
   b.addEventListener('click', ()=>{
-    state.filter = b.dataset.f; state.pinned = null;
+    state.filter = b.dataset.f; state.pinned = null; hideTip();
     document.querySelectorAll('.filters button').forEach(x=>x.setAttribute('aria-pressed', x===b ? 'true' : 'false'));
     render();
   });
@@ -383,7 +376,9 @@ render();
 
 // Transmet la hauteur du contenu à la page Quarto qui contient l'iframe
 function postHeight(){
-  if (window.parent !== window) window.parent.postMessage({type:'sig-hybride-height', h:document.documentElement.scrollHeight}, '*');
+  // hauteur du contenu lui-même : scrollHeight du document ne descend jamais sous la hauteur actuelle de l'iframe
+  const h = Math.ceil(document.querySelector('.wrap').getBoundingClientRect().height);
+  if (window.parent !== window) window.parent.postMessage({type:'sig-hybride-height', h}, '*');
 }
 window.addEventListener('load', postHeight);
 if (window.ResizeObserver) new ResizeObserver(postHeight).observe(document.body);
