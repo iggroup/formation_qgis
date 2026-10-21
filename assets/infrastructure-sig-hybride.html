@@ -75,17 +75,12 @@ button:focus-visible,.node:focus-visible,tr:focus-visible{outline:2px solid var(
 .edge.cp.is-hot{stroke-width:4}
 .edge.is-hot{stroke-width:3.4}
 .hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer;pointer-events:stroke}
-.badge{cursor:pointer;transition:opacity .15s}
-.badge .ok-c{fill:var(--surface);stroke:var(--edge);stroke-width:1.3}
-.badge .num{font:600 10.5px var(--mono);fill:var(--fg)}
-.badge.warn .ok-c{fill:var(--warn-bg);stroke:var(--warn)}
-.badge.warn .num{fill:var(--warn-ink)}
 .is-dim{opacity:.1}
 .node.is-dim{opacity:.35}
 .is-hidden{display:none}
 
-.badge:focus{outline:none}
-.badge:focus-visible circle{stroke-width:3}
+.hit:focus{outline:none}
+.hit:focus-visible{stroke:var(--focus);stroke-opacity:.3}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 
@@ -127,9 +122,9 @@ const svg = document.getElementById('schema');
 const N = {
   qgis:  {x:250,  y:100, w:220, h:64, t:'QGIS Desktop',        s:'client SIG libre',            f:'open'},
   pro:   {x:850,  y:100, w:220, h:64, t:'ArcGIS Pro',          s:'client SIG Esri',             f:'prop'},
-  qsrv:  {x:200,  y:400, w:190, h:64, t:'QGIS Server',         s:'WMS · WFS · OGC API',         f:'open'},
-  asrv:  {x:810,  y:400, w:190, h:64, t:'ArcGIS Server',       s:'ArcGIS Enterprise · REST',    f:'prop'},
-  agol:  {x:1070, y:400, w:190, h:64, t:'ArcGIS Online',       s:'SaaS Esri · REST',            f:'prop'},
+  qsrv:  {x:200,  y:400, w:190, h:76, t:'QGIS Server',         s:['WMS · WMTS · WFS-T · WCS', 'OGC API Features'], f:'open'},
+  asrv:  {x:830,  y:400, w:230, h:76, t:'ArcGIS Server',       s:['REST : Map, Feature, Image', 'WMS · WMTS · WFS · WCS · OGC API · KML'], f:'prop'},
+  agol:  {x:1085, y:400, w:180, h:76, t:'ArcGIS Online',       s:'SaaS Esri · REST',            f:'prop'},
   gpkg:  {x:140,  y:690, w:180, h:64, t:'GeoPackage',          s:'.gpkg · standard OGC',        f:'open'},
   pg:    {x:375,  y:690, w:180, h:64, t:'PostgreSQL / PostGIS', s:'SGBD libre',                 f:'open'},
   fgdb:  {x:640,  y:690, w:180, h:64, t:'File Geodatabase',    s:'.gdb · format Esri',          f:'prop'},
@@ -199,7 +194,7 @@ el('text',{x:970,y:758,'text-anchor':'middle',class:'bracket-t'},svg,"géodataba
 el('path',{d:'M285,734 v6 H465 v-6',class:'bracket'},svg);
 el('text',{x:375,y:758,'text-anchor':'middle',class:'bracket-t'},svg,"géodatabase d'entreprise possible");
 
-const gEdges = el('g',{},svg), gNodes = el('g',{},svg), gBadges = el('g',{},svg);
+const gEdges = el('g',{},svg), gNodes = el('g',{},svg);
 
 // Côté d'accroche de chaque liaison sur chaque boîte
 function sideOf(e, k){
@@ -238,45 +233,21 @@ function pathOf(e){
 E.forEach(e=>{
   const d = pathOf(e);
   e.path = el('path',{d, class:'edge '+e.s+' '+e.r},gEdges);
-  e.hit  = el('path',{d, class:'hit'},gEdges);
-  const b = e.badge = el('g',{class:'badge '+e.s, tabindex:0, role:'button', 'aria-label':'Liaison '+e.n+' : '+e.t},gBadges);
-  el('circle',{cx:0,cy:0,r:10,class:'ok-c'},b);
-  el('text',{x:0,y:3.6,'text-anchor':'middle',class:'num'},b,e.n);
+  e.hit  = el('path',{d, class:'hit', tabindex:0, role:'button', 'aria-label':'Liaison '+e.t},gEdges);
 });
 
 Object.keys(N).forEach(k=>{
   const n = N[k];
   const g = n.g = el('g',{class:'node '+n.f, tabindex:0, role:'button', 'aria-label':n.t+' : afficher ses liaisons'},gNodes);
   el('rect',{x:n.x-n.w/2, y:n.y-n.h/2, width:n.w, height:n.h, rx:8},g);
-  el('text',{x:n.x, y:n.y-3, 'text-anchor':'middle', class:'nt'},g,n.t);
-  el('text',{x:n.x, y:n.y+16, 'text-anchor':'middle', class:'ns'},g,n.s);
+  // titre + une ou plusieurs lignes de sous-titre, centrés verticalement dans la boîte
+  const subs = Array.isArray(n.s) ? n.s : [n.s];
+  const top = n.y - (17 + 15*subs.length)/2;
+  el('text',{x:n.x, y:top+13, 'text-anchor':'middle', class:'nt'},g,n.t);
+  subs.forEach((s,i)=>el('text',{x:n.x, y:top+32+15*i, 'text-anchor':'middle', class:'ns'},g,s));
   g.addEventListener('click', ev=>{ ev.stopPropagation(); toggleNode(k); });
   g.addEventListener('keydown', ev=>{ if (ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); toggleNode(k); } });
 });
-
-// Placement des étiquettes sans chevauchement
-function placeBadges(){
-  const obst = Object.values(N).map(n=>({x:n.x-n.w/2-6, y:n.y-n.h/2-6, w:n.w+12, h:n.h+12}));
-  obst.push({x:200,y:18,w:100,h:22},{x:780,y:18,w:140,h:22},{x:8,y:48,w:80,h:20},{x:8,y:338,w:80,h:20},{x:8,y:628,w:80,h:20},{x:770,y:730,w:400,h:34},{x:260,y:730,w:230,h:34});
-  const ov = (a,b)=>{ const w=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x), h=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y); return (w>0&&h>0)?w*h:0; };
-  const cand = [.5]; for (let d=.04; d<=.42; d+=.04){ cand.push(.5-d, .5+d); }
-  const order = E.slice().sort((p,q)=>(p.s==='warn'?0:1)-(q.s==='warn'?0:1));
-  order.forEach(e=>{
-    const L = e.path.getTotalLength(), bw = 22, bh = 22;
-    let best = null;
-    for (const t of cand){
-      const p = e.path.getPointAtLength(L*t);
-      const r = {x:p.x-bw/2-3, y:p.y-bh/2-3, w:bw+6, h:bh+6};
-      let score = 0; obst.forEach(o=>score+=ov(r,o));
-      if (r.x<0 || r.x+r.w>1200) score += 5000;
-      if (!best || score < best.score) best = {p, r, score};
-      if (score === 0) break;
-    }
-    obst.push(best.r);
-    e.badge.setAttribute('transform', `translate(${best.p.x.toFixed(1)},${best.p.y.toFixed(1)})`);
-  });
-}
-placeBadges();
 
 function statusHTML(e){
   const acc = e.r==='ro' ? 'Lecture seule' : e.r==='cp' ? 'Copie vers le cloud' : 'Lecture-écriture';
@@ -299,10 +270,9 @@ function render(){
     const vis = visible(e);
     const on = !state.node || e.a===state.node || e.b===state.node;
     const hot = active === e;
-    [e.path, e.hit, e.badge].forEach(x=>x.classList.toggle('is-hidden', !vis));
+    [e.path, e.hit].forEach(x=>x.classList.toggle('is-hidden', !vis));
     const dim = vis && (!on || (active && !hot));
     e.path.classList.toggle('is-dim', dim);
-    e.badge.classList.toggle('is-dim', dim);
     e.path.classList.toggle('is-hot', hot);
     if (vis && on){ linked.add(e.a); linked.add(e.b); }
   });
@@ -318,17 +288,17 @@ function render(){
     detail.querySelector('strong').textContent = n.t;
     detail.querySelector('p').textContent = `${list.length} liaison${list.length>1?'s':''} affichée${list.length>1?'s':''}, dont ${ro} en lecture seule. Survolez une liaison pour le détail, ou cliquez à nouveau sur la boîte pour tout réafficher.`;
   } else {
-    detail.innerHTML = '<p class="hint">Survolez une liaison (ligne ou numéro) pour afficher son commentaire ; sur écran tactile, touchez-la. Cliquez sur une boîte pour isoler ses connexions.</p>';
+    detail.innerHTML = '<p class="hint">Survolez une liaison pour afficher son commentaire ; sur écran tactile, touchez-la. Cliquez sur une boîte pour isoler ses connexions.</p>';
   }
 }
 
-// Infobulle des liaisons : suit la souris, ou se fixe près du numéro au clic / toucher
+// Infobulle des liaisons : suit la souris, ou se fixe à l'endroit du clic / toucher
 const tip = document.getElementById('tip');
-let tipEdge = null;
+let tipEdge = null, pinXY = null;
 function showTip(e, x, y){
   if (tipEdge !== e){
-    tip.innerHTML = `<div class="tt"><span class="d-num">${e.n}.</span><span></span></div><div>${statusHTML(e)}</div><div class="tp"></div>`;
-    tip.querySelector('.tt span:last-child').textContent = e.t;
+    tip.innerHTML = `<div class="tt"></div><div>${statusHTML(e)}</div><div class="tp"></div>`;
+    tip.querySelector('.tt').textContent = e.t;
     tip.querySelector('.tp').textContent = e.d;
     tipEdge = e;
   }
@@ -339,27 +309,29 @@ function showTip(e, x, y){
   if (t + h > window.innerHeight - 8) t = Math.max(8, y - h - 16);
   tip.style.left = l + 'px'; tip.style.top = t + 'px';
 }
-function showTipAtBadge(e){
-  const r = e.badge.getBoundingClientRect();
-  showTip(e, r.left + r.width/2, r.top + r.height/2);
+// Milieu de la liaison en coordonnées écran (focus clavier)
+function midPoint(e){
+  const p = e.path.getPointAtLength(e.path.getTotalLength()/2), m = svg.getScreenCTM();
+  return {x: p.x*m.a + m.e, y: p.y*m.d + m.f};
+}
+function showPinned(){
+  const p = pinXY || midPoint(state.pinned);
+  showTip(state.pinned, p.x, p.y);
 }
 function hideTip(){ tip.hidden = true; tipEdge = null; }
 
 E.forEach(e=>{
-  [e.hit, e.badge].forEach(x=>{
-    x.addEventListener('mouseenter', ev=>{ state.hover=e; render(); showTip(e, ev.clientX, ev.clientY); });
-    x.addEventListener('mousemove', ev=>{ showTip(e, ev.clientX, ev.clientY); });
-    x.addEventListener('mouseleave', ()=>{ state.hover=null; render(); if (state.pinned) showTipAtBadge(state.pinned); else hideTip(); });
-    x.addEventListener('click', ev=>{
-      ev.stopPropagation();
-      state.pinned = state.pinned===e ? null : e; render();
-      if (state.pinned) showTipAtBadge(e); else hideTip();
-    });
+  const x = e.hit;
+  x.addEventListener('mouseenter', ev=>{ state.hover=e; render(); showTip(e, ev.clientX, ev.clientY); });
+  x.addEventListener('mousemove', ev=>{ showTip(e, ev.clientX, ev.clientY); });
+  x.addEventListener('mouseleave', ()=>{ state.hover=null; render(); if (state.pinned) showPinned(); else hideTip(); });
+  x.addEventListener('click', ev=>{
+    ev.stopPropagation();
+    state.pinned = state.pinned===e ? null : e; pinXY = {x:ev.clientX, y:ev.clientY}; render();
+    if (state.pinned) showPinned(); else hideTip();
   });
-});
-E.forEach(e=>{
-  e.badge.addEventListener('focus', ()=>{ state.hover=e; render(); showTipAtBadge(e); });
-  e.badge.addEventListener('blur', ()=>{ state.hover=null; render(); if (state.pinned) showTipAtBadge(state.pinned); else hideTip(); });
+  x.addEventListener('focus', ()=>{ state.hover=e; render(); const p = midPoint(e); showTip(e, p.x, p.y); });
+  x.addEventListener('blur', ()=>{ state.hover=null; render(); if (state.pinned) showPinned(); else hideTip(); });
 });
 svg.addEventListener('click', ()=>{ state.pinned=null; state.node=null; render(); hideTip(); });
 window.addEventListener('scroll', ()=>{ if (!state.hover) hideTip(); }, {passive:true});
