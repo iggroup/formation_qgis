@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: _site
+  resources:
+    - assets/infrastructure-sig-hybride.html
 
 website:
   title: "Formation QGIS"
@@ -37,6 +39,8 @@ website:
             text: "Édition, export et mise en page"
           - href: introduction-qgis/formulaires-signets-3d.qmd
             text: "Formulaires, signets et introduction 3D"
+          - href: introduction-qgis/infrastructure-sig-hybride.qmd
+            text: "Infrastructure SIG hybride"
           - href: introduction-qgis/exercice-passerelles-arcgis.qmd
             text: "Exercice : passerelles ArcGIS (MO et PAZ)"
       - section: "Base de données et projet QGIS"

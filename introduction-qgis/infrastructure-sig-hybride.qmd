@@ -1,0 +1,47 @@
+---
+title: "Infrastructure SIG hybride"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+---
+
+## Schéma des connexions
+
+Comment QGIS et ArcGIS accèdent aux conteneurs de données ouverts et propriétaires, directement ou par un serveur cartographique.
+
+- **Couleur** : gris pour une liaison native, orange pour une liaison limitée ou indirecte.
+- **Trait** : plein pour la lecture-écriture, tirets pour la lecture seule, pointillé pour une copie des données vers le cloud (ArcGIS Online n'accède à aucune base de données : on y téléverse les données, ou il référence un service).
+
+Survolez une liaison pour lire ses limites, cliquez sur une boîte pour isoler ses connexions. Le tableau sous le schéma détaille les 27 liaisons.
+
+```{=html}
+<iframe id="sig-hybride" src="../assets/infrastructure-sig-hybride.html"
+        title="Schéma interactif de l'infrastructure SIG hybride"
+        style="width:100%;height:1600px;border:0;display:block" loading="lazy"></iframe>
+<script>
+window.addEventListener('message', function (ev) {
+  if (ev.data && ev.data.type === 'sig-hybride-height') {
+    document.getElementById('sig-hybride').style.height = (ev.data.h + 4) + 'px';
+  }
+});
+</script>
+```
+
+[Ouvrir le schéma en plein écran](../assets/infrastructure-sig-hybride.html){target="_blank"}
+
+## À retenir
+
+- ArcSDE n'est plus un produit séparé : on parle de **géodatabase d'entreprise**, stockée dans Oracle, SQL Server ou PostgreSQL. QGIS s'y connecte par le SGBD, jamais par ArcSDE.
+- Le type de géométrie décide de la lisibilité : PostGIS `geometry`, SQL Server `geometry`/`geography` et Oracle `SDO_GEOMETRY` sont lus par QGIS ; le type `ST_Geometry` d'Esri ne l'est pas.
+- Données versionnées : lire les vues versionnées et éviter d'éditer depuis QGIS, qui contourne les règles de la géodatabase.
+- Les standards OGC (WMS, WMTS, WFS, OGC API Features) sont le terrain commun entre les deux mondes.
+- Pour passer d'un format à l'autre : `ogr2ogr` (GDAL), la boîte à outils de traitement QGIS, les outils de conversion ArcGIS ou FME.
+
+## Sources
+
+- [Manuel QGIS : ouvrir des données](https://docs.qgis.org/latest/fr/docs/user_manual/managing_data_source/opening_data.html)
+- [GDAL : pilote OpenFileGDB](https://gdal.org/drivers/vector/openfilegdb.html)
+- [Esri : utiliser SQL avec les géodatabases d'entreprise](https://desktop.arcgis.com/en/arcmap/latest/manage-data/using-sql-with-gdbs/flisting.htm)
+- [Safe Community : lire la géométrie SDE dans SQL Server](https://community.safe.com/data-7/can-sql-server-2012-really-read-sde-10-1-geometry-9904)

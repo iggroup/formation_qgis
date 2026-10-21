@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infrastructure SIG hybride</title>
+<style>
+/* Layout: un schéma large en trois bandes (clients / serveurs / données), coupé ouvert | propriétaire, suivi du tableau de référence des liaisons */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --fg:#1b2228; --muted:#5a6670; --line:#d3d9dd;
+  --edge:#56636e; --warn:#c27a06; --warn-bg:#fff4dc; --warn-ink:#7a4700; --warn-num:#ffffff;
+  --open:#2a7a66; --open-zone:#e9f2ee; --prop:#3c5c9a; --prop-zone:#edf0f6; --focus:#2a7a66;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light;
+}
+/* Intégré dans le site Quarto par iframe : fond blanc, pas de marge, hauteur pilotée par la page parente */
+html,body{margin:0}
+body{background:#ffffff;color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.55}
+.wrap{padding:2px;display:grid;gap:18px}
+.wrap > *{min-width:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.15;margin:0;text-wrap:balance}
+h2{font-size:19px;font-weight:600;margin:0 0 10px;text-wrap:balance}
+.lede{max-width:70ch;color:var(--muted);margin:10px 0 0}
+.pill-warn{display:inline-block;font-size:12.5px;font-weight:600;color:var(--warn-ink);background:var(--warn-bg);
+  border:1px solid var(--warn);border-radius:999px;padding:0 8px;line-height:1.5;white-space:nowrap}
+.pill-ok{display:inline-block;font-size:12.5px;font-weight:600;color:var(--fg);border:1px solid var(--line);
+  border-radius:999px;padding:0 8px;line-height:1.5;white-space:nowrap}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;justify-content:space-between}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.filters button{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button:focus-visible,.node:focus-visible,tr:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{flex:none}
+
+.schema-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+#schema{display:block;width:100%;min-width:860px;height:auto}
+.detail{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px 16px;min-height:76px}
+.detail p{margin:4px 0 0;max-width:90ch}
+.detail .hint{color:var(--muted);margin:0}
+.d-num{font-family:var(--mono);font-weight:600;color:var(--muted);margin-right:4px}
+
+/* SVG */
+.zone-open{fill:var(--open-zone)} .zone-prop{fill:var(--prop-zone)}
+.zone-h{font:600 12px var(--mono);letter-spacing:.14em}
+.zone-h.open{fill:var(--open)} .zone-h.prop{fill:var(--prop)}
+.band{font:500 11px var(--mono);letter-spacing:.12em;fill:var(--muted);paint-order:stroke;stroke:var(--open-zone);stroke-width:5px}
+.sep{stroke:var(--line);stroke-dasharray:3 5;stroke-width:1}
+.divider{stroke:var(--line);stroke-width:1}
+.bracket{fill:none;stroke:var(--prop);stroke-width:1.2}
+.bracket-t{font:500 11px var(--mono);fill:var(--prop);letter-spacing:.02em}
+.node{cursor:pointer;transition:opacity .15s}
+.node rect{fill:var(--surface);stroke-width:1.6}
+.node.open rect{stroke:var(--open)} .node.prop rect{stroke:var(--prop)}
+.node.is-sel rect{stroke-width:3}
+.node .nt{font:600 14px var(--sans);fill:var(--fg)}
+.node .ns{font:400 11.5px var(--sans);fill:var(--muted)}
+.node:focus{outline:none}
+.node:focus-visible rect{stroke-width:3}
+.edge{fill:none;stroke-width:1.6;transition:opacity .15s,stroke-width .15s;stroke-linecap:round}
+.edge.ok{stroke:var(--edge)}
+.edge.warn{stroke:var(--warn);stroke-width:1.8}
+.edge.ro{stroke-dasharray:6 4}
+.edge.cp{stroke-dasharray:0.5 5;stroke-width:2.6}
+.edge.cp.is-hot{stroke-width:4}
+.edge.is-hot{stroke-width:3.4}
+.hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer;pointer-events:stroke}
+.badge{cursor:pointer;transition:opacity .15s}
+.badge .ok-c{fill:var(--surface);stroke:var(--edge);stroke-width:1.3}
+.badge .num{font:600 10.5px var(--mono);fill:var(--fg)}
+.badge.warn .ok-c{fill:var(--warn-bg);stroke:var(--warn)}
+.badge.warn .num{fill:var(--warn-ink)}
+.is-dim{opacity:.1}
+.node.is-dim{opacity:.35}
+.is-hidden{display:none}
+
+/* Tableau */
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+thead th{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr.grp th{font-family:var(--sans);font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;background:var(--bg);color:var(--fg)}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);width:2.5em}
+td.l{font-weight:600;white-space:nowrap}
+tbody tr.row{cursor:pointer;transition:background .12s,opacity .12s}
+tbody tr.row.is-hot{background:var(--bg)}
+tbody tr.row.row-dim{opacity:.4}
+
+.notes ul{margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:80ch}
+.sources{font-size:13px;color:var(--muted)}
+.sources ul{margin:4px 0 0;padding-left:1.2em}
+.sources a{color:var(--prop)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<main class="wrap">
+
+  <div class="toolbar">
+    <div class="filters" role="group" aria-label="Filtrer les liaisons">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">Toutes les liaisons</button>
+      <button type="button" id="f-direct" data-f="direct" aria-pressed="false">Directes (client ↔ données)</button>
+      <button type="button" id="f-server" data-f="server" aria-pressed="false">Via un serveur</button>
+      <button type="button" id="f-ro" data-f="ro" aria-pressed="false">Lecture seule</button>
+      <button type="button" id="f-warn" data-f="warn" aria-pressed="false">Limitées</button>
+    </div>
+    <div class="legend">
+      <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="33" y2="5" stroke="var(--edge)" stroke-width="2"/></svg>Lecture-écriture</span>
+      <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="33" y2="5" stroke="var(--edge)" stroke-width="2" stroke-dasharray="6 4"/></svg>Lecture seule</span>
+      <span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="33" y2="5" stroke="var(--edge)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.5 5"/></svg>Copie vers le cloud</span>
+      <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="33" y2="5" stroke="var(--edge)" stroke-width="3"/></svg>Native</span>
+      <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="33" y2="5" stroke="var(--warn)" stroke-width="3"/></svg>Limitée ou indirecte</span>
+    </div>
+  </div>
+
+  <div class="schema-scroll">
+    <svg id="schema" viewBox="0 0 1200 770" role="img" aria-label="Schéma des connexions entre QGIS, ArcGIS, les serveurs cartographiques et les conteneurs de données"></svg>
+  </div>
+
+  <div class="detail" id="detail" aria-live="polite"></div>
+
+  <section>
+    <h2>Les liaisons en détail</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Liaison</th><th>Accès</th><th>Ce qu'il faut savoir</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('schema');
+
+const N = {
+  qgis:  {x:250,  y:100, w:220, h:64, t:'QGIS Desktop',        s:'client SIG libre',            f:'open'},
+  pro:   {x:850,  y:100, w:220, h:64, t:'ArcGIS Pro',          s:'client SIG Esri',             f:'prop'},
+  qsrv:  {x:200,  y:400, w:190, h:64, t:'QGIS Server',         s:'WMS · WFS · OGC API',         f:'open'},
+  asrv:  {x:810,  y:400, w:190, h:64, t:'ArcGIS Server',       s:'ArcGIS Enterprise · REST',    f:'prop'},
+  agol:  {x:1070, y:400, w:190, h:64, t:'ArcGIS Online',       s:'SaaS Esri · REST',            f:'prop'},
+  gpkg:  {x:140,  y:690, w:180, h:64, t:'GeoPackage',          s:'.gpkg · standard OGC',        f:'open'},
+  pg:    {x:375,  y:690, w:180, h:64, t:'PostgreSQL / PostGIS', s:'SGBD libre',                 f:'open'},
+  fgdb:  {x:640,  y:690, w:180, h:64, t:'File Geodatabase',    s:'.gdb · format Esri',          f:'prop'},
+  ora:   {x:860,  y:690, w:180, h:64, t:'Oracle',              s:'SDO_GEOMETRY / ST_Geometry',  f:'prop'},
+  mssql: {x:1080, y:690, w:180, h:64, t:'SQL Server',          s:'geometry / geography',        f:'prop'}
+};
+
+// a = nœud du haut (ou de gauche), b = nœud du bas
+const E = [
+  {a:'qgis', b:'gpkg', s:'ok',   k:'direct', d:"Format natif de QGIS (fournisseur OGR). Lecture et écriture ; styles et projets peuvent être stockés dans le fichier."},
+  {a:'qgis', b:'pg',   s:'ok',   k:'direct', d:"Fournisseur PostgreSQL natif : lecture, écriture, multi-utilisateur, vues et requêtes SQL. Si la base est une géodatabase d'entreprise Esri, la géométrie doit être de type PostGIS : le type ST_Geometry d'Esri n'est pas lisible."},
+  {a:'qgis', b:'fgdb', s:'warn', k:'direct', d:"Pilote GDAL OpenFileGDB : lecture sans logiciel supplémentaire, écriture simple depuis GDAL 3.6 (QGIS 3.28 et suivants). Domaines, sous-types, relations, topologie et annotations ne sont pas gérés ou seulement en partie."},
+  {a:'qgis', b:'ora',  s:'warn', k:'direct', r:'ro', d:"Lecture seule recommandée.Fournisseur Oracle, avec un client Oracle (Instant Client) à installer. SDO_GEOMETRY est lu nativement ; ST_Geometry, type par défaut des géodatabases Oracle, ne l'est pas. Données versionnées : lire la vue versionnée. Éditer depuis QGIS contourne la logique de la géodatabase."},
+  {a:'qgis', b:'mssql',s:'warn', k:'direct', r:'ro', d:"Lecture seule recommandée.Fournisseur MS SQL Server : les types geometry et geography sont lus nativement (geometry est le défaut des géodatabases SQL Server). Données versionnées : lire la vue versionnée (_evw). À réserver à la lecture : l'édition contourne ObjectID, versionnement et règles de la géodatabase."},
+  {a:'pro',  b:'gpkg', s:'ok',   k:'direct', d:"Lecture et édition supportées. Création avec l'outil « Créer une base de données SQLite » (type GeoPackage). Pas de comportements géodatabase (domaines, relations, topologie)."},
+  {a:'pro',  b:'pg',   s:'warn', k:'direct', d:"Sans géodatabase d'entreprise : couches de requête et édition simple (licence Standard ou Advanced, champ identifiant unique requis). Versionnement, réplicas et comportements géodatabase exigent d'activer une géodatabase d'entreprise (licence ArcGIS Enterprise)."},
+  {a:'pro',  b:'fgdb', s:'ok',   k:'direct', d:"Format natif d'ArcGIS, avec toutes les fonctionnalités de la géodatabase."},
+  {a:'pro',  b:'ora',  s:'ok',   k:'direct', d:"Géodatabase d'entreprise (ex-ArcSDE) : connexion directe par fichier .sde, versionnement, réplicas, archivage. Client Oracle requis sur le poste."},
+  {a:'pro',  b:'mssql',s:'ok',   k:'direct', d:"Géodatabase d'entreprise (ex-ArcSDE) : connexion directe par fichier .sde, toutes les fonctionnalités. Pilote ODBC SQL Server requis sur le poste."},
+  {a:'qgis', b:'qsrv', s:'ok',   k:'server', d:"Le projet QGIS (.qgs/.qgz) est publié tel quel, avec sa symbologie. QGIS Desktop consomme ensuite les services WMS, WMTS, WFS et OGC API Features."},
+  {a:'qsrv', b:'gpkg', s:'ok',   k:'server', d:"Source native de QGIS Server. Le fichier doit être accessible depuis le serveur."},
+  {a:'qsrv', b:'pg',   s:'ok',   k:'server', d:"Source recommandée pour QGIS Server : performance, accès concurrents, édition via WFS-T."},
+  {a:'qsrv', b:'mssql',s:'warn', k:'server', r:'ro', d:"Lecture seule recommandée.Possible avec les fournisseurs MS SQL Server ou Oracle, avec les mêmes limites que QGIS Desktop : pilotes ODBC ou client Oracle à installer sur le serveur, ST_Geometry illisible, données versionnées à lire par les vues."},
+  {a:'pro',  b:'asrv', s:'ok',   k:'server', d:"Partage depuis ArcGIS Pro vers le portail ArcGIS Enterprise : couches de carte, couches d'entités, services de géotraitement."},
+  {a:'asrv', b:'fgdb', s:'ok',   k:'server', r:'ro', d:"Données copiées sur le serveur à la publication, ou dossier enregistré comme data store. Les services publiés ainsi servent à la consultation ; pour éditer, publier depuis une géodatabase d'entreprise ou en couche hébergée."},
+  {a:'asrv', b:'ora',  s:'ok',   k:'server', d:"Géodatabase d'entreprise enregistrée comme data store : les services lisent les données en direct, versionnement possible."},
+  {a:'asrv', b:'mssql',s:'ok',   k:'server', d:"Géodatabase d'entreprise enregistrée comme data store : les services lisent les données en direct, versionnement possible."},
+  {a:'asrv', b:'pg',   s:'ok',   k:'server', d:"PostgreSQL est un SGBD supporté par Esri, en géodatabase d'entreprise ou en base simple enregistrée. Vérifier la compatibilité des versions PostgreSQL et PostGIS avec la matrice Esri."},
+  {a:'qgis', b:'asrv', s:'warn', k:'server', r:'ro', d:"Fournisseur ArcGIS REST : services MapServer et FeatureServer en lecture seule, symbologie reprise en partie. Pour éditer ou rester dans les standards, activer WMS/WFS sur ArcGIS Server."},
+  {a:'qgis', b:'agol', s:'warn', k:'server', r:'ro', d:"Couches publiques lisibles via ArcGIS REST. Contenus privés : configurer une authentification (ESRI Token ou OAuth2) dans QGIS. Lecture seule ; cartes web et applications ne sont pas lisibles."},
+  {a:'pro',  b:'agol', s:'ok',   k:'server', r:'cp', d:"Partage de couches hébergées, cartes web et applications depuis ArcGIS Pro. Les données sont copiées dans le cloud Esri : une modification de la source n'apparaît qu'après republication ou écrasement de la couche. Le stockage consomme des crédits AGOL."},
+  {a:'pro',  b:'qsrv', s:'ok',   k:'server', r:'ro', d:"ArcGIS Pro ajoute les services OGC WMS, WMTS et WFS (OGC API Features dans les versions récentes), en consultation : pas d'édition WFS-T. La symbologie WMS reste celle du serveur."},
+  {a:'asrv', b:'agol', s:'ok',   k:'server', d:"Services ArcGIS Server référencés comme éléments dans AGOL. Le service doit être accessible depuis Internet. Un service d'entités avec l'édition activée reste modifiable depuis AGOL."},
+  {a:'qsrv', b:'agol', s:'warn', k:'server', r:'ro', route:'arc', d:"AGOL ajoute des couches WMS, WFS ou OGC API Features par URL, en HTTPS public. Pas d'édition, analyses limitées, symbologie WMS figée côté serveur."},
+  {a:'agol', b:'gpkg', s:'ok',   k:'server', r:'cp', d:"Téléversement du fichier GeoPackage dans AGOL depuis le navigateur, puis publication en couche hébergée. Les données sont copiées dans le cloud Esri : après une modification du fichier, il faut le téléverser à nouveau ou écraser la couche."},
+  {a:'agol', b:'fgdb', s:'ok',   k:'server', r:'cp', d:"Téléversement de la File Geodatabase zippée dans AGOL, puis publication en couche hébergée. Même logique de copie : la couche n'a plus de lien avec la .gdb d'origine."}
+];
+E.forEach((e,i)=>{ e.n=i+1; e.t = N[e.a].t+' ↔ '+N[e.b].t; e.r = e.r || 'rw'; });
+
+// Passages des liaisons directes dans le couloir central de la bande serveurs
+const WP = {'qgis-gpkg':315,'pro-gpkg':350,'qgis-pg':395,'pro-pg':430,'qgis-fgdb':480,'pro-fgdb':515,
+            'qgis-ora':575,'pro-ora':610,'qgis-mssql':655,'pro-mssql':690};
+
+function accessLabel(e){ return e.r==='ro' ? 'lecture seule' : e.r==='cp' ? 'copie vers le cloud' : 'lecture-écriture'; }
+
+function el(tag, attrs, parent, text){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+// Fond : zones, bandes, séparateurs
+el('rect',{x:0,y:0,width:500,height:770,class:'zone-open'},svg);
+el('rect',{x:500,y:0,width:700,height:770,class:'zone-prop'},svg);
+el('line',{x1:500,y1:0,x2:500,y2:770,class:'divider'},svg);
+el('text',{x:250,y:34,'text-anchor':'middle',class:'zone-h open'},svg,'OUVERT');
+el('text',{x:850,y:34,'text-anchor':'middle',class:'zone-h prop'},svg,'PROPRIÉTAIRE');
+el('line',{x1:0,y1:238,x2:1200,y2:238,class:'sep'},svg);
+el('line',{x1:0,y1:552,x2:1200,y2:552,class:'sep'},svg);
+el('text',{x:16,y:62,class:'band'},svg,'CLIENTS');
+el('text',{x:16,y:352,class:'band'},svg,'SERVEURS');
+el('text',{x:16,y:642,class:'band'},svg,'DONNÉES');
+el('path',{d:'M770,734 v6 H1170 v-6',class:'bracket'},svg);
+el('text',{x:970,y:758,'text-anchor':'middle',class:'bracket-t'},svg,"géodatabases d'entreprise (ex-ArcSDE)");
+el('path',{d:'M285,734 v6 H465 v-6',class:'bracket'},svg);
+el('text',{x:375,y:758,'text-anchor':'middle',class:'bracket-t'},svg,"géodatabase d'entreprise possible");
+
+const gEdges = el('g',{},svg), gNodes = el('g',{},svg), gBadges = el('g',{},svg);
+
+// Côté d'accroche de chaque liaison sur chaque boîte
+function sideOf(e, k){
+  if (e.route === 'arc') return 'top';
+  const o = N[e.a===k ? e.b : e.a], n = N[k];
+  if (Math.abs(o.y - n.y) < 10) return o.x > n.x ? 'right' : 'left';
+  return o.y > n.y ? 'bottom' : 'top';
+}
+function keyX(e, k){ return e.wp != null ? e.wp : N[e.a===k ? e.b : e.a].x; }
+const sides = {};
+E.forEach(e=>{
+  e.wp = WP[e.a+'-'+e.b];
+  [e.a, e.b].forEach(k=>{ const s = sideOf(e,k); (sides[k+'|'+s] = sides[k+'|'+s] || []).push(e); });
+});
+Object.keys(sides).forEach(key=>{
+  const [k, s] = key.split('|'), n = N[k], list = sides[key];
+  list.sort((p,q)=>keyX(p,k)-keyX(q,k));
+  const sp = Math.min(24, n.w*0.8/Math.max(1,list.length));
+  list.forEach((e,i)=>{
+    let x = n.x, y = n.y;
+    if (s==='top' || s==='bottom'){ x = n.x + (i-(list.length-1)/2)*sp; y = s==='top' ? n.y-n.h/2 : n.y+n.h/2; }
+    else x = s==='right' ? n.x+n.w/2 : n.x-n.w/2;
+    e['pt_'+k] = {x, y};
+  });
+});
+
+function pathOf(e){
+  const A = e['pt_'+e.a], B = e['pt_'+e.b];
+  if (e.route === 'arc') return `M${A.x},${A.y} C${A.x},${A.y-120} ${B.x},${B.y-120} ${B.x},${B.y}`;
+  if (Math.abs(A.y-B.y) < 1) return `M${A.x},${A.y} L${B.x},${B.y}`;
+  if (e.wp != null) return `M${A.x},${A.y} C${A.x},${A.y+90} ${e.wp},290 ${e.wp},400 C${e.wp},510 ${B.x},${B.y-80} ${B.x},${B.y}`;
+  const k = (B.y-A.y)/2;
+  return `M${A.x},${A.y} C${A.x},${A.y+k} ${B.x},${B.y-k} ${B.x},${B.y}`;
+}
+
+E.forEach(e=>{
+  const d = pathOf(e);
+  e.path = el('path',{d, class:'edge '+e.s+' '+e.r},gEdges);
+  e.hit  = el('path',{d, class:'hit'},gEdges);
+  const b = e.badge = el('g',{class:'badge '+e.s},gBadges);
+  el('title',{},b, e.n+'. '+e.t+' ('+accessLabel(e)+')');
+  el('circle',{cx:0,cy:0,r:10,class:'ok-c'},b);
+  el('text',{x:0,y:3.6,'text-anchor':'middle',class:'num'},b,e.n);
+});
+
+Object.keys(N).forEach(k=>{
+  const n = N[k];
+  const g = n.g = el('g',{class:'node '+n.f, tabindex:0, role:'button', 'aria-label':n.t+' : afficher ses liaisons'},gNodes);
+  el('rect',{x:n.x-n.w/2, y:n.y-n.h/2, width:n.w, height:n.h, rx:8},g);
+  el('text',{x:n.x, y:n.y-3, 'text-anchor':'middle', class:'nt'},g,n.t);
+  el('text',{x:n.x, y:n.y+16, 'text-anchor':'middle', class:'ns'},g,n.s);
+  g.addEventListener('click', ev=>{ ev.stopPropagation(); toggleNode(k); });
+  g.addEventListener('keydown', ev=>{ if (ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); toggleNode(k); } });
+});
+
+// Placement des étiquettes sans chevauchement
+function placeBadges(){
+  const obst = Object.values(N).map(n=>({x:n.x-n.w/2-6, y:n.y-n.h/2-6, w:n.w+12, h:n.h+12}));
+  obst.push({x:200,y:18,w:100,h:22},{x:780,y:18,w:140,h:22},{x:8,y:48,w:80,h:20},{x:8,y:338,w:80,h:20},{x:8,y:628,w:80,h:20},{x:770,y:730,w:400,h:34},{x:260,y:730,w:230,h:34});
+  const ov = (a,b)=>{ const w=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x), h=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y); return (w>0&&h>0)?w*h:0; };
+  const cand = [.5]; for (let d=.04; d<=.42; d+=.04){ cand.push(.5-d, .5+d); }
+  const order = E.slice().sort((p,q)=>(p.s==='warn'?0:1)-(q.s==='warn'?0:1));
+  order.forEach(e=>{
+    const L = e.path.getTotalLength(), bw = 22, bh = 22;
+    let best = null;
+    for (const t of cand){
+      const p = e.path.getPointAtLength(L*t);
+      const r = {x:p.x-bw/2-3, y:p.y-bh/2-3, w:bw+6, h:bh+6};
+      let score = 0; obst.forEach(o=>score+=ov(r,o));
+      if (r.x<0 || r.x+r.w>1200) score += 5000;
+      if (!best || score < best.score) best = {p, r, score};
+      if (score === 0) break;
+    }
+    obst.push(best.r);
+    e.badge.setAttribute('transform', `translate(${best.p.x.toFixed(1)},${best.p.y.toFixed(1)})`);
+  });
+}
+placeBadges();
+
+// Tableau
+const rows = document.getElementById('rows');
+function grp(label){ const tr = document.createElement('tr'); tr.className='grp'; const th=document.createElement('th'); th.colSpan=4; th.textContent=label; tr.appendChild(th); rows.appendChild(tr); }
+function statusHTML(e){
+  const acc = e.r==='ro' ? 'Lecture seule' : e.r==='cp' ? 'Copie vers le cloud' : 'Lecture-écriture';
+  return `<span class="pill-ok">${acc}</span>` + (e.s==='warn' ? ' <span class="pill-warn">Limitée</span>' : '');
+}
+grp('Connexions directes : client ↔ données');
+E.forEach((e,i)=>{
+  if (i===10) grp('Via un serveur cartographique');
+  const tr = document.createElement('tr'); tr.className='row'; tr.tabIndex=0;
+  tr.innerHTML = `<td class="n">${e.n}</td><td class="l"></td><td>${statusHTML(e)}</td><td></td>`;
+  tr.children[1].textContent = e.t; tr.children[3].textContent = e.d;
+  rows.appendChild(tr); e.row = tr;
+  tr.addEventListener('mouseenter', ()=>{ state.hover=e; render(); });
+  tr.addEventListener('mouseleave', ()=>{ state.hover=null; render(); });
+  tr.addEventListener('click', ()=>{ state.pinned = state.pinned===e ? null : e; render(); });
+  tr.addEventListener('keydown', ev=>{ if (ev.key==='Enter'){ state.pinned = state.pinned===e ? null : e; render(); } });
+});
+
+// État et interactions
+const state = {filter:'all', node:null, pinned:null, hover:null};
+const detail = document.getElementById('detail');
+function visible(e){
+  const f = state.filter;
+  return f==='all' || (f==='direct' && e.k==='direct') || (f==='server' && e.k==='server') || (f==='warn' && e.s==='warn') || (f==='ro' && e.r==='ro');
+}
+function toggleNode(k){ state.node = state.node===k ? null : k; state.pinned = null; render(); }
+
+function render(){
+  const active = state.hover || state.pinned;
+  const linked = new Set();
+  E.forEach(e=>{
+    const vis = visible(e);
+    const on = !state.node || e.a===state.node || e.b===state.node;
+    const hot = active === e;
+    [e.path, e.hit, e.badge].forEach(x=>x.classList.toggle('is-hidden', !vis));
+    const dim = vis && (!on || (active && !hot));
+    e.path.classList.toggle('is-dim', dim);
+    e.badge.classList.toggle('is-dim', dim);
+    e.path.classList.toggle('is-hot', hot);
+    e.row.classList.toggle('is-hot', hot);
+    e.row.classList.toggle('row-dim', !vis || !on);
+    if (vis && on){ linked.add(e.a); linked.add(e.b); }
+  });
+  Object.keys(N).forEach(k=>{
+    N[k].g.classList.toggle('is-dim', !!state.node && !linked.has(k));
+    N[k].g.classList.toggle('is-sel', state.node===k);
+  });
+  if (active){
+    detail.innerHTML = `<div><span class="d-num">${active.n}.</span><strong></strong> ${statusHTML(active)}</div><p></p>`;
+    detail.querySelector('strong').textContent = active.t;
+    detail.querySelector('p').textContent = active.d;
+  } else if (state.node){
+    const n = N[state.node];
+    const list = E.filter(e=>visible(e) && (e.a===state.node || e.b===state.node));
+    const ro = list.filter(e=>e.r==='ro').length;
+    detail.innerHTML = `<div><strong></strong></div><p></p>`;
+    detail.querySelector('strong').textContent = n.t;
+    detail.querySelector('p').textContent = `${list.length} liaison${list.length>1?'s':''} affichée${list.length>1?'s':''}, dont ${ro} en lecture seule. Survolez une liaison pour le détail, ou cliquez à nouveau sur la boîte pour tout réafficher.`;
+  } else {
+    detail.innerHTML = '<p class="hint">Survolez ou touchez une liaison (ligne ou étiquette) pour lire ses limites. Cliquez sur une boîte pour isoler ses connexions.</p>';
+  }
+}
+
+E.forEach(e=>{
+  [e.hit, e.badge].forEach(x=>{
+    x.addEventListener('mouseenter', ()=>{ state.hover=e; render(); });
+    x.addEventListener('mouseleave', ()=>{ state.hover=null; render(); });
+    x.addEventListener('click', ev=>{ ev.stopPropagation(); state.pinned = state.pinned===e ? null : e; render(); });
+  });
+});
+svg.addEventListener('click', ()=>{ state.pinned=null; state.node=null; render(); });
+
+document.querySelectorAll('.filters button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    state.filter = b.dataset.f; state.pinned = null;
+    document.querySelectorAll('.filters button').forEach(x=>x.setAttribute('aria-pressed', x===b ? 'true' : 'false'));
+    render();
+  });
+});
+
+render();
+
+// Transmet la hauteur du contenu à la page Quarto qui contient l'iframe
+function postHeight(){
+  if (window.parent !== window) window.parent.postMessage({type:'sig-hybride-height', h:document.documentElement.scrollHeight}, '*');
+}
+window.addEventListener('load', postHeight);
+if (window.ResizeObserver) new ResizeObserver(postHeight).observe(document.body);
+postHeight();
+})();
+</script>
+</body>
+</html>
