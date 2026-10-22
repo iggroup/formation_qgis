@@ -79,8 +79,8 @@ Les notions de modélisation, d'automatisation et de personnalisation, utilisée
 | Donnée | Format | Contenu |
 |---|---|---|
 | `badoc.gdb` | File Geodatabase ESRI | Extraction de la MO (biens-fonds, couverture du sol, etc.) |
-| `PAZ_PROD.gdb` | File Geodatabase ESRI | Plan d'affectation des zones (affectation primaire, etc.), modèle complet |
-| `PAZ_CONS.gdb` | File Geodatabase ESRI | Plan d'affectation des zones (affectation primaire, etc.), modèle "à plat" (les domaines sont résolus|
+| `PAZ_PROD.gdb` | File Geodatabase ESRI | Plan d'affectation des zones (affectation primaire, etc.), <br> modèle complet |
+| `PAZ_CONS.gdb` | File Geodatabase ESRI | Plan d'affectation des zones (affectation primaire, etc.), <br> modèle "à plat" (les domaines sont résolus) |
 | Géoservices cantonaux | ArcGIS Online : <https://services1.arcgis.com/rMlsWo8szOzlrpCq/arcgis/rest/services/><br>ArcGIS Server (WMS ou WFS) : <https://sit.vs.ch/arcgis/rest/services/> <br> Ces deux serveurs s'ajoutent avec une connexion `Serveur ArcGIS REST` | Communes, MO, plans d'aménagement |
 | Géoservices geodienste.ch | WMS / WFS : <https://geodienste.ch/db/av/fra><br>Pour d'autres données, voir les liens sur <https://www.geodienste.ch/>  | MO harmonisée au niveau suisse |
 | Géoservices swisstopo | WMTS / tuiles vectorielles<br>Passer par le plugin *swisslocator* pour les afficher<br>Passer par le plugin *swissgeodownloader* pour les télécharger | Cartes nationales, SWISSIMAGE, fond de plan léger |
